@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>順勢策略分析工具</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0f1117;
+  --bg2: #1a1d27;
+  --bg3: #22263a;
+  --border: rgba(255,255,255,0.08);
+  --text: #e8eaf0;
+  --text2: #8b90a0;
+  --green: #1D9E75;
+  --red: #D85A30;
+  --blue: #378ADD;
+  --radius: 10px;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.app { max-width: 900px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 18px; font-weight: 500; margin-bottom: 16px; color: var(--text); }
+h1 span { font-size: 12px; color: var(--text2); font-weight: 400; margin-left: 8px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+select { font-size: 13px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg2); color: var(--text); height: 36px; cursor: pointer; }
+select:focus { outline: none; border-color: var(--blue); }
+.run-btn { font-size: 13px; padding: 8px 20px; border-radius: var(--radius); background: var(--blue); color: white; border: none; cursor: pointer; height: 36px; font-weight: 500; transition: opacity 0.15s; }
+.run-btn:hover { opacity: 0.85; }
+.run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+@media (max-width: 500px) { .metrics { grid-template-columns: repeat(2, 1fr); } }
+.metric { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
+.metric-label { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+.metric-value { font-size: 20px; font-weight: 500; }
+.up { color: var(--green); }
+.down { color: var(--red); }
+.neutral { color: var(--text); }
+.chart-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.chart-title { font-size: 12px; color: var(--text2); margin-bottom: 12px; display: flex; gap: 16px; align-items: center; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text2); }
+.legend-dot { width: 10px; height: 3px; border-radius: 2px; }
+.chart-wrap { position: relative; width: 100%; height: 280px; }
+.signal-wrap { position: relative; width: 100%; height: 70px; }
+.trades-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.trades-title { font-size: 13px; font-weight: 500; margin-bottom: 12px; }
+.trade-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 7px 0; border-bottom: 1px solid var(--border); color: var(--text2); }
+.trade-row:last-child { border-bottom: none; }
+.trade-pnl { font-weight: 500; }
+.empty { text-align: center; color: var(--text2); padding: 20px; font-size: 13px; }
+.loading-overlay { display: none; position: absolute; inset: 0; background: rgba(15,17,23,0.7); border-radius: var(--radius); align-items: center; justify-content: center; font-size: 13px; color: var(--text2); }
+.note { font-size: 11px; color: var(--text2); padding: 8px 0; line-height: 1.6; }
+.error-msg { background: rgba(216,90,48,0.15); border: 1px solid rgba(216,90,48,0.3); border-radius: var(--radius); padding: 12px; font-size: 13px; color: var(--red); margin-bottom: 12px; display: none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>順勢策略分析工具 <span>真實行情 · 台股/加密貨幣</span></h1>
+
+  <div class="toolbar">
+    <select id="market" onchange="updateSymbols()">
+      <option value="tw">📈 台股</option>
+      <option value="crypto">₿ 加密貨幣</option>
+    </select>
+    <select id="symbol">
+      <option value="2330.TW">台積電 2330</option>
+      <option value="2317.TW">鴻海 2317</option>
+      <option value="2603.TW">長榮 2603</option>
+      <option value="2454.TW">聯發科 2454</option>
+      <option value="0050.TW">0050</option>
+      <option value="2308.TW">台達電 2308</option>
+      <option value="3711.TW">日月光 3711</option>
+      <option value="2382.TW">廣達 2382</option>
+    </select>
+    <select id="strategy">
+      <option value="dmi">DMI 方向動能</option>
+      <option value="ema">EMA 快慢交叉</option>
+      <option value="vol">波動突破</option>
+      <option value="sixline">六條線</option>
+    </select>
+    <select id="period">
+      <option value="7d">7 天</option>
+      <option value="1mo">1 個月</option>
+      <option value="1y" selected>1 年</option>
+      <option value="2y">2 年</option>
+      <option value="3y">3 年</option>
+      <option value="5y">5 年</option>
+    </select>
+    <button class="run-btn" id="runBtn" onclick="runAnalysis()">▶ 執行分析</button>
+  </div>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">總報酬</div><div class="metric-value neutral" id="m-return">—</div></div>
+    <div class="metric"><div class="metric-label">年化報酬</div><div class="metric-value neutral" id="m-cagr">—</div></div>
+    <div class="metric"><div class="metric-label">獲利因子 PF</div><div class="metric-value neutral" id="m-pf">—</div></div>
+    <div class="metric"><div class="metric-label">最大回撤</div><div class="metric-value neutral" id="m-dd">—</div></div>
+    <div class="metric"><div class="metric-label">勝率</div><div class="metric-value neutral" id="m-wr">—</div></div>
+    <div class="metric"><div class="metric-label">交易筆數</div><div class="metric-value neutral" id="m-trades">—</div></div>
+  </div>
+
+  <div class="chart-card" style="position:relative;">
+    <div class="chart-title">
+      K 線走勢與進出場點
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#378ADD;"></div> 收盤價</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#1D9E75;"></div> EMA20</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#D85A30; height:2px; border-top: 2px dashed #D85A30;"></div> EMA50</div>
+        <div class="legend-item"><span style="color:#1D9E75; font-weight:500;">▲</span> 買進</div>
+        <div class="legend-item"><span style="color:#D85A30; font-weight:500;">▼</span> 賣出</div>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="priceChart" role="img" aria-label="價格走勢與進出場訊號圖"></canvas>
+    </div>
+    <div class="loading-overlay" id="priceLoading">載入中...</div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">均線差距指標（正值=多頭動能）</div>
+    <div class="signal-wrap">
+      <canvas id="signalChart" role="img" aria-label="均線差距指標"></canvas>
+    </div>
+  </div>
+
+  <div class="trades-card">
+    <div class="trades-title">最近進出場紀錄</div>
+    <div id="tradesList"><div class="empty">按執行分析後顯示</div></div>
+  </div>
+
+  <p class="note">※ 資料來源：Yahoo Finance。台股含 0.45% 來回成本（手續費+證交稅）；加密貨幣含 0.24%。過去績效不代表未來。</p>
+</div>
+
+<script>
+const SYMBOLS = {
+  tw: [
+    {v:'2330.TW',l:'台積電 2330'},{v:'2317.TW',l:'鴻海 2317'},
+    {v:'2603.TW',l:'長榮 2603'},{v:'2454.TW',l:'聯發科 2454'},
+    {v:'0050.TW',l:'0050'},{v:'2308.TW',l:'台達電 2308'},
+    {v:'3711.TW',l:'日月光 3711'},{v:'2382.TW',l:'廣達 2382'},
+    {v:'3008.TW',l:'大立光 3008'},{v:'2891.TW',l:'中信金 2891'}
+  ],
+  crypto: [
+    {v:'PAXG-USD',l:'PAXG 黃金幣'},{v:'SOL-USD',l:'SOL'},
+    {v:'ETH-USD',l:'ETH'},{v:'BNB-USD',l:'BNB'},
+    {v:'XRP-USD',l:'XRP'},{v:'BTC-USD',l:'BTC'}
+  ]
+};
+
+function updateSymbols() {
+  const market = document.getElementById('market').value;
+  const sel = document.getElementById('symbol');
+  sel.innerHTML = '';
+  SYMBOLS[market].forEach(s => {
+    const o = document.createElement('option');
+    o.value = s.v; o.textContent = s.l;
+    sel.appendChild(o);
+  });
+}
+
+let priceChart = null, signalChart = null;
+
+async function runAnalysis() {
+  const symbol = document.getElementById('symbol').value;
+  const strategy = document.getElementById('strategy').value;
+  const period = document.getElementById('period').value;
+  const btn = document.getElementById('runBtn');
+  const errEl = document.getElementById('errorMsg');
+
+  btn.disabled = true;
+  btn.textContent = '載入中...';
+  errEl.style.display = 'none';
+  document.getElementById('priceLoading').style.display = 'flex';
+
+  try {
+    const res = await fetch(`/api/analyze?symbol=${symbol}&strategy=${strategy}&period=${period}`);
+    const data = await res.json();
+
+    if (data.error) {
+      errEl.textContent = '錯誤：' + data.error;
+      errEl.style.display = 'block';
+      return;
+    }
+
+    updateMetrics(data.metrics);
+    drawPriceChart(data);
+    drawSignalChart(data);
+    drawTrades(data.metrics.trades, data.dates);
+
+  } catch(e) {
+    errEl.textContent = '無法連線到伺服器，請確認後端是否正在執行。';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '▶ 執行分析';
+    document.getElementById('priceLoading').style.display = 'none';
+  }
+}
+
+function setMetric(id, value, cls) {
+  const el = document.getElementById(id);
+  el.textContent = value;
+  el.className = 'metric-value ' + cls;
+}
+
+function updateMetrics(m) {
+  setMetric('m-return', (m.totalReturn >= 0 ? '+' : '') + m.totalReturn + '%', m.totalReturn >= 0 ? 'up' : 'down');
+  setMetric('m-cagr', (m.cagr >= 0 ? '+' : '') + m.cagr + '%', m.cagr >= 0 ? 'up' : 'down');
+  setMetric('m-pf', m.pf >= 999 ? '∞' : m.pf.toFixed(2), m.pf >= 1 ? 'up' : 'down');
+  setMetric('m-dd', m.maxDD + '%', 'down');
+  setMetric('m-wr', m.wr + '%', m.wr >= 40 ? 'up' : 'neutral');
+  setMetric('m-trades', m.tradeCount + ' 筆', 'neutral');
+}
+
+function drawPriceChart(data) {
+  if (priceChart) priceChart.destroy();
+  const ctx = document.getElementById('priceChart').getContext('2d');
+  priceChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.dates,
+      datasets: [
+        { label: '收盤價', data: data.prices, borderColor: '#378ADD', borderWidth: 1.5, pointRadius: 0, tension: 0.1, fill: false, order: 3 },
+        { label: 'EMA20', data: data.ema20, borderColor: '#1D9E75', borderWidth: 1, pointRadius: 0, tension: 0.1, fill: false, order: 2 },
+        { label: 'EMA50', data: data.ema50, borderColor: '#D85A30', borderWidth: 1, pointRadius: 0, tension: 0.1, fill: false, borderDash: [4,2], order: 2 },
+        { label: '買進', data: data.buyPoints, borderColor: 'transparent', backgroundColor: '#1D9E75', pointRadius: 7, pointStyle: 'triangle', showLine: false, order: 1 },
+        { label: '賣出', data: data.sellPoints, borderColor: 'transparent', backgroundColor: '#D85A30', pointRadius: 7, pointStyle: 'triangle', rotation: 180, showLine: false, order: 1 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+      scales: {
+        x: { ticks: { maxTicksLimit: 8, color: '#8b90a0', font: { size: 11 }, autoSkip: true }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        y: { ticks: { color: '#8b90a0', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+      }
+    }
+  });
+}
+
+function drawSignalChart(data) {
+  if (signalChart) signalChart.destroy();
+  const ctx2 = document.getElementById('signalChart').getContext('2d');
+  signalChart = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: data.dates,
+      datasets: [{ label: 'EMA差距%', data: data.diff, backgroundColor: data.diff.map(v => v >= 0 ? 'rgba(29,158,117,0.6)' : 'rgba(216,90,48,0.6)'), borderWidth: 0 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { display: false },
+        y: { ticks: { color: '#8b90a0', font: { size: 10 }, maxTicksLimit: 3 }, grid: { color: 'rgba(255,255,255,0.05)' } }
+      }
+    }
+  });
+}
+
+function drawTrades(trades, dates) {
+  const list = document.getElementById('tradesList');
+  if (!trades || trades.length === 0) {
+    list.innerHTML = '<div class="empty">此期間無交易紀錄</div>';
+    return;
+  }
+  list.innerHTML = trades.map(t => `
+    <div class="trade-row">
+      <span style="color:#8b90a0;">買 <strong style="color:#1D9E75;">${t.buyPrice}</strong> → 賣 <strong style="color:#D85A30;">${t.sellPrice}</strong></span>
+      <span class="trade-pnl ${t.ret >= 0 ? 'up' : 'down'}">${t.ret >= 0 ? '+' : ''}${t.ret}%</span>
+    </div>`).join('');
+}
+</script>
+</body>
+</html>
