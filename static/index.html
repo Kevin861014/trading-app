@@ -208,14 +208,30 @@ const PERIODS=['7d','1mo','1y','2y','3y','5y'];
 const PERIOD_LABELS={'7d':'7天','1mo':'1月','1y':'1年','2y':'2年','3y':'3年','5y':'5年'};
 const TFS=['1d','4h','1h'];
 const TF_LABELS={'1d':'日線','4h':'4H','1h':'1H'};
+const _isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 const CHART_OPTS={
   layout:{background:{color:'#0f1117'},textColor:'#8b90a0'},
   grid:{vertLines:{color:'rgba(255,255,255,0.04)'},horzLines:{color:'rgba(255,255,255,0.04)'}},
-  crosshair:{mode:1},
+  crosshair:{
+    mode:1,
+    vertLine:{visible:true,labelVisible:true},
+    horzLine:{visible:true,labelVisible:true},
+  },
   rightPriceScale:{borderColor:'rgba(255,255,255,0.1)'},
   timeScale:{borderColor:'rgba(255,255,255,0.1)',timeVisible:true},
-  handleScroll:{mouseWheel:true,pressedMouseMove:true,horzTouchDrag:true,vertTouchDrag:false},
-  handleScale:{mouseWheel:true,pinch:true,axisPressedMouseMove:true},
+  handleScroll:{
+    mouseWheel:true,
+    pressedMouseMove:true,
+    horzTouchDrag:true,
+    vertTouchDrag:false,
+  },
+  handleScale:{
+    mouseWheel:true,
+    pinch:true,
+    axisPressedMouseMove:true,
+  },
+  // 手機點擊直接觸發 crosshair
+  kineticScroll:{touch:_isTouch, mouse:false},
 };
 
 function defaultTf(symbol){
@@ -450,11 +466,19 @@ function buildChartsInContainer(container,data,indicators,height){
   const {K,D}=calcKD(prices);
   const rsiVals=calcRSI(prices);
 
-  // ── Tooltip 浮動框 ──
+  // ── 偵測是否為觸控裝置 ──
+  const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+
+  // ── 電腦版浮動 tooltip ──
   const tooltip=document.createElement('div');
   tooltip.style.cssText='position:absolute;z-index:100;display:none;background:rgba(20,24,36,0.97);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:8px 12px;font-size:11px;color:#e8eaf0;pointer-events:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.5);min-width:160px;';
   container.style.position='relative';
-  container.appendChild(tooltip);
+  if(!isTouch) container.appendChild(tooltip);
+
+  // ── 手機版固定資訊列 ──
+  const infoBar=document.createElement('div');
+  infoBar.style.cssText='display:none;padding:8px 12px;background:rgba(22,26,38,0.95);border-top:1px solid rgba(255,255,255,0.08);font-size:11px;color:#e8eaf0;line-height:1.8;';
+  if(isTouch) container.appendChild(infoBar);
 
   // ── 主圖：K線 + EMA20/50 + 買賣點 ──
   const mainH=height||240;
@@ -501,13 +525,8 @@ function buildChartsInContainer(container,data,indicators,height){
   charts.push(mainChart);
 
   // ── Crosshair 事件：顯示 tooltip ──
-  mainChart.subscribeCrosshairMove(param=>{
-    if(!param||!param.point||param.point.x<0){tooltip.style.display='none';return;}
-    const seriesData=param.seriesData.get(mainSeries);
-    if(!seriesData){tooltip.style.display='none';return;}
-    const hoverTime=seriesData.time;
-    const idx=dates.findIndex(d=>toTime(d)===hoverTime||d===hoverTime);
-    if(idx<0||idx>=dates.length){tooltip.style.display='none';return;}
+  // ── 共用：組合資訊 HTML ──
+  function buildInfoHtml(idx, compact){
     const price=prices[idx];
     const e20=data.ema20[idx];
     const e50=data.ema50[idx];
@@ -515,33 +534,67 @@ function buildChartsInContainer(container,data,indicators,height){
     const hasSell=data.sellPoints[idx]!==null;
     const k=K[idx],d_=D[idx],rsi=rsiVals[idx],df=diff[idx];
     const isUp=idx===0||prices[idx]>=prices[idx-1];
-    const priceColor=isUp?'#26a69a':'#ef5350';
-    function row(label,val,color){return `<div style="display:flex;justify-content:space-between;gap:14px;line-height:1.9;"><span style="color:#8b90a0;">${label}</span><span style="color:${color};font-weight:500;">${val}</span></div>`;}
-    let html=`<div style="color:#8b90a0;margin-bottom:5px;font-size:10px;">${dates[idx]}</div>`;
-    if(hasOHLC){
-      html+=row('開盤',data.opens[idx],priceColor);
-      html+=row('最高',data.highs[idx],'#26a69a');
-      html+=row('最低',data.lows[idx],'#ef5350');
-      html+=row('收盤',price,priceColor);
+    const pc=isUp?'#26a69a':'#ef5350';
+    function row(l,v,c){return `<span style="color:#8b90a0;">${l}</span> <span style="color:${c};font-weight:500;">${v}</span>`;}
+    if(compact){
+      // 手機版：橫向緊湊排列
+      let parts=[];
+      parts.push(`<span style="color:#8b90a0;font-size:10px;">${dates[idx]}</span>`);
+      if(hasOHLC) parts.push(`${row('開',data.opens[idx],pc)} ${row('高',data.highs[idx],'#26a69a')} ${row('低',data.lows[idx],'#ef5350')} ${row('收',price,pc)}`);
+      else parts.push(row('收',price,'#378ADD'));
+      if(e20!=null) parts.push(row('E20',e20,'#26a69a'));
+      if(e50!=null) parts.push(row('E50',e50,'#ef5350'));
+      if(indicators.kd&&k!=null) parts.push(`<span style="color:#8b90a0;">KD</span> <span style="color:#f5a623;">${k}</span>/<span style="color:#378ADD;">${d_}</span>`);
+      if(indicators.rsi&&rsi!=null) parts.push(row('RSI',rsi,'#9c27b0'));
+      if(hasBuy) parts.push('<span style="color:#26a69a;font-weight:700;">▲買進</span>');
+      if(hasSell) parts.push('<span style="color:#ef5350;font-weight:700;">▼賣出</span>');
+      return parts.join(' &nbsp;·&nbsp; ');
     } else {
-      html+=row('收盤',price,'#378ADD');
+      // 電腦版：垂直排列
+      function rowV(l,v,c){return `<div style="display:flex;justify-content:space-between;gap:14px;line-height:1.9;"><span style="color:#8b90a0;">${l}</span><span style="color:${c};font-weight:500;">${v}</span></div>`;}
+      let html=`<div style="color:#8b90a0;margin-bottom:5px;font-size:10px;">${dates[idx]}</div>`;
+      if(hasOHLC){html+=rowV('開盤',data.opens[idx],pc)+rowV('最高',data.highs[idx],'#26a69a')+rowV('最低',data.lows[idx],'#ef5350')+rowV('收盤',price,pc);}
+      else html+=rowV('收盤',price,'#378ADD');
+      if(e20!=null) html+=rowV('EMA20',e20,'#26a69a');
+      if(e50!=null) html+=rowV('EMA50',e50,'#ef5350');
+      if(indicators.ema) html+=rowV('EMA差距',(df>0?'+':'')+df+'%',df>=0?'#26a69a':'#ef5350');
+      if(indicators.kd&&k!=null) html+=`<div style="display:flex;justify-content:space-between;gap:14px;line-height:1.9;"><span style="color:#8b90a0;">K/D</span><span style="font-weight:500;"><span style="color:#f5a623;">${k}</span>/<span style="color:#378ADD;">${d_}</span></span></div>`;
+      if(indicators.rsi&&rsi!=null) html+=rowV('RSI',rsi,'#9c27b0');
+      if(hasBuy) html+=`<div style="color:#26a69a;font-weight:700;margin-top:3px;">▲ 買進訊號</div>`;
+      if(hasSell) html+=`<div style="color:#ef5350;font-weight:700;margin-top:3px;">▼ 賣出訊號</div>`;
+      return html;
     }
-    if(e20!=null) html+=row('EMA20',e20,'#26a69a');
-    if(e50!=null) html+=row('EMA50',e50,'#ef5350');
-    if(indicators.ema) html+=row('EMA差距',(df>0?'+':'')+df+'%',df>=0?'#26a69a':'#ef5350');
-    if(indicators.kd&&k!=null) html+=`<div style="display:flex;justify-content:space-between;gap:14px;line-height:1.9;"><span style="color:#8b90a0;">K/D</span><span style="font-weight:500;"><span style="color:#f5a623;">${k}</span> / <span style="color:#378ADD;">${d_}</span></span></div>`;
-    if(indicators.rsi&&rsi!=null) html+=row('RSI',rsi,'#9c27b0');
-    if(hasBuy) html+=`<div style="color:#26a69a;font-weight:700;margin-top:3px;">▲ 買進訊號</div>`;
-    if(hasSell) html+=`<div style="color:#ef5350;font-weight:700;margin-top:3px;">▼ 賣出訊號</div>`;
-    tooltip.innerHTML=html;
-    const mainRect=mainDiv.getBoundingClientRect();
-    let left=param.point.x+15;
-    if(left+180>mainRect.width) left=param.point.x-195;
-    tooltip.style.left=left+'px';
-    tooltip.style.top='10px';
-    tooltip.style.display='block';
+  }
+
+  mainChart.subscribeCrosshairMove(param=>{
+    if(!param||!param.point||param.point.x<0){
+      tooltip.style.display='none';
+      return;
+    }
+    const seriesData=param.seriesData.get(mainSeries);
+    if(!seriesData){tooltip.style.display='none';return;}
+    const hoverTime=seriesData.time;
+    const idx=dates.findIndex(d=>toTime(d)===hoverTime||d===hoverTime);
+    if(idx<0||idx>=dates.length){tooltip.style.display='none';return;}
+
+    if(isTouch){
+      // 手機：顯示固定資訊列
+      infoBar.innerHTML=buildInfoHtml(idx,true);
+      infoBar.style.display='block';
+    } else {
+      // 電腦：顯示浮動 tooltip
+      tooltip.innerHTML=buildInfoHtml(idx,false);
+      const mainRect=mainDiv.getBoundingClientRect();
+      let left=param.point.x+15;
+      if(left+180>mainRect.width) left=param.point.x-195;
+      tooltip.style.left=left+'px';
+      tooltip.style.top='10px';
+      tooltip.style.display='block';
+    }
   });
-  mainDiv.addEventListener('mouseleave',()=>{tooltip.style.display='none';});
+  mainDiv.addEventListener('mouseleave',()=>{
+    if(!isTouch) tooltip.style.display='none';
+  });
 
   // ── 子圖 tooltip 共用函數 ──
   function makeSubTooltip(paneDiv){
