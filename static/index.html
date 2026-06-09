@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>順勢策略分析</title>
 <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+<script src="/static/stocks_data.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -75,6 +76,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-close:hover{color:var(--text);}
 .modal-ind-toggles{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
 .note{font-size:10px;color:var(--text3);padding:8px 16px 16px;text-align:center;}
+/* 搜尋補全 */
+.search-wrap{position:relative;flex:1;min-width:200px;}
+.search-wrap input{width:100%;font-size:13px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);}
+.search-wrap input:focus{outline:none;border-color:var(--blue);}
+.search-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:300;max-height:240px;overflow-y:auto;display:none;}
+.search-item{padding:9px 12px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;}
+.search-item:hover,.search-item.active{background:var(--bg3);}
+.search-item-name{color:var(--text);font-weight:500;}
+.search-item-code{color:var(--text3);font-size:11px;}
+.search-item-market{font-size:10px;padding:2px 6px;border-radius:4px;color:#fff;flex-shrink:0;}
+.market-tw{background:rgba(55,138,221,0.5);}
+.market-us{background:rgba(38,166,154,0.5);}
+.market-crypto{background:rgba(245,166,35,0.5);}
+.market-metal{background:rgba(156,39,176,0.4);}
+/* 推薦策略列 */
+.rec-bar{padding:8px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:rgba(55,138,221,0.04);}
+.rec-label{font-size:11px;color:var(--text2);white-space:nowrap;}
+.rec-tags{display:flex;gap:6px;flex-wrap:wrap;}
+.rec-tag{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid rgba(55,138,221,0.4);background:rgba(55,138,221,0.1);color:#378ADD;cursor:pointer;transition:all 0.15s;}
+.rec-tag:hover{background:rgba(55,138,221,0.25);border-color:var(--blue);}
+.rec-tag.best{border-color:rgba(245,166,35,0.5);background:rgba(245,166,35,0.1);color:#f5a623;}
+.rec-tag.best:hover{background:rgba(245,166,35,0.2);}
+.rec-hint{font-size:10px;color:var(--text3);}
 /* 說明區塊 */
 .intro-bar{background:linear-gradient(135deg,rgba(55,138,221,0.08),rgba(38,166,154,0.06));border-bottom:1px solid var(--border);padding:20px 16px 16px;}
 .intro-content{max-width:860px;margin:0 auto;}
@@ -135,9 +159,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <div class="add-bar">
-  <input id="addInput" placeholder="代碼：2330.TW / AAPL / PAXG-USD" onkeydown="if(event.key==='Enter')addStock()">
+  <div class="search-wrap">
+    <input id="addInput" placeholder="搜尋股票：台積電 / AAPL / BTC / 或直接輸入代碼" onkeydown="onSearchKey(event)" oninput="onSearchInput()" autocomplete="off">
+    <div class="search-dropdown" id="searchDropdown"></div>
+  </div>
   <select id="addStrat"></select>
   <button class="btn-add" onclick="addStock()">＋ 加入</button>
+</div>
+<div class="rec-bar" id="recBar" style="display:none;">
+  <span class="rec-label">推薦策略：</span>
+  <div class="rec-tags" id="recTags"></div>
+  <span class="rec-hint">點擊策略標籤自動套用</span>
 </div>
 
 <div class="grid" id="grid"></div>
@@ -274,10 +306,16 @@ function addStock(){
   const symbol=/^\d{4}$/.test(raw)?raw+'.TW':raw;
   const strat=document.getElementById('addStrat').value||'diadx';
   const id=nextId++;
-  const stock={id,symbol,name:autoName(symbol),strat,period:'2y',tf:defaultTf(symbol),
+  // 從 STOCK_DB 找資料
+  const dbEntry = (typeof STOCK_DB !== 'undefined') ? STOCK_DB.find(s=>s.s===symbol||s.s===symbol.toUpperCase()) : null;
+  const tf = dbEntry && MARKET_TF ? (MARKET_TF[dbEntry.market]||defaultTf(symbol)) : defaultTf(symbol);
+  const name = dbEntry ? dbEntry.full : autoName(symbol);
+  const stock={id,symbol,name,strat,period:'2y',tf,
     indicators:{ema:true,kd:true,rsi:true,vol:true}};
   stocks.push(stock);save();
   input.value='';
+  hideRec();
+  document.getElementById('searchDropdown').style.display='none';
   renderCard(stock);
   loadCard(id);
 }
@@ -754,6 +792,106 @@ function renderCard(stock){
   `;
   document.getElementById('grid').appendChild(div);
 }
+
+// ── 搜尋補全 ──────────────────────────────────────────
+let searchActive = -1;
+let currentRec = [];
+
+function onSearchInput(){
+  const q = document.getElementById('addInput').value.trim().toLowerCase();
+  const dd = document.getElementById('searchDropdown');
+  searchActive = -1;
+
+  if(!q || q.length < 1){ dd.style.display='none'; hideRec(); return; }
+
+  const results = STOCK_DB.filter(s =>
+    s.n.toLowerCase().includes(q) ||
+    s.s.toLowerCase().includes(q) ||
+    s.full.toLowerCase().includes(q)
+  ).slice(0, 12);
+
+  if(!results.length){ dd.style.display='none'; hideRec(); return; }
+
+  const mLabel = {tw:'台股', us:'美股', crypto:'加密', metal:'貴金屬'};
+  dd.innerHTML = results.map((s,i) => `
+    <div class="search-item" data-idx="${i}" onclick="selectStock('${s.s}','${s.full}','${s.market}',${JSON.stringify(s.rec).replace(/"/g,"'")})">
+      <span class="search-item-name">${s.full}</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="search-item-code">${s.s}</span>
+        <span class="search-item-market market-${s.market}">${mLabel[s.market]||s.market}</span>
+      </div>
+    </div>`).join('');
+  dd.style.display = 'block';
+}
+
+function onSearchKey(e){
+  const dd = document.getElementById('searchDropdown');
+  const items = dd.querySelectorAll('.search-item');
+  if(e.key === 'ArrowDown'){
+    e.preventDefault();
+    searchActive = Math.min(searchActive+1, items.length-1);
+    items.forEach((el,i) => el.classList.toggle('active', i===searchActive));
+  } else if(e.key === 'ArrowUp'){
+    e.preventDefault();
+    searchActive = Math.max(searchActive-1, -1);
+    items.forEach((el,i) => el.classList.toggle('active', i===searchActive));
+  } else if(e.key === 'Enter'){
+    if(searchActive >= 0 && items[searchActive]){
+      items[searchActive].click();
+    } else {
+      addStock();
+    }
+  } else if(e.key === 'Escape'){
+    dd.style.display='none';
+    hideRec();
+  }
+}
+
+function selectStock(symbol, fullName, market, rec){
+  document.getElementById('addInput').value = symbol;
+  document.getElementById('searchDropdown').style.display = 'none';
+  currentRec = rec || [];
+  // 自動設定時框
+  const tfMap = MARKET_TF || {tw:'1d',us:'1d',crypto:'4h',metal:'1d'};
+  // 顯示推薦策略
+  showRec(rec, fullName);
+}
+
+function showRec(rec, name){
+  if(!rec || !rec.length){ hideRec(); return; }
+  const bar = document.getElementById('recBar');
+  const tags = document.getElementById('recTags');
+  bar.style.display = 'flex';
+  tags.innerHTML = rec.map((v,i) => {
+    const label = STRAT_DESC[v] || v;
+    return `<span class="rec-tag ${i===0?'best':''}" onclick="applyRec('${v}')" title="${i===0?'⭐ 最推薦':'推薦'}">${i===0?'⭐ ':''}${label}</span>`;
+  }).join('');
+}
+
+function hideRec(){
+  document.getElementById('recBar').style.display = 'none';
+  currentRec = [];
+}
+
+function applyRec(stratVal){
+  const sel = document.getElementById('addStrat');
+  if(sel){
+    for(let o of sel.options){
+      if(o.value === stratVal){ sel.value = stratVal; break; }
+    }
+  }
+  // 高亮選中的 tag
+  document.querySelectorAll('.rec-tag').forEach(t => {
+    t.style.fontWeight = t.getAttribute('onclick').includes(stratVal) ? '700' : '';
+  });
+}
+
+// 點擊外部關閉下拉
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.search-wrap')){
+    document.getElementById('searchDropdown').style.display = 'none';
+  }
+});
 
 function closeIntro(){
   const bar=document.getElementById('introBar');
