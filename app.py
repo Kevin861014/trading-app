@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import sys, os, datetime, time
 sys.path.insert(0, os.path.dirname(__file__))
-from sim import run_backtest, STRATS, market_cost, atr as calc_atr
+from sim import run_backtest, STRATS, market_cost
 from sim import ema as calc_ema
 
 app = Flask(__name__)
@@ -39,9 +39,9 @@ _cache = {}
 _cache_time = {}
 CACHE_TTL = 3600
 
-def fetch_data(symbol, start_date):
+def fetch_data(symbol, start_date, interval='1d'):
     import yfinance as yf
-    cache_key = f"{symbol}_{start_date}"
+    cache_key = f"{symbol}_{start_date}_{interval}"
     now = time.time()
     if cache_key in _cache and (now - _cache_time.get(cache_key, 0)) < CACHE_TTL:
         return _cache[cache_key]
@@ -50,7 +50,13 @@ def fetch_data(symbol, start_date):
             if attempt > 0:
                 time.sleep(2 * attempt)
             ticker = yf.Ticker(symbol)
-            df = ticker.history(start=start_date, auto_adjust=True)
+            kw = dict(auto_adjust=True)
+            # yfinance 日內資料有時間限制
+            if interval == '1h':
+                kw['period'] = '730d'
+            else:
+                kw['start'] = start_date
+            df = ticker.history(interval=interval, **kw)
             if df is not None and not df.empty:
                 out = []
                 for ts, row in df.iterrows():
@@ -72,24 +78,17 @@ def fetch_data(symbol, start_date):
     return []
 
 def get_real_trades(ohlcv, el_full, xl_full):
-    """
-    模擬 sim.py 的進出場邏輯，只回傳真實成交的買賣點索引。
-    規則：進場後必須等出場才能再進場（long-only，一次一筆）。
-    """
     N = len(ohlcv)
     pos = False
-    buy_idx = [None] * N   # 真實買進點
-    sell_idx = [None] * N  # 真實賣出點
-
+    buy_idx = [None] * N
+    sell_idx = [None] * N
     for i in range(N - 1):
         if not pos and el_full[i]:
-            # 以下一根開盤成交（模擬 sim 的 o2=O[i+1]）
             pos = True
             buy_idx[i+1] = True
         elif pos and xl_full[i]:
             pos = False
             sell_idx[i+1] = True
-
     return buy_idx, sell_idx
 
 @app.route('/api/strategies')
@@ -98,12 +97,19 @@ def get_strategies():
 
 @app.route('/api/analyze')
 def analyze():
-    symbol   = request.args.get('symbol', '2330.TW')
-    strategy = request.args.get('strategy', 'diadx')
-    period   = request.args.get('period', '1y')
+    symbol    = request.args.get('symbol', '2330.TW')
+    strategy  = request.args.get('strategy', 'diadx')
+    period    = request.args.get('period', '1y')
+    timeframe = request.args.get('timeframe', '1d')
+
+    # yfinance 不支援 4h，用 1h 替代（sim.py 也這樣處理）
+    yf_tf = {'1d':'1d', '4h':'1h', '1h':'1h'}.get(timeframe, '1d')
 
     days = PERIOD_DAYS.get(period, 365)
-    fetch_days = days + 700
+    if yf_tf == '1h':
+        fetch_days = min(days + 100, 680)  # yfinance 1h 上限約 730 天
+    else:
+        fetch_days = days + 700
     start_date = (datetime.datetime.now() - datetime.timedelta(days=fetch_days)).strftime('%Y-%m-%d')
 
     try:
@@ -111,40 +117,40 @@ def analyze():
         spec = ('yf', symbol)
         _sim.COMMISSION, _sim.SLIPPAGE = market_cost(spec, strategy)
 
-        ohlcv = fetch_data(symbol, start_date)
+        ohlcv = fetch_data(symbol, start_date, interval=yf_tf)
 
-        if not ohlcv or len(ohlcv) < 220:
+        if not ohlcv or len(ohlcv) < 100:
             cnt = len(ohlcv) if ohlcv else 0
             return jsonify({'error': f'資料不足（取得 {cnt} 根）。台股如 2330.TW，美股如 AAPL，加密如 PAXG-USD'}), 400
 
-        result = run_backtest(ohlcv, strategy=strategy, risk_pct=0.015, timeframe='1d')
+        # 回測需要足夠暖機，不夠就提示
+        if len(ohlcv) < 220:
+            return jsonify({'error': f'資料不足以跑回測（{len(ohlcv)} 根），請選擇更長的時間範圍或改用日線'}), 400
+
+        result = run_backtest(ohlcv, strategy=strategy, risk_pct=0.015, timeframe=yf_tf)
         if not result:
-            return jsonify({'error': '回測失敗，請選擇更長的時間範圍（建議至少 2 年）'}), 400
+            return jsonify({'error': '回測失敗，請選擇更長的時間範圍'}), 400
 
         dates_dt, equity, stats = result
 
-        # 取完整訊號
         O=[r[1] for r in ohlcv]; H=[r[2] for r in ohlcv]
         L=[r[3] for r in ohlcv]; C=[r[4] for r in ohlcv]
         V=[(r[5] if len(r)>5 else 0.0) for r in ohlcv]
         s = STRATS.get(strategy, STRATS['trend'])
-        el_full, xl_full = s['build'](O, H, L, C, V, '1d')
+        el_full, xl_full = s['build'](O, H, L, C, V, yf_tf)
 
-        # 取真實成交點（模擬 sim 邏輯）
         real_buy, real_sell = get_real_trades(ohlcv, el_full, xl_full)
 
-        # 截取顯示段
-        display_n = min(days + 30, len(ohlcv))
+        display_n = min(days * (6 if yf_tf=='1h' else 1) + 30, len(ohlcv))
         disp = ohlcv[-display_n:]
         offset = len(ohlcv) - display_n
 
         prices = [r[4] for r in disp]
-        dates  = [datetime.datetime.utcfromtimestamp(r[0]/1000).strftime('%Y-%m-%d') for r in disp]
+        dates  = [datetime.datetime.utcfromtimestamp(r[0]/1000).strftime('%Y-%m-%d %H:%M' if yf_tf=='1h' else '%Y-%m-%d') for r in disp]
 
         ema20 = calc_ema(prices, 20)
         ema50 = calc_ema(prices, 50)
 
-        # 截取顯示段的真實買賣點
         buy_points  = [prices[i] if real_buy[offset+i]  else None for i in range(len(prices))]
         sell_points = [prices[i] if real_sell[offset+i] else None for i in range(len(prices))]
 
@@ -155,23 +161,15 @@ def analyze():
             else:
                 diff.append(0)
 
-        # 真實交易紀錄（配對買賣）
         trades_list = []
-        buy_px = None
-        buy_date = None
+        buy_px = None; buy_date = None
         for i in range(len(prices)):
             if real_buy[offset+i]:
-                buy_px = prices[i]
-                buy_date = dates[i]
+                buy_px = prices[i]; buy_date = dates[i]
             elif real_sell[offset+i] and buy_px:
                 ret = round((prices[i] - buy_px) / buy_px * 100, 2)
-                trades_list.append({
-                    'buyPrice':  round(buy_px, 2),
-                    'sellPrice': round(prices[i], 2),
-                    'buyDate':   buy_date,
-                    'sellDate':  dates[i],
-                    'ret': ret
-                })
+                trades_list.append({'buyPrice':round(buy_px,2),'sellPrice':round(prices[i],2),
+                                    'buyDate':buy_date,'sellDate':dates[i],'ret':ret})
                 buy_px = None
         trades_list = trades_list[-10:][::-1]
 
@@ -180,21 +178,21 @@ def analyze():
         pf = round(payoff * wr / max(1 - wr, 0.001), 2) if payoff > 0 else 0
 
         return jsonify({
-            'dates':      dates,
-            'prices':     [round(p, 2) for p in prices],
-            'ema20':      [round(v, 2) if v is not None else None for v in ema20],
-            'ema50':      [round(v, 2) if v is not None else None for v in ema50],
-            'buyPoints':  buy_points,
+            'dates': dates,
+            'prices': [round(p,2) for p in prices],
+            'ema20': [round(v,2) if v is not None else None for v in ema20],
+            'ema50': [round(v,2) if v is not None else None for v in ema50],
+            'buyPoints': buy_points,
             'sellPoints': sell_points,
-            'diff':       diff,
+            'diff': diff,
             'metrics': {
-                'totalReturn': round(stats['total'], 2),
-                'cagr':        round(stats['cagr'], 2),
-                'pf':          pf,
-                'maxDD':       round(stats['mdd'], 2),
-                'wr':          round(stats['win'], 1),
-                'tradeCount':  stats['trades'],
-                'trades':      trades_list,
+                'totalReturn': round(stats['total'],2),
+                'cagr': round(stats['cagr'],2),
+                'pf': pf,
+                'maxDD': round(stats['mdd'],2),
+                'wr': round(stats['win'],1),
+                'tradeCount': stats['trades'],
+                'trades': trades_list,
             }
         })
 
