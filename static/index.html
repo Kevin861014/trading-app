@@ -305,8 +305,10 @@ async function loadCard(id){
     if(data.metrics.trades&&data.metrics.trades.length){
       tbl.innerHTML=data.metrics.trades.map(t=>`
         <div class="tm-row">
-          <span><span style="color:var(--green);">▲${t.buyPrice}</span> <span style="color:var(--text3);">→</span> <span style="color:var(--red);">▼${t.sellPrice}</span></span>
-          <span class="${t.ret>=0?'up':'down'}" style="font-weight:600;">${t.ret>=0?'+':''}${t.ret}%</span>
+          <div>
+            <div><span style="color:var(--green);">▲${t.buyPrice}</span> <span style="color:var(--text3);">→</span> <span style="color:var(--red);">▼${t.sellPrice}</span> <span class="${t.ret>=0?'up':'down'}" style="font-weight:600;margin-left:6px;">${t.ret>=0?'+':''}${t.ret}%</span></div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px;">${t.buyDate||''} → ${t.sellDate||''}</div>
+          </div>
         </div>`).join('');
     } else {
       tbl.innerHTML='<div style="color:var(--text2);padding:8px 0;text-align:center;font-size:12px;">此期間無交易紀錄</div>';
