@@ -76,6 +76,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-close:hover{color:var(--text);}
 .modal-ind-toggles{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
 .note{font-size:10px;color:var(--text3);padding:8px 16px 16px;text-align:center;}
+/* 快速導覽列 */
+.nav-bar{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:500;display:flex;flex-direction:column;gap:3px;padding:8px 6px;background:rgba(22,26,38,0.95);border-left:1px solid var(--border);border-radius:10px 0 0 10px;box-shadow:-4px 0 16px rgba(0,0,0,0.3);max-height:80vh;overflow-y:auto;}
+.nav-bar::-webkit-scrollbar{width:3px;}
+.nav-bar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.nav-item{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;cursor:pointer;min-width:140px;transition:background 0.15s;border:1px solid transparent;}
+.nav-item:hover{background:var(--bg3);}
+.nav-item-name{font-size:11px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;}
+.nav-item-sig{font-size:10px;white-space:nowrap;}
+.nav-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.nav-dot.buy{background:#26a69a;box-shadow:0 0 6px rgba(38,166,154,0.6);}
+.nav-dot.sell{background:#ef5350;box-shadow:0 0 6px rgba(239,83,80,0.6);}
+.nav-dot.hold{background:#555a6e;}
+.nav-dot.expired{background:#f5a623;}
+@media(max-width:680px){
+  .nav-bar{top:auto;bottom:0;right:0;left:0;transform:none;flex-direction:row;border-radius:10px 10px 0 0;border-left:none;border-top:1px solid var(--border);padding:6px 8px;overflow-x:auto;overflow-y:hidden;max-height:none;}
+  .nav-item{min-width:auto;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;}
+  .nav-item-name{max-width:70px;font-size:10px;}
+  .nav-item-sig{display:none;}
+}
 /* 搜尋補全 */
 .search-wrap{position:relative;flex:1;min-width:200px;}
 .search-wrap input{width:100%;font-size:13px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);}
@@ -173,6 +192,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <div class="grid" id="grid"></div>
+<!-- 快速導覽列 -->
+<div class="nav-bar" id="navBar"></div>
 <p class="note">資料來源：Yahoo Finance｜台股含0.45%成本｜加密含0.24%｜過去績效不代表未來</p>
 
 <!-- 放大 Modal -->
@@ -334,6 +355,7 @@ function addStock(){
   document.getElementById('searchDropdown').style.display='none';
   renderCard(stock);
   loadCard(id);
+  updateNavBar();
 }
 
 function deleteStock(id,e){
@@ -342,6 +364,7 @@ function deleteStock(id,e){
   stocks=stocks.filter(s=>s.id!==id);save();
   destroyCard(id);
   document.getElementById(`card-${id}`)?.remove();
+  updateNavBar();
 }
 
 function destroyCard(id){
@@ -408,6 +431,7 @@ async function loadCard(id){
     drawCharts(id,data,stock.indicators);
     drawTrades(card,data.metrics.trades);
     card.querySelector('.card-status').innerHTML=`<span style="color:var(--text3);">${new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})} 更新</span>`;
+    updateNavBar();
   }catch(e){
     card.querySelector('.card-status').innerHTML=`<span style="color:var(--red);">⚠ 連線失敗</span>`;
   }

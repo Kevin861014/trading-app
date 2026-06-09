@@ -176,6 +176,49 @@ def analyze():
                 buy_px = None
         trades_list = trades_list[-10:][::-1]
 
+        # ── 策略目前持倉狀態 ──
+        current_pos = False
+        last_buy_price = None
+        last_buy_date = None
+        last_buy_idx_display = None
+        last_sell_date = None
+
+        for i in range(len(prices)):
+            if real_buy[offset+i]:
+                current_pos = True
+                last_buy_price = prices[i]
+                last_buy_date = dates[i]
+                last_buy_idx_display = i
+            elif real_sell[offset+i]:
+                current_pos = False
+                last_sell_date = dates[i]
+
+        # 訊號有效期判斷（日線：3天，4H：6根=1天）
+        signal_expired = False
+        signal_days_ago = None
+        if current_pos and last_buy_date:
+            from datetime import datetime as dt2
+            try:
+                fmt = '%Y-%m-%d %H:%M' if ' ' in last_buy_date else '%Y-%m-%d'
+                buy_dt = dt2.strptime(last_buy_date, fmt)
+                now_dt = dt2.now()
+                days_diff = (now_dt - buy_dt).days
+                signal_days_ago = days_diff
+                # 日線超過3天、或4H超過1天視為過期
+                expire_days = 1 if yf_tf == '1h' else 3
+                if days_diff > expire_days:
+                    signal_expired = True
+                # 價格漲超過3%也視為過期
+                if last_buy_price and prices[-1] > last_buy_price * 1.03:
+                    signal_expired = True
+            except:
+                pass
+
+        # 浮動損益
+        float_pnl = None
+        if current_pos and last_buy_price and prices:
+            float_pnl = round((prices[-1] - last_buy_price) / last_buy_price * 100, 2)
+
         payoff = stats.get('payoff', 0)
         wr = stats['win'] / 100
         pf = round(payoff * wr / max(1 - wr, 0.001), 2) if payoff > 0 else 0
@@ -194,6 +237,15 @@ def analyze():
             'sellPoints': sell_points,
             'diff': diff,
             'volumes': volumes,
+            'posState': {
+                'inPos': current_pos,
+                'lastBuyPrice': last_buy_price,
+                'lastBuyDate': last_buy_date,
+                'lastSellDate': last_sell_date,
+                'floatPnl': float_pnl,
+                'signalExpired': signal_expired,
+                'signalDaysAgo': signal_days_ago,
+            },
             'metrics': {
                 'totalReturn': round(stats['total'],2),
                 'cagr': round(stats['cagr'],2),
