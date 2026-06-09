@@ -1,9 +1,9 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-import sys, os
+import sys, os, datetime
 sys.path.insert(0, os.path.dirname(__file__))
-from sim import run_backtest, fetch_yf, STRATS, market_cost
-import datetime
+from sim import run_backtest, STRATS, market_cost
+from sim import ema as calc_ema
 
 app = Flask(__name__)
 CORS(app)
@@ -35,6 +35,28 @@ STRAT_LIST = [
     {"v": "trend",      "l": "順勢 EMA20/100（通用）"},
 ]
 
+def fetch_data(symbol, start_date):
+    """用 yfinance 抓資料，加上 headers 避免被擋"""
+    import yfinance as yf
+    try:
+        ticker = yf.Ticker(symbol)
+        df = ticker.history(start=start_date, auto_adjust=True)
+        if df is None or df.empty:
+            return []
+        out = []
+        for ts, row in df.iterrows():
+            try:
+                o = float(row['Open']); h = float(row['High'])
+                l = float(row['Low']);  c = float(row['Close'])
+                v = float(row['Volume']) if 'Volume' in row else 0.0
+                if c > 0:
+                    out.append([int(ts.timestamp() * 1000), o, h, l, c, v])
+            except Exception:
+                continue
+        return out
+    except Exception as e:
+        return []
+
 @app.route('/api/strategies')
 def get_strategies():
     return jsonify(STRAT_LIST)
@@ -46,8 +68,7 @@ def analyze():
     period   = request.args.get('period', '1y')
 
     days = PERIOD_DAYS.get(period, 365)
-    # 多抓 600 天暖機（六條線需要 EMA200 約 200 個交易日）
-    fetch_days = days + 600
+    fetch_days = days + 700
     start_date = (datetime.datetime.now() - datetime.timedelta(days=fetch_days)).strftime('%Y-%m-%d')
 
     try:
@@ -55,38 +76,33 @@ def analyze():
         spec = ('yf', symbol)
         _sim.COMMISSION, _sim.SLIPPAGE = market_cost(spec, strategy)
 
-        ohlcv = fetch_yf(symbol, start=start_date, interval='1d')
+        ohlcv = fetch_data(symbol, start_date)
 
         if not ohlcv or len(ohlcv) < 220:
             cnt = len(ohlcv) if ohlcv else 0
-            return jsonify({'error': f'資料不足（取得 {cnt} 根 K 棒），請確認股票代碼是否正確，或選擇更長的時間範圍'}), 400
+            return jsonify({'error': f'資料不足（取得 {cnt} 根 K 棒）。台股代碼格式如 2330.TW，美股如 AAPL，加密如 PAXG-USD'}), 400
 
-        # 完整資料跑回測（需要暖機）
         result = run_backtest(ohlcv, strategy=strategy, risk_pct=0.015, timeframe='1d')
         if not result:
-            return jsonify({'error': '回測失敗，請選擇更長的時間範圍（建議至少 1 年）'}), 400
+            return jsonify({'error': '回測失敗，請選擇更長的時間範圍（建議至少 2 年）'}), 400
 
         dates_dt, equity, stats = result
 
-        # K 線圖只顯示選擇的期間
         display_n = min(days + 30, len(ohlcv))
         disp = ohlcv[-display_n:]
 
         prices = [r[4] for r in disp]
         dates  = [datetime.datetime.utcfromtimestamp(r[0]/1000).strftime('%Y-%m-%d') for r in disp]
 
-        from sim import ema as calc_ema, atr as calc_atr
         ema20 = calc_ema(prices, 20)
         ema50 = calc_ema(prices, 50)
 
-        # 取進出場訊號（用完整 ohlcv 計算，再截取顯示段）
         O=[r[1] for r in ohlcv]; H=[r[2] for r in ohlcv]
         L=[r[3] for r in ohlcv]; C=[r[4] for r in ohlcv]
         V=[(r[5] if len(r)>5 else 0.0) for r in ohlcv]
         s = STRATS.get(strategy, STRATS['trend'])
         el_full, xl_full = s['build'](O, H, L, C, V, '1d')
 
-        # 截取顯示段的訊號
         offset = len(ohlcv) - display_n
         el = el_full[offset:]
         xl = xl_full[offset:]
@@ -101,7 +117,6 @@ def analyze():
             else:
                 diff.append(0)
 
-        # 最近交易紀錄
         trades_list = []
         buy_px = None
         for i in range(len(prices)):
@@ -117,7 +132,6 @@ def analyze():
                 buy_px = None
         trades_list = trades_list[-10:][::-1]
 
-        # PF 計算
         payoff = stats.get('payoff', 0)
         wr = stats['win'] / 100
         pf = round(payoff * wr / max(1 - wr, 0.001), 2) if payoff > 0 else 0
