@@ -295,6 +295,72 @@ def analyze():
         import traceback
         return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500
 
+@app.route('/api/best_strategy')
+def best_strategy():
+    """跑所有策略，回傳最佳前5名"""
+    symbol    = request.args.get('symbol', '2330.TW')
+    period    = request.args.get('period', '2y')
+    timeframe = request.args.get('timeframe', '1d')
+    yf_tf = {'1d':'1d', '4h':'1h', '1h':'1h'}.get(timeframe, '1d')
+
+    days = PERIOD_DAYS.get(period, 730)
+    fetch_days = days + 700
+    start_date = (datetime.datetime.now() - datetime.timedelta(days=fetch_days)).strftime('%Y-%m-%d')
+
+    try:
+        import sim as _sim
+
+        # 只抓一次資料
+        ohlcv = fetch_data(symbol, start_date, interval=yf_tf)
+        if not ohlcv or len(ohlcv) < 220:
+            return jsonify({'error': f'資料不足（{len(ohlcv) if ohlcv else 0} 根）'}), 400
+
+        O=[r[1] for r in ohlcv]; H=[r[2] for r in ohlcv]
+        L=[r[3] for r in ohlcv]; C=[r[4] for r in ohlcv]
+        V=[(r[5] if len(r)>5 else 0.0) for r in ohlcv]
+
+        results = []
+        # 跳過剝頭皮類（限掛單，不適合一般評估）
+        skip = {'rsi2dip', 'ibsdip', 'zdip'}
+
+        for strat_key, strat_info in _sim.STRATS.items():
+            if strat_key in skip:
+                continue
+            try:
+                _sim.COMMISSION, _sim.SLIPPAGE = market_cost(('yf', symbol), strat_key)
+                result = run_backtest(ohlcv, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf)
+                if not result:
+                    continue
+                _, _, stats = result
+                # 篩選條件：PF > 1 且交易筆數 >= 3
+                if stats.get('pf', 0) > 1 and stats.get('trades', 0) >= 3:
+                    payoff = stats.get('payoff', 0)
+                    wr = stats['win'] / 100
+                    pf = round(payoff * wr / max(1 - wr, 0.001), 2) if payoff > 0 else 0
+                    results.append({
+                        'strat': strat_key,
+                        'name': strat_info['name'],
+                        'pf': pf,
+                        'total': round(stats['total'], 2),
+                        'cagr': round(stats['cagr'], 2),
+                        'mdd': round(stats['mdd'], 2),
+                        'win': round(stats['win'], 1),
+                        'trades': stats['trades'],
+                    })
+            except Exception:
+                continue
+
+        # 按 PF 排序，取前 8 名
+        results.sort(key=lambda x: x['pf'], reverse=True)
+        top = results[:8]
+
+        return jsonify({'results': top, 'total_tested': len(_sim.STRATS) - len(skip)})
+
+    except Exception as e:
+        import traceback
+        return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500
+
+
 @app.route('/api/validate')
 def validate():
     """驗證股票代碼是否能抓到資料，並嘗試取得名稱"""

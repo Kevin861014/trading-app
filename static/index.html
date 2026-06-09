@@ -76,6 +76,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-close:hover{color:var(--text);}
 .modal-ind-toggles{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
 .note{font-size:10px;color:var(--text3);padding:8px 16px 16px;text-align:center;}
+/* 最佳策略彈窗 */
+.analysis-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:2000;align-items:center;justify-content:center;padding:16px;}
+.analysis-modal-bg.open{display:flex;}
+.analysis-modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:560px;padding:20px;max-height:90vh;overflow-y:auto;}
+.analysis-title{font-size:15px;font-weight:600;margin-bottom:4px;}
+.analysis-sub{font-size:11px;color:var(--text2);margin-bottom:14px;}
+.analysis-progress{margin-bottom:14px;}
+.progress-bar-wrap{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:6px;}
+.progress-bar{height:100%;background:var(--blue);border-radius:3px;transition:width 0.3s;}
+.progress-text{font-size:11px;color:var(--text2);margin-top:4px;}
+.result-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:1px solid var(--border);margin-bottom:6px;cursor:pointer;transition:all 0.15s;background:var(--bg3);}
+.result-row:hover{border-color:var(--blue);background:rgba(55,138,221,0.08);}
+.result-row.rank-1{border-color:rgba(245,166,35,0.4);background:rgba(245,166,35,0.06);}
+.result-rank{font-size:16px;width:28px;text-align:center;flex-shrink:0;}
+.result-info{flex:1;min-width:0;}
+.result-name{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.result-stats{font-size:11px;color:var(--text2);display:flex;gap:10px;flex-wrap:wrap;}
+.result-pf{font-size:16px;font-weight:700;color:var(--green);flex-shrink:0;}
+.btn-apply{font-size:11px;padding:4px 10px;border-radius:6px;background:var(--blue);color:#fff;border:none;cursor:pointer;flex-shrink:0;}
+.btn-close-analysis{font-size:13px;padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;margin-top:10px;width:100%;}
+.btn-analyze{font-size:11px;padding:4px 9px;border-radius:6px;border:1px solid rgba(55,138,221,0.4);background:rgba(55,138,221,0.1);color:var(--blue);cursor:pointer;white-space:nowrap;}
+.btn-analyze:hover{background:rgba(55,138,221,0.2);}
+.btn-analyze:disabled{opacity:0.5;cursor:not-allowed;}
 /* 骨架畫面 */
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 .skeleton{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg2) 50%,var(--bg3) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px;}
@@ -206,6 +229,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <div class="grid" id="grid"></div>
+
+<!-- 最佳策略分析彈窗 -->
+<div class="analysis-modal-bg" id="analysisBg" onclick="closeAnalysis(event)">
+  <div class="analysis-modal" onclick="event.stopPropagation()">
+    <div class="analysis-title" id="analysisTitle">🔍 分析最佳策略</div>
+    <div class="analysis-sub" id="analysisSub"></div>
+    <div class="analysis-progress" id="analysisProgress" style="display:none;">
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+      <div class="progress-text" id="progressText">準備分析...</div>
+    </div>
+    <div id="analysisResults"></div>
+    <button class="btn-close-analysis" onclick="closeAnalysis()">關閉</button>
+  </div>
+</div>
 <p class="note">資料來源：Yahoo Finance｜台股含0.45%成本｜加密含0.24%｜過去績效不代表未來</p>
 
 <!-- 放大 Modal -->
@@ -879,6 +916,7 @@ function renderCard(stock){
         <div class="card-sub">${stock.symbol} · ${getStratName(stock.strat)} · ${TF_LABELS[stock.tf]||'1d'}</div>
       </div>
       <div class="card-actions">
+        <button class="btn-analyze" onclick="runBestStrategy(${stock.id},event)" title="分析最佳策略">🔍 找最佳策略</button>
         <button class="btn-icon" onclick="openModal(${stock.id})" title="放大">⛶</button>
         <button class="btn-icon" onclick="reloadCard(${stock.id})" title="重新載入">↺</button>
         <button class="btn-icon del" onclick="deleteStock(${stock.id},event)" title="刪除">✕</button>
@@ -1126,6 +1164,99 @@ function getMarket(symbol){
 }
 
 const MARKET_GROUP_LABEL = {tw:'📈 台股', us:'🇺🇸 美股', crypto:'₿ 加密', metal:'🥇 貴金屬'};
+
+// ── 最佳策略分析 ──────────────────────────────────────────
+let analysisStockId = null;
+
+async function runBestStrategy(id, e){
+  e.stopPropagation();
+  const stock = stocks.find(s=>s.id===id);
+  if(!stock) return;
+  analysisStockId = id;
+
+  // 開啟彈窗
+  document.getElementById('analysisBg').classList.add('open');
+  document.getElementById('analysisTitle').textContent = `🔍 ${stock.name||stock.symbol} — 最佳策略分析`;
+  document.getElementById('analysisSub').textContent = `正在測試所有策略，找出最適合這支股票的前 8 名...`;
+  document.getElementById('analysisProgress').style.display = 'block';
+  document.getElementById('analysisResults').innerHTML = '';
+  document.getElementById('progressBar').style.width = '0%';
+  document.getElementById('progressText').textContent = '連線中...';
+
+  // 模擬進度條（實際是一個長請求）
+  let prog = 0;
+  const progInterval = setInterval(()=>{
+    prog = Math.min(prog + (100 - prog) * 0.04, 92);
+    document.getElementById('progressBar').style.width = prog + '%';
+    document.getElementById('progressText').textContent = `分析中... ${Math.round(prog)}%（約需 20~40 秒）`;
+  }, 800);
+
+  try{
+    const r = await fetch(`/api/best_strategy?symbol=${stock.symbol}&period=${stock.period||'2y'}&timeframe=${stock.tf||'1d'}`);
+    const data = await r.json();
+    clearInterval(progInterval);
+
+    if(data.error){
+      document.getElementById('analysisResults').innerHTML = `<div style="color:var(--red);padding:12px;"">❌ ${data.error}</div>`;
+      document.getElementById('analysisProgress').style.display = 'none';
+      return;
+    }
+
+    document.getElementById('progressBar').style.width = '100%';
+    document.getElementById('progressText').textContent = `✅ 測試完成！共測試 ${data.total_tested} 種策略`;
+
+    const medals = ['🥇','🥈','🥉','4','5','6','7','8'];
+    const results = data.results;
+
+    if(!results.length){
+      document.getElementById('analysisResults').innerHTML = '<div style="color:var(--text2);padding:12px;text-align:center;">此股票在目前設定下，沒有策略通過篩選條件（PF>1 且至少3筆）<br>建議換更長的時間範圍</div>';
+      return;
+    }
+
+    document.getElementById('analysisResults').innerHTML = results.map((r,i)=>`
+      <div class="result-row ${i===0?'rank-1':''}" onclick="applyBestStrategy(${id},'${r.strat}','${r.name}')">
+        <div class="result-rank">${medals[i]||i+1}</div>
+        <div class="result-info">
+          <div class="result-name">${r.name}</div>
+          <div class="result-stats">
+            <span>報酬 <b style="color:${r.total>=0?'#26a69a':'#ef5350'}">${r.total>=0?'+':''}${r.total}%</b></span>
+            <span>回撤 <b style="color:#ef5350">${r.mdd}%</b></span>
+            <span>勝率 ${r.win}%</span>
+            <span>${r.trades}筆</span>
+          </div>
+        </div>
+        <div class="result-pf">${r.pf>=999?'∞':r.pf}</div>
+        <button class="btn-apply" onclick="event.stopPropagation();applyBestStrategy(${id},'${r.strat}','${r.name}')">套用</button>
+      </div>`).join('');
+
+  } catch(e){
+    clearInterval(progInterval);
+    document.getElementById('analysisResults').innerHTML = `<div style="color:var(--red);padding:12px;">連線失敗，請稍後再試</div>`;
+  }
+}
+
+function applyBestStrategy(id, strat, name){
+  const stock = stocks.find(s=>s.id===id);
+  if(!stock) return;
+  stock.strat = strat; save();
+  // 更新卡片選單
+  const sel = document.getElementById(`strat-sel-${id}`);
+  if(sel) sel.value = strat;
+  // 更新卡片副標題
+  const card = document.getElementById(`card-${id}`);
+  if(card){
+    const sub = card.querySelector('.card-sub');
+    if(sub) sub.textContent = `${stock.symbol} · ${getStratName(strat)} · ${TF_LABELS[stock.tf]||'1d'}`;
+  }
+  closeAnalysis();
+  reloadCard(id);
+}
+
+function closeAnalysis(e){
+  if(e&&e.target!==document.getElementById('analysisBg')) return;
+  document.getElementById('analysisBg').classList.remove('open');
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape') document.getElementById('analysisBg').classList.remove('open');});
 
 function closeIntro(){
   const bar=document.getElementById('introBar');
