@@ -396,8 +396,13 @@ function buildChartsInContainer(container,data,indicators,height){
   // ── Crosshair 事件：顯示 tooltip ──
   mainChart.subscribeCrosshairMove(param=>{
     if(!param||!param.point||param.point.x<0){tooltip.style.display='none';return;}
-    const idx=param.logical!=null?Math.round(param.logical):null;
-    if(idx==null||idx<0||idx>=dates.length){tooltip.style.display='none';return;}
+    // 用 seriesData 取得當前 hover 的資料點
+    const seriesData=param.seriesData.get(lineSeries);
+    if(!seriesData){tooltip.style.display='none';return;}
+    // 找到對應的 index
+    const hoverTime=seriesData.time;
+    const idx=dates.findIndex(d=>toTime(d)===hoverTime||d===hoverTime);
+    if(idx<0||idx>=dates.length){tooltip.style.display='none';return;}
     const price=prices[idx];
     const e20=data.ema20[idx];
     const e50=data.ema50[idx];
