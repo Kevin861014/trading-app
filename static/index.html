@@ -11,96 +11,122 @@
   --bg:#0f1117;--bg2:#1a1d27;--bg3:#22263a;
   --border:rgba(255,255,255,0.08);
   --text:#e8eaf0;--text2:#8b90a0;--text3:#555a6e;
-  --green:#26a69a;--red:#ef5350;--blue:#378ADD;
-  --r:10px;
+  --green:#26a69a;--red:#ef5350;--blue:#378ADD;--r:12px;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
 /* HEADER */
-.header{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
-.header h1{font-size:15px;font-weight:600;}
-.header span{font-size:11px;color:var(--text2);}
+.header{padding:14px 16px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.header h1{font-size:16px;font-weight:600;letter-spacing:-0.3px;}
+.header-right{display:flex;align-items:center;gap:10px;}
+
+/* PERIOD TABS */
+.period-bar{display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid var(--border);overflow-x:auto;}
+.period-bar::-webkit-scrollbar{display:none;}
+.ptab{font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all 0.15s;}
+.ptab.active{background:var(--bg3);color:var(--text);border-color:rgba(255,255,255,0.2);}
+
 /* ADD BAR */
 .add-bar{display:flex;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);}
 .add-bar input{flex:1;font-size:13px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);min-width:0;}
 .add-bar input:focus{outline:none;border-color:var(--blue);}
 .add-bar input::placeholder{color:var(--text3);}
-.add-bar select{font-size:12px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);max-width:160px;}
+.add-bar select{font-size:12px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);max-width:150px;}
 .add-bar select:focus{outline:none;border-color:var(--blue);}
-.btn-add{font-size:13px;padding:8px 14px;border-radius:8px;background:var(--blue);color:#fff;border:none;cursor:pointer;white-space:nowrap;font-weight:500;}
+.btn-add{font-size:13px;padding:8px 16px;border-radius:8px;background:var(--blue);color:#fff;border:none;cursor:pointer;white-space:nowrap;font-weight:500;}
 .btn-add:hover{opacity:0.85;}
-/* PERIOD TABS */
-.period-tabs{display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid var(--border);overflow-x:auto;}
-.period-tabs::-webkit-scrollbar{display:none;}
-.ptab{font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;white-space:nowrap;}
-.ptab.active{background:var(--bg3);color:var(--text);border-color:rgba(255,255,255,0.2);}
-/* CARDS GRID */
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;padding:12px 16px;}
-@media(max-width:500px){.cards{grid-template-columns:1fr;}}
+
+/* GRID - 電腦2欄，手機1欄 */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px 16px;}
+@media(max-width:640px){.grid{grid-template-columns:1fr;gap:12px;padding:12px 12px;}}
+
 /* CARD */
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:border-color 0.15s;}
-.card:hover{border-color:rgba(255,255,255,0.18);}
-.card.expanded{border-color:var(--blue);}
-.card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;}
-.card-name{font-size:14px;font-weight:600;}
-.card-sub{font-size:11px;color:var(--text2);margin-top:2px;}
-.card-del{font-size:16px;color:var(--text3);background:none;border:none;cursor:pointer;padding:2px 6px;line-height:1;}
-.card-del:hover{color:var(--red);}
-.card-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-top:1px solid var(--border);}
-.cm{background:var(--bg2);padding:8px 10px;text-align:center;}
-.cm-label{font-size:10px;color:var(--text2);margin-bottom:2px;}
-.cm-val{font-size:14px;font-weight:600;}
-.card-status{padding:10px 14px;font-size:12px;color:var(--text2);border-top:1px solid var(--border);display:flex;align-items:center;gap:6px;}
-.spinner{width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;}
-@keyframes spin{to{transform:rotate(360deg);}}
-/* EXPANDED CHART */
-.card-detail{display:none;border-top:1px solid var(--border);padding:14px;}
-.card.expanded .card-detail{display:block;}
-.strat-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
-.strat-row label{font-size:12px;color:var(--text2);}
-.strat-row select{font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);}
-.strat-row select:focus{outline:none;border-color:var(--blue);}
-.btn-refresh{font-size:12px;padding:5px 12px;border-radius:6px;background:var(--blue);color:#fff;border:none;cursor:pointer;}
-.btn-refresh:disabled{opacity:0.5;cursor:not-allowed;}
-.chart-wrap{position:relative;width:100%;height:260px;margin-bottom:8px;}
-.signal-wrap{position:relative;width:100%;height:60px;margin-bottom:10px;}
-.trades-mini{font-size:12px;}
-.tm-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);color:var(--text2);}
-.tm-row:last-child{border-bottom:none;}
-.legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color 0.15s;}
+
+/* CARD TOP */
+.card-top{padding:14px 14px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.card-info{}
+.card-name{font-size:15px;font-weight:600;margin-bottom:3px;}
+.card-sub{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.card-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.btn-icon{font-size:13px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;padding:5px 8px;line-height:1;transition:all 0.15s;}
+.btn-icon:hover{color:var(--text);border-color:rgba(255,255,255,0.2);}
+.btn-icon.del:hover{color:var(--red);border-color:var(--red);}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);}
+.metric{background:var(--bg2);padding:8px 10px;text-align:center;}
+.metric-label{font-size:10px;color:var(--text2);margin-bottom:2px;text-transform:uppercase;letter-spacing:0.3px;}
+.metric-val{font-size:14px;font-weight:600;}
+.up{color:var(--green);}.down{color:var(--red);}.neutral{color:var(--text);}
+
+/* STATUS */
+.card-status{padding:8px 14px;font-size:11px;color:var(--text2);border-top:1px solid var(--border);display:flex;align-items:center;gap:6px;min-height:32px;}
+
+/* CHART SECTION */
+.chart-section{border-top:1px solid var(--border);padding:12px 14px;}
+.chart-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;}
+.chart-toolbar-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.strat-sel{font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);cursor:pointer;}
+.strat-sel:focus{outline:none;border-color:var(--blue);}
+.btn-sm{font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;white-space:nowrap;}
+.btn-sm:hover{background:var(--bg3);color:var(--text);}
+.btn-sm.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+.btn-sm.primary:hover{opacity:0.85;}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
 .li{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);}
 .ld{width:12px;height:2px;border-radius:1px;}
 .lt-up{width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:8px solid var(--green);}
 .lt-dn{width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:8px solid var(--red);}
-/* crosshair tooltip */
-.ct{position:absolute;background:rgba(22,26,38,0.96);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:7px 10px;font-size:11px;pointer-events:none;white-space:nowrap;z-index:10;display:none;box-shadow:0 4px 16px rgba(0,0,0,0.4);}
+.chart-wrap{position:relative;width:100%;height:260px;margin-bottom:6px;}
+.signal-wrap{position:relative;width:100%;height:55px;margin-bottom:10px;}
+.ct{position:absolute;background:rgba(20,24,36,0.97);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:7px 10px;font-size:11px;pointer-events:none;white-space:nowrap;z-index:10;display:none;box-shadow:0 4px 16px rgba(0,0,0,0.5);}
 .ct-date{color:var(--text2);margin-bottom:4px;font-size:10px;}
 .ct-row{display:flex;justify-content:space-between;gap:14px;line-height:1.8;}
 .ct-l{color:var(--text2);}
 .ct-v{font-weight:500;}
-/* signal badge */
+.trades-section{margin-top:2px;}
+.trades-title{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;}
+.tm-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);color:var(--text2);}
+.tm-row:last-child{border-bottom:none;}
+
+/* SIGNAL BADGE */
 .sbadge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;}
 .sbadge.buy{background:rgba(38,166,154,0.15);color:var(--green);border:1px solid rgba(38,166,154,0.3);}
 .sbadge.sell{background:rgba(239,83,80,0.15);color:var(--red);border:1px solid rgba(239,83,80,0.3);}
 .sbadge.hold{background:rgba(139,144,160,0.1);color:var(--text2);border:1px solid rgba(139,144,160,0.2);}
-.up{color:var(--green);}.down{color:var(--red);}.neutral{color:var(--text);}
+
+/* SPINNER */
+.spinner{width:11px;height:11px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* FULLSCREEN MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;padding:16px;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:1100px;max-height:90vh;overflow:auto;padding:20px;}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.modal-title{font-size:15px;font-weight:600;}
+.btn-close{font-size:18px;background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;}
+.btn-close:hover{color:var(--text);}
+.modal-chart-wrap{position:relative;width:100%;height:420px;margin-bottom:8px;}
+.modal-signal-wrap{position:relative;width:100%;height:70px;}
+@media(max-width:640px){.modal-chart-wrap{height:260px;}}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:40px 16px;color:var(--text2);font-size:13px;grid-column:1/-1;}
 .note{font-size:10px;color:var(--text3);padding:8px 16px 16px;text-align:center;}
-.empty-state{text-align:center;padding:40px 16px;color:var(--text2);font-size:13px;}
 </style>
 </head>
 <body>
 
 <div class="header">
   <h1>📈 順勢策略分析</h1>
-  <span id="periodLabel">1 年</span>
+  <div class="header-right">
+    <span style="font-size:11px;color:var(--text2);" id="periodLabel">1 年</span>
+  </div>
 </div>
 
-<div class="add-bar">
-  <input id="addInput" placeholder="輸入代碼：2330.TW / AAPL / PAXG-USD" onkeydown="if(event.key==='Enter')addStock()">
-  <select id="addStrat"></select>
-  <button class="btn-add" onclick="addStock()">＋ 加入</button>
-</div>
-
-<div class="period-tabs" id="periodTabs">
+<div class="period-bar" id="periodBar">
   <button class="ptab" data-p="7d">7天</button>
   <button class="ptab" data-p="1mo">1月</button>
   <button class="ptab active" data-p="1y">1年</button>
@@ -109,34 +135,62 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <button class="ptab" data-p="5y">5年</button>
 </div>
 
-<div class="cards" id="cardsGrid"></div>
-<div id="emptyState" class="empty-state" style="display:none;">還沒有股票，在上方輸入代碼加入！</div>
+<div class="add-bar">
+  <input id="addInput" placeholder="輸入代碼：2330.TW / AAPL / PAXG-USD" onkeydown="if(event.key==='Enter')addStock()">
+  <select id="addStrat"></select>
+  <button class="btn-add" onclick="addStock()">＋ 加入</button>
+</div>
+
+<div class="grid" id="grid"></div>
 <p class="note">資料來源：Yahoo Finance｜台股含0.45%成本｜加密含0.24%｜過去績效不代表未來</p>
+
+<!-- 放大 Modal -->
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">K 線圖</span>
+      <button class="btn-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="legend">
+      <div class="li"><div class="ld" style="background:#378ADD;"></div>收盤</div>
+      <div class="li"><div class="ld" style="background:#26a69a;"></div>EMA20</div>
+      <div class="li"><div class="ld" style="background:#ef5350;"></div>EMA50</div>
+      <div class="li"><div class="lt-up"></div>買進</div>
+      <div class="li"><div class="lt-dn"></div>賣出</div>
+    </div>
+    <div class="modal-chart-wrap"><canvas id="modalPriceCanvas"></canvas><div class="ct" id="modalTooltip"></div></div>
+    <div class="modal-signal-wrap"><canvas id="modalSignalCanvas"></canvas></div>
+  </div>
+</div>
 
 <script>
 // ── 狀態 ──────────────────────────────────────────────
 let period = '1y';
 let strategies = [];
-let stocks = JSON.parse(localStorage.getItem('stocks') || 'null') || [
-  {id:1, symbol:'2330.TW', name:'台積電 2330', strat:'diadx'},
-  {id:2, symbol:'2317.TW', name:'鴻海 2317',   strat:'diadx'},
-  {id:3, symbol:'2603.TW', name:'長榮 2603',   strat:'diadx'},
-  {id:4, symbol:'0050.TW', name:'0050',         strat:'sixline'},
-  {id:5, symbol:'PAXG-USD',name:'PAXG 黃金幣', strat:'supertrend'},
-  {id:6, symbol:'SOL-USD', name:'SOL',          strat:'keltner'},
-  {id:7, symbol:'ETH-USD', name:'ETH',          strat:'ttm'},
+let stocks = JSON.parse(localStorage.getItem('stocks_v2') || 'null') || [
+  {id:1,symbol:'2330.TW',name:'台積電 2330',strat:'diadx'},
+  {id:2,symbol:'2317.TW',name:'鴻海 2317',strat:'diadx'},
+  {id:3,symbol:'2603.TW',name:'長榮 2603',strat:'diadx'},
+  {id:4,symbol:'0050.TW',name:'0050',strat:'sixline'},
+  {id:5,symbol:'PAXG-USD',name:'PAXG 黃金幣',strat:'supertrend'},
+  {id:6,symbol:'SOL-USD',name:'SOL',strat:'keltner'},
+  {id:7,symbol:'ETH-USD',name:'ETH',strat:'ttm'},
 ];
-let nextId = Math.max(...stocks.map(s=>s.id), 0) + 1;
-let expandedId = null;
-let chartInsts = {}; // id -> {price, signal}
+let nextId = Math.max(...stocks.map(s=>s.id),0)+1;
+let chartInsts = {};
+let modalCharts = {};
+let currentModalData = null;
+let currentModalName = '';
+
+function save(){ localStorage.setItem('stocks_v2',JSON.stringify(stocks)); }
 
 // ── 策略載入 ──────────────────────────────────────────
 async function loadStrategies(){
   try{
-    const r = await fetch('/api/strategies');
-    strategies = await r.json();
-  } catch(e){
-    strategies = [
+    const r=await fetch('/api/strategies');
+    strategies=await r.json();
+  }catch(e){
+    strategies=[
       {v:'sixline',l:'六條線（最推薦）'},{v:'diadx',l:'DMI/ADX（台股最強）'},
       {v:'supertrend',l:'Supertrend'},{v:'keltner',l:'Keltner 突破'},
       {v:'volbreak',l:'波動突破'},{v:'ttm',l:'TTM 擠壓'},
@@ -144,57 +198,62 @@ async function loadStrategies(){
       {v:'trend',l:'順勢 EMA'},{v:'rsi',l:'RSI 逆勢'},
     ];
   }
-  // 填充新增欄的策略選單
-  const sel = document.getElementById('addStrat');
-  sel.innerHTML = strategies.map(s=>`<option value="${s.v}">${s.l}</option>`).join('');
+  const sel=document.getElementById('addStrat');
+  sel.innerHTML=strategies.map(s=>`<option value="${s.v}">${s.l}</option>`).join('');
 }
 
-// ── 儲存 ──────────────────────────────────────────────
-function save(){ localStorage.setItem('stocks', JSON.stringify(stocks)); }
+function getStratName(v){
+  const s=strategies.find(s=>s.v===v);
+  return s?s.l.split('（')[0].split('(')[0]:v;
+}
 
-// ── 周期切換 ──────────────────────────────────────────
-document.getElementById('periodTabs').addEventListener('click', e=>{
-  const btn = e.target.closest('.ptab');
+// ── 周期 ──────────────────────────────────────────────
+document.getElementById('periodBar').addEventListener('click',e=>{
+  const btn=e.target.closest('.ptab');
   if(!btn) return;
   document.querySelectorAll('.ptab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  period = btn.dataset.p;
-  const labels = {'7d':'7 天','1mo':'1 個月','1y':'1 年','2y':'2 年','3y':'3 年','5y':'5 年'};
-  document.getElementById('periodLabel').textContent = labels[period] || period;
-  // 重新載入所有已展開的卡片
-  if(expandedId) loadCard(expandedId);
+  period=btn.dataset.p;
+  const labels={'7d':'7 天','1mo':'1 個月','1y':'1 年','2y':'2 年','3y':'3 年','5y':'5 年'};
+  document.getElementById('periodLabel').textContent=labels[period]||period;
+  // 重新載入所有已載入的卡片
+  stocks.forEach(s=>{
+    const card=document.getElementById(`card-${s.id}`);
+    if(card && card.dataset.loaded==='1'){
+      card.dataset.loaded='0';
+      destroyCharts(s.id);
+      loadCard(s.id);
+    }
+  });
 });
 
-// ── 新增股票 ──────────────────────────────────────────
+// ── 新增 ──────────────────────────────────────────────
 function addStock(){
-  const input = document.getElementById('addInput');
-  const stratSel = document.getElementById('addStrat');
-  const raw = input.value.trim().toUpperCase();
+  const input=document.getElementById('addInput');
+  const stratSel=document.getElementById('addStrat');
+  const raw=input.value.trim().toUpperCase();
   if(!raw) return;
-  // 自動補 .TW
-  const symbol = /^\d{4}$/.test(raw) ? raw + '.TW' : raw;
-  const strat = stratSel.value || 'diadx';
-  const name = symbol;
-  const id = nextId++;
-  stocks.push({id, symbol, name, strat});
+  const symbol=/^\d{4}$/.test(raw)?raw+'.TW':raw;
+  const strat=stratSel.value||'diadx';
+  const id=nextId++;
+  const stock={id,symbol,name:symbol,strat};
+  stocks.push(stock);
   save();
-  input.value = '';
-  renderCard({id, symbol, name, strat});
-  updateEmpty();
-  // 自動展開並載入
-  toggleExpand(id);
+  input.value='';
+  renderCard(stock);
+  // 自動載入
+  loadCard(id);
 }
 
-// ── 刪除股票 ──────────────────────────────────────────
-function deleteStock(id, e){
+// ── 刪除 ──────────────────────────────────────────────
+function deleteStock(id,e){
   e.stopPropagation();
-  stocks = stocks.filter(s=>s.id !== id);
+  if(!confirm('確定刪除這支股票？')) return;
+  stocks=stocks.filter(s=>s.id!==id);
   save();
-  const el = document.getElementById(`card-${id}`);
-  if(el) el.remove();
-  if(expandedId === id) expandedId = null;
   destroyCharts(id);
-  updateEmpty();
+  const el=document.getElementById(`card-${id}`);
+  if(el) el.remove();
 }
 
 function destroyCharts(id){
@@ -205,125 +264,113 @@ function destroyCharts(id){
   }
 }
 
-// ── 展開/收合 ──────────────────────────────────────────
-function toggleExpand(id){
-  const card = document.getElementById(`card-${id}`);
-  if(!card) return;
-  if(expandedId === id){
-    card.classList.remove('expanded');
-    expandedId = null;
-  } else {
-    if(expandedId){
-      const prev = document.getElementById(`card-${expandedId}`);
-      if(prev) prev.classList.remove('expanded');
-    }
-    expandedId = id;
-    card.classList.add('expanded');
-    // 只有還沒載入過才載入
-    const detail = card.querySelector('.card-detail');
-    if(detail.dataset.loaded !== '1') loadCard(id);
-  }
-}
-
-// ── 載入卡片資料 ──────────────────────────────────────
+// ── 載入資料 ──────────────────────────────────────────
 async function loadCard(id){
-  const stock = stocks.find(s=>s.id===id);
+  const stock=stocks.find(s=>s.id===id);
   if(!stock) return;
-  const card = document.getElementById(`card-${id}`);
+  const card=document.getElementById(`card-${id}`);
   if(!card) return;
-  const detail = card.querySelector('.card-detail');
-  const status = card.querySelector('.card-status');
 
-  // 顯示載入中
-  status.innerHTML = `<span class="spinner"></span> 載入中...`;
-  setMetrics(card, null);
+  const status=card.querySelector('.card-status');
+  status.innerHTML=`<span class="spinner"></span> 載入中...`;
+  setMetrics(card,null);
+  card.dataset.loaded='0';
 
   try{
-    const r = await fetch(`/api/analyze?symbol=${stock.symbol}&strategy=${stock.strat}&period=${period}`);
-    const data = await r.json();
-
+    const r=await fetch(`/api/analyze?symbol=${stock.symbol}&strategy=${stock.strat}&period=${period}`);
+    const data=await r.json();
     if(data.error){
-      status.innerHTML = `<span style="color:var(--red);">⚠ ${data.error}</span>`;
+      status.innerHTML=`<span style="color:var(--red);">⚠ ${data.error}</span>`;
       return;
     }
 
-    // 更新小數據
-    setMetrics(card, data.metrics);
+    card.dataset.loaded='1';
+    card.dataset.chartdata=JSON.stringify(data);
+    setMetrics(card,data.metrics);
 
-    // 更新狀態列
-    const lastDiff = data.diff[data.diff.length-1];
-    let badge = '';
-    if(lastDiff > 0.1) badge = '<span class="sbadge buy">▲ 多頭</span>';
-    else if(lastDiff < -0.1) badge = '<span class="sbadge sell">▼ 空頭</span>';
-    else badge = '<span class="sbadge hold">— 中立</span>';
-    status.innerHTML = `${badge} <span style="font-size:11px;color:var(--text2);">最後更新 ${new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}</span>`;
+    // 動能狀態
+    const lastDiff=data.diff[data.diff.length-1];
+    let badge='';
+    if(lastDiff>0.1) badge='<span class="sbadge buy">▲ 多頭</span>';
+    else if(lastDiff<-0.1) badge='<span class="sbadge sell">▼ 空頭</span>';
+    else badge='<span class="sbadge hold">— 中立</span>';
+    const time=new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+    status.innerHTML=`${badge} <span style="color:var(--text3);margin-left:4px;">${time}</span>`;
 
     // 畫圖
-    detail.dataset.loaded = '1';
-    drawCharts(id, data);
+    drawCardCharts(id,data);
 
-    // 畫交易紀錄
-    const tbl = card.querySelector('.trades-mini');
-    if(data.metrics.trades && data.metrics.trades.length){
-      tbl.innerHTML = data.metrics.trades.map(t=>`
+    // 交易紀錄
+    const tbl=card.querySelector('.trades-list');
+    if(data.metrics.trades&&data.metrics.trades.length){
+      tbl.innerHTML=data.metrics.trades.map(t=>`
         <div class="tm-row">
-          <span style="color:var(--green);">▲${t.buyPrice}</span>
-          <span style="color:var(--text2);">→</span>
-          <span style="color:var(--red);">▼${t.sellPrice}</span>
+          <span><span style="color:var(--green);">▲${t.buyPrice}</span> <span style="color:var(--text3);">→</span> <span style="color:var(--red);">▼${t.sellPrice}</span></span>
           <span class="${t.ret>=0?'up':'down'}" style="font-weight:600;">${t.ret>=0?'+':''}${t.ret}%</span>
         </div>`).join('');
     } else {
-      tbl.innerHTML = '<div style="color:var(--text2);padding:8px 0;text-align:center;">此期間無交易紀錄</div>';
+      tbl.innerHTML='<div style="color:var(--text2);padding:8px 0;text-align:center;font-size:12px;">此期間無交易紀錄</div>';
     }
 
-  } catch(e){
-    status.innerHTML = `<span style="color:var(--red);">⚠ 連線失敗，請稍後再試</span>`;
+  }catch(e){
+    status.innerHTML=`<span style="color:var(--red);">⚠ 連線失敗，請稍後再試</span>`;
   }
 }
 
-function setMetrics(card, m){
-  const ids = ['ret','cagr','pf','dd','wr','tc'];
-  const vals = m ? [
-    {v:(m.totalReturn>=0?'+':'')+m.totalReturn+'%', c:m.totalReturn>=0?'up':'down'},
-    {v:(m.cagr>=0?'+':'')+m.cagr+'%', c:m.cagr>=0?'up':'down'},
-    {v:m.pf>=999?'∞':m.pf.toFixed(2), c:m.pf>=1?'up':'down'},
-    {v:m.maxDD+'%', c:'down'},
-    {v:m.wr+'%', c:m.wr>=40?'up':'neutral'},
-    {v:m.tradeCount+'筆', c:'neutral'},
-  ] : ids.map(()=>({v:'—',c:'neutral'}));
-  ids.forEach((id,i)=>{
-    const el = card.querySelector(`.cm-val[data-m="${id}"]`);
-    if(el){ el.textContent=vals[i].v; el.className='cm-val '+vals[i].c; }
+function setMetrics(card,m){
+  const defs=[
+    {k:'ret',fn:m=>(m.totalReturn>=0?'+':'')+m.totalReturn+'%',c:m=>m.totalReturn>=0?'up':'down'},
+    {k:'cagr',fn:m=>(m.cagr>=0?'+':'')+m.cagr+'%',c:m=>m.cagr>=0?'up':'down'},
+    {k:'pf',fn:m=>m.pf>=999?'∞':m.pf.toFixed(2),c:m=>m.pf>=1?'up':'down'},
+    {k:'dd',fn:m=>m.maxDD+'%',c:()=>'down'},
+    {k:'wr',fn:m=>m.wr+'%',c:m=>m.wr>=40?'up':'neutral'},
+    {k:'tc',fn:m=>m.tradeCount+'筆',c:()=>'neutral'},
+  ];
+  defs.forEach(d=>{
+    const el=card.querySelector(`[data-m="${d.k}"]`);
+    if(el){
+      el.textContent=m?d.fn(m):'—';
+      el.className='metric-val '+(m?d.c(m):'neutral');
+    }
   });
 }
 
-// ── 畫圖 ──────────────────────────────────────────────
-const crosshairPlugin = {
+// ── 策略切換 ──────────────────────────────────────────
+function changeStrat(id,val){
+  const stock=stocks.find(s=>s.id===id);
+  if(stock){ stock.strat=val; save(); }
+  const card=document.getElementById(`card-${id}`);
+  if(card){
+    const sub=card.querySelector('.card-sub-strat');
+    if(sub) sub.textContent=getStratName(val);
+  }
+}
+
+function reloadCard(id){
+  const card=document.getElementById(`card-${id}`);
+  if(card){ card.dataset.loaded='0'; destroyCharts(id); }
+  loadCard(id);
+}
+
+// ── 畫圖 (卡片內) ─────────────────────────────────────
+const crosshairPlugin={
   id:'crosshair',
   afterDraw(chart){
-    if(chart.tooltip._active && chart.tooltip._active.length){
-      const ctx=chart.ctx, x=chart.tooltip._active[0].element.x;
-      ctx.save(); ctx.beginPath();
-      ctx.moveTo(x, chart.scales.y.top);
-      ctx.lineTo(x, chart.scales.y.bottom);
-      ctx.strokeStyle='rgba(255,255,255,0.2)';
-      ctx.lineWidth=1; ctx.setLineDash([4,4]); ctx.stroke(); ctx.restore();
+    if(chart.tooltip._active&&chart.tooltip._active.length){
+      const ctx=chart.ctx,x=chart.tooltip._active[0].element.x;
+      ctx.save();ctx.beginPath();
+      ctx.moveTo(x,chart.scales.y.top);ctx.lineTo(x,chart.scales.y.bottom);
+      ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+      ctx.stroke();ctx.restore();
     }
   }
 };
 Chart.register(crosshairPlugin);
 
-function drawCharts(id, data){
-  destroyCharts(id);
-  const card = document.getElementById(`card-${id}`);
-  const pCanvas = card.querySelector('.price-canvas');
-  const sCanvas = card.querySelector('.signal-canvas');
-  const tooltip = card.querySelector('.ct');
-
-  const bp = data.prices.map((p,i)=>data.buyPoints[i]!==null?p:null);
-  const sp = data.prices.map((p,i)=>data.sellPoints[i]!==null?p:null);
-
-  const priceChart = new Chart(pCanvas.getContext('2d'),{
+function buildChartConfig(data,tooltipEl){
+  const bp=data.prices.map((p,i)=>data.buyPoints[i]!==null?p:null);
+  const sp=data.prices.map((p,i)=>data.sellPoints[i]!==null?p:null);
+  return {
     type:'line',
     data:{
       labels:data.dates,
@@ -345,11 +392,12 @@ function drawCharts(id, data){
         tooltip:{
           enabled:false,
           external({chart,tooltip:tt}){
-            if(tt.opacity===0){tooltip.style.display='none';return;}
+            if(!tooltipEl){return;}
+            if(tt.opacity===0){tooltipEl.style.display='none';return;}
             const i=tt.dataPoints?tt.dataPoints[0].dataIndex:-1;
             if(i<0) return;
-            const hasBuy=data.buyPoints[i]!==null, hasSell=data.sellPoints[i]!==null;
-            tooltip.innerHTML=`
+            const hasBuy=data.buyPoints[i]!==null,hasSell=data.sellPoints[i]!==null;
+            tooltipEl.innerHTML=`
               <div class="ct-date">${data.dates[i]}</div>
               <div class="ct-row"><span class="ct-l">收盤</span><span class="ct-v" style="color:#378ADD">${data.prices[i]}</span></div>
               <div class="ct-row"><span class="ct-l">EMA20</span><span class="ct-v" style="color:#26a69a">${data.ema20[i]||'—'}</span></div>
@@ -359,9 +407,9 @@ function drawCharts(id, data){
             `;
             let left=tt.caretX+12;
             if(left+170>chart.width) left=tt.caretX-182;
-            tooltip.style.display='block';
-            tooltip.style.left=left+'px';
-            tooltip.style.top=Math.max(0,tt.caretY-30)+'px';
+            tooltipEl.style.display='block';
+            tooltipEl.style.left=left+'px';
+            tooltipEl.style.top=Math.max(0,tt.caretY-30)+'px';
           }
         }
       },
@@ -370,9 +418,11 @@ function drawCharts(id, data){
         y:{ticks:{color:'#8b90a0',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}}
       }
     }
-  });
+  };
+}
 
-  const signalChart = new Chart(sCanvas.getContext('2d'),{
+function buildSignalConfig(data){
+  return {
     type:'bar',
     data:{
       labels:data.dates,
@@ -385,109 +435,122 @@ function drawCharts(id, data){
       plugins:{legend:{display:false}},
       scales:{x:{display:false},y:{ticks:{color:'#8b90a0',font:{size:9},maxTicksLimit:3},grid:{color:'rgba(255,255,255,0.04)'}}}
     }
-  });
-
-  chartInsts[id] = {price:priceChart, signal:signalChart};
+  };
 }
 
-// ── 渲染卡片 DOM ─────────────────────────────────────
+function drawCardCharts(id,data){
+  destroyCharts(id);
+  const card=document.getElementById(`card-${id}`);
+  const pCanvas=card.querySelector('.price-canvas');
+  const sCanvas=card.querySelector('.signal-canvas');
+  const ttEl=card.querySelector('.ct');
+  const pc=new Chart(pCanvas.getContext('2d'),buildChartConfig(data,ttEl));
+  const sc=new Chart(sCanvas.getContext('2d'),buildSignalConfig(data));
+  chartInsts[id]={price:pc,signal:sc};
+}
+
+// ── 放大 Modal ────────────────────────────────────────
+function openModal(id){
+  const card=document.getElementById(`card-${id}`);
+  if(!card||card.dataset.loaded!=='1') return;
+  const stock=stocks.find(s=>s.id===id);
+  const data=JSON.parse(card.dataset.chartdata||'null');
+  if(!data) return;
+
+  currentModalData=data;
+  currentModalName=stock?stock.name||stock.symbol:'K 線圖';
+  document.getElementById('modalTitle').textContent=`${currentModalName} — 放大圖`;
+
+  // 清除舊的 modal 圖表
+  if(modalCharts.price) modalCharts.price.destroy();
+  if(modalCharts.signal) modalCharts.signal.destroy();
+
+  document.getElementById('modalBg').classList.add('open');
+
+  // 畫 modal 圖表
+  const pCanvas=document.getElementById('modalPriceCanvas');
+  const sCanvas=document.getElementById('modalSignalCanvas');
+  const ttEl=document.getElementById('modalTooltip');
+  modalCharts.price=new Chart(pCanvas.getContext('2d'),buildChartConfig(data,ttEl));
+  modalCharts.signal=new Chart(sCanvas.getContext('2d'),buildSignalConfig(data));
+}
+
+function closeModal(e){
+  if(e&&e.target!==document.getElementById('modalBg')) return;
+  document.getElementById('modalBg').classList.remove('open');
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.getElementById('modalBg').classList.remove('open'); });
+
+// ── 渲染卡片 ──────────────────────────────────────────
 function renderCard(stock){
-  const grid = document.getElementById('cardsGrid');
-  const div = document.createElement('div');
-  div.className = 'card';
-  div.id = `card-${stock.id}`;
-  div.innerHTML = `
-    <div class="card-header" onclick="toggleExpand(${stock.id})">
-      <div>
-        <div class="card-name">${stock.name || stock.symbol}</div>
-        <div class="card-sub">${stock.symbol} · ${getStratName(stock.strat)}</div>
+  const grid=document.getElementById('grid');
+  const div=document.createElement('div');
+  div.className='card';
+  div.id=`card-${stock.id}`;
+  div.dataset.loaded='0';
+  div.innerHTML=`
+    <div class="card-top">
+      <div class="card-info">
+        <div class="card-name">${stock.name||stock.symbol}</div>
+        <div class="card-sub">
+          <span>${stock.symbol}</span>
+          <span style="color:var(--text3);">·</span>
+          <span class="card-sub-strat">${getStratName(stock.strat)}</span>
+        </div>
       </div>
-      <button class="card-del" onclick="deleteStock(${stock.id},event)">✕</button>
+      <div class="card-actions">
+        <button class="btn-icon" onclick="openModal(${stock.id})" title="放大 K 線圖">⛶</button>
+        <button class="btn-icon" onclick="reloadCard(${stock.id})" title="重新載入">↺</button>
+        <button class="btn-icon del" onclick="deleteStock(${stock.id},event)" title="刪除">✕</button>
+      </div>
     </div>
-    <div class="card-metrics" onclick="toggleExpand(${stock.id})">
-      <div class="cm"><div class="cm-label">總報酬</div><div class="cm-val neutral" data-m="ret">—</div></div>
-      <div class="cm"><div class="cm-label">年化</div><div class="cm-val neutral" data-m="cagr">—</div></div>
-      <div class="cm"><div class="cm-label">PF</div><div class="cm-val neutral" data-m="pf">—</div></div>
-      <div class="cm"><div class="cm-label">回撤</div><div class="cm-val neutral" data-m="dd">—</div></div>
-      <div class="cm"><div class="cm-label">勝率</div><div class="cm-val neutral" data-m="wr">—</div></div>
-      <div class="cm"><div class="cm-label">交易</div><div class="cm-val neutral" data-m="tc">—</div></div>
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">總報酬</div><div class="metric-val neutral" data-m="ret">—</div></div>
+      <div class="metric"><div class="metric-label">年化</div><div class="metric-val neutral" data-m="cagr">—</div></div>
+      <div class="metric"><div class="metric-label">PF</div><div class="metric-val neutral" data-m="pf">—</div></div>
+      <div class="metric"><div class="metric-label">回撤</div><div class="metric-val neutral" data-m="dd">—</div></div>
+      <div class="metric"><div class="metric-label">勝率</div><div class="metric-val neutral" data-m="wr">—</div></div>
+      <div class="metric"><div class="metric-label">交易</div><div class="metric-val neutral" data-m="tc">—</div></div>
     </div>
-    <div class="card-status"><span style="color:var(--text2);">點擊展開查看 K 線圖</span></div>
-    <div class="card-detail">
-      <div class="strat-row">
-        <label>策略：</label>
-        <select onchange="changeStrat(${stock.id},this.value)" id="strat-sel-${stock.id}"></select>
-        <button class="btn-refresh" onclick="reloadCard(${stock.id})">↺ 重新載入</button>
+    <div class="card-status"><span style="color:var(--text2);font-size:12px;">等待載入...</span></div>
+    <div class="chart-section">
+      <div class="chart-toolbar">
+        <div class="chart-toolbar-left">
+          <select class="strat-sel" id="strat-sel-${stock.id}" onchange="changeStrat(${stock.id},this.value)"></select>
+        </div>
       </div>
       <div class="legend">
-        <div class="li"><div class="ld" style="background:#378ADD;"></div>收盤價</div>
+        <div class="li"><div class="ld" style="background:#378ADD;"></div>收盤</div>
         <div class="li"><div class="ld" style="background:#26a69a;"></div>EMA20</div>
-        <div class="li"><div class="ld" style="background:#ef5350;border-top:2px dashed #ef5350;height:0;width:12px;"></div>EMA50</div>
+        <div class="li"><div class="ld" style="background:#ef5350;"></div>EMA50</div>
         <div class="li"><div class="lt-up"></div>買進</div>
         <div class="li"><div class="lt-dn"></div>賣出</div>
       </div>
       <div class="chart-wrap"><canvas class="price-canvas"></canvas><div class="ct"></div></div>
       <div class="signal-wrap"><canvas class="signal-canvas"></canvas></div>
-      <div class="trades-mini" style="margin-top:8px;"></div>
+      <div class="trades-section">
+        <div class="trades-title">最近進出場</div>
+        <div class="trades-list"></div>
+      </div>
     </div>
   `;
   grid.appendChild(div);
-
-  // 填充策略選單
-  populateStratSelect(stock.id, stock.strat);
+  populateStratSelect(stock.id,stock.strat);
 }
 
-function populateStratSelect(id, currentStrat){
-  const sel = document.getElementById(`strat-sel-${id}`);
-  if(!sel || !strategies.length) return;
-  sel.innerHTML = strategies.map(s=>`<option value="${s.v}" ${s.v===currentStrat?'selected':''}>${s.l}</option>`).join('');
-}
-
-function getStratName(v){
-  const s = strategies.find(s=>s.v===v);
-  return s ? s.l.split('（')[0] : v;
-}
-
-function changeStrat(id, strat){
-  const stock = stocks.find(s=>s.id===id);
-  if(stock){ stock.strat=strat; save(); }
-  // 更新 sub title
-  const card = document.getElementById(`card-${id}`);
-  if(card){
-    const sub = card.querySelector('.card-sub');
-    if(sub) sub.textContent = `${stock.symbol} · ${getStratName(strat)}`;
-  }
-}
-
-function reloadCard(id){
-  const card = document.getElementById(`card-${id}`);
-  if(card){
-    const detail = card.querySelector('.card-detail');
-    detail.dataset.loaded = '0';
-    destroyCharts(id);
-  }
-  loadCard(id);
-}
-
-function updateEmpty(){
-  const empty = document.getElementById('emptyState');
-  const grid = document.getElementById('cardsGrid');
-  if(stocks.length === 0){
-    empty.style.display = 'block';
-    grid.style.display = 'none';
-  } else {
-    empty.style.display = 'none';
-    grid.style.display = 'grid';
-  }
+function populateStratSelect(id,current){
+  const sel=document.getElementById(`strat-sel-${id}`);
+  if(!sel||!strategies.length) return;
+  sel.innerHTML=strategies.map(s=>`<option value="${s.v}" ${s.v===current?'selected':''}>${s.l}</option>`).join('');
 }
 
 // ── 初始化 ────────────────────────────────────────────
 async function init(){
   await loadStrategies();
-  stocks.forEach(s => renderCard(s));
-  // 填充各卡片策略選單（需等策略載入後）
-  stocks.forEach(s => populateStratSelect(s.id, s.strat));
-  updateEmpty();
+  stocks.forEach(s=>renderCard(s));
+  stocks.forEach(s=>populateStratSelect(s.id,s.strat));
+  // 非同步各自載入，不互相等待
+  stocks.forEach(s=>loadCard(s.id));
 }
 
 init();
