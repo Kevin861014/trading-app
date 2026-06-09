@@ -75,6 +75,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-close:hover{color:var(--text);}
 .modal-ind-toggles{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
 .note{font-size:10px;color:var(--text3);padding:8px 16px 16px;text-align:center;}
+/* 說明區塊 */
+.intro-bar{background:linear-gradient(135deg,rgba(55,138,221,0.08),rgba(38,166,154,0.06));border-bottom:1px solid var(--border);padding:20px 16px 16px;}
+.intro-content{max-width:860px;margin:0 auto;}
+.intro-title{font-size:15px;font-weight:700;margin-bottom:10px;color:var(--text);}
+.intro-body{font-size:12px;color:var(--text2);line-height:1.7;}
+.intro-body strong{color:var(--text);}
+.intro-steps{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;}
+@media(max-width:600px){.intro-steps{grid-template-columns:1fr;}}
+.intro-step{display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.intro-step div{font-size:12px;color:var(--text2);line-height:1.6;}
+.intro-step strong{color:var(--text);display:block;margin-bottom:2px;}
+.intro-note{font-size:11px;color:var(--text3);background:rgba(239,83,80,0.06);border:1px solid rgba(239,83,80,0.15);border-radius:6px;padding:8px 12px;margin-top:10px;}
+.intro-close{display:block;margin:14px auto 0;font-size:13px;padding:9px 24px;border-radius:8px;background:var(--blue);color:#fff;border:none;cursor:pointer;font-weight:500;}
+.intro-close:hover{opacity:0.85;}
+/* Tooltip 說明 */
+[data-tip]{position:relative;cursor:help;}
+[data-tip]:hover::after{
+  content:attr(data-tip);
+  position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  background:rgba(22,26,38,0.98);border:1px solid rgba(255,255,255,0.15);
+  color:#e8eaf0;font-size:11px;font-weight:400;line-height:1.5;
+  padding:8px 12px;border-radius:8px;width:220px;white-space:normal;
+  box-shadow:0 4px 16px rgba(0,0,0,0.5);z-index:200;pointer-events:none;
+  text-align:left;
+}
+[data-tip]:hover::before{
+  content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:rgba(255,255,255,0.15);z-index:201;
+}
+.signal-banner[data-tip]:hover::after{bottom:auto;top:calc(100% + 8px);}
+.signal-banner[data-tip]:hover::before{bottom:auto;top:calc(100% + 2px);border-top-color:transparent;border-bottom-color:rgba(255,255,255,0.15);}
 </style>
 </head>
 <body>
@@ -82,6 +114,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="header">
   <h1>📈 順勢策略分析</h1>
   <span style="font-size:11px;color:var(--text2);">台股1D · 加密4H</span>
+</div>
+
+<!-- 說明區塊 -->
+<div class="intro-bar" id="introBar">
+  <div class="intro-content">
+    <div class="intro-title">這個工具是做什麼的？</div>
+    <div class="intro-body">
+      這是一個<strong>程式化順勢策略分析工具</strong>，幫你用客觀的數據判斷「現在這支股票值不值得進場」，而不是靠感覺猜漲跌。
+      <div class="intro-steps">
+        <div class="intro-step"><span class="step-num">1</span><div><strong>選股票和策略</strong><br>選你想追蹤的股票，搭配適合的策略（台股推薦 DMI，加密貨幣推薦六條線）</div></div>
+        <div class="intro-step"><span class="step-num">2</span><div><strong>用 2 年回測評估</strong><br>選 2 年時間範圍，看 PF 是否 > 1.5、回撤是否 < 30%、交易筆數是否 > 20 筆，三個條件都符合才值得用</div></div>
+        <div class="intro-step"><span class="step-num">3</span><div><strong>每天收盤後看訊號</strong><br>切換到 1 個月，看 K 線最右邊有沒有 ▲ 買進訊號。有訊號才考慮進場，沒有就繼續等</div></div>
+        <div class="intro-step"><span class="step-num">4</span><div><strong>風險控制</strong><br>這套策略不保證獲利，盤整期會小虧。每筆只用你能接受虧掉的資金，訊號出現也要設好停損</div></div>
+      </div>
+      <div class="intro-note">⚠ 本工具僅供學習參考，不構成投資建議。過去績效不代表未來，加密貨幣與股票均有虧損風險，請自行評估後決策。</div>
+    </div>
+  </div>
+  <button class="intro-close" onclick="closeIntro()">我知道了，開始使用 →</button>
 </div>
 
 <div class="add-bar">
@@ -319,7 +369,7 @@ function updateSignalBanner(card,data){
   else if(lastDiff>0.1) html='<span class="signal-big buy" style="font-size:12px;">▲ 多頭趨勢 · 等待訊號</span>';
   else if(lastDiff<-0.1) html='<span class="signal-big sell" style="font-size:12px;">▼ 空頭趨勢 · 觀望</span>';
   else html='<span class="signal-big hold">— 中立 · 等待訊號</span>';
-  card.querySelector('.signal-banner').innerHTML=html;
+  card.querySelector('.signal-banner').innerHTML=html; // data-tip 由 renderCard 設定
 }
 
 function setMetrics(card,m){
@@ -658,9 +708,13 @@ function renderCard(stock){
   const tfOpts=TFS.map(t=>`<option value="${t}" ${t===(stock.tf||'1d')?'selected':''}>${TF_LABELS[t]}</option>`).join('');
   const stratOpts=strategies.map(s=>`<option value="${s.v}" ${s.v===stock.strat?'selected':''}>${s.l}</option>`).join('');
   const inds=stock.indicators||{ema:true,kd:true,rsi:true,vol:true};
-  const indToggles=[
-    {k:'ema',l:'EMA差距'},{k:'kd',l:'KD 線'},{k:'rsi',l:'RSI'},{k:'vol',l:'成交量'}
-  ].map(o=>`<button id="itoggle-${stock.id}-${o.k}" class="itoggle ${inds[o.k]?'on':''}" onclick="toggleIndicator(${stock.id},'${o.k}')">${o.l}</button>`).join('');
+  const indDefs=[
+    {k:'ema',l:'EMA差距',tip:'EMA20和EMA50的差距百分比。綠色代表短期均線在長期均線上方（多頭），紅色反之。'},
+    {k:'kd',l:'KD 線',tip:'隨機指標 K 值（橘）和 D 值（藍）。KD>80 超買可能回落，KD<20 超賣可能反彈。兩線黃金交叉（K上穿D）是買進參考。'},
+    {k:'rsi',l:'RSI',tip:'相對強弱指標，0~100。RSI>70 超買，RSI<30 超賣。配合趨勢使用：趨勢向上時 RSI 回踩 50 是買進參考點。'},
+    {k:'vol',l:'成交量',tip:'每天的交易量。綠色代表當天上漲，紅色代表下跌。成交量放大配合價格上漲，代表趨勢更可靠。'},
+  ];
+  const indToggles=indDefs.map(o=>`<button id="itoggle-${stock.id}-${o.k}" class="itoggle ${inds[o.k]?'on':''}" onclick="toggleIndicator(${stock.id},'${o.k}')" data-tip="${o.tip}">${o.l}</button>`).join('');
 
   div.innerHTML=`
     <div class="card-top">
@@ -674,14 +728,14 @@ function renderCard(stock){
         <button class="btn-icon del" onclick="deleteStock(${stock.id},event)" title="刪除">✕</button>
       </div>
     </div>
-    <div class="signal-banner"><span class="signal-big hold">— 等待載入</span></div>
+    <div class="signal-banner" data-tip="目前策略狀態。▲買進訊號=現在符合進場條件；▼賣出訊號=現在符合出場條件；多頭趨勢=均線向上但尚未觸發訊號，持倉等待；空頭趨勢=不建議進場。"><span class="signal-big hold">— 等待載入</span></div>
     <div class="metrics">
-      <div class="metric"><div class="metric-label">總報酬</div><div class="metric-val neutral" data-m="ret">—</div></div>
-      <div class="metric"><div class="metric-label">年化</div><div class="metric-val neutral" data-m="cagr">—</div></div>
-      <div class="metric"><div class="metric-label">PF</div><div class="metric-val neutral" data-m="pf">—</div></div>
-      <div class="metric"><div class="metric-label">回撤</div><div class="metric-val neutral" data-m="dd">—</div></div>
-      <div class="metric"><div class="metric-label">勝率</div><div class="metric-val neutral" data-m="wr">—</div></div>
-      <div class="metric"><div class="metric-label">交易</div><div class="metric-val neutral" data-m="tc">—</div></div>
+      <div class="metric" data-tip="這段期間內策略的總獲利。扣除手續費後的真實報酬，正值代表賺錢。"><div class="metric-label">總報酬 ⓘ</div><div class="metric-val neutral" data-m="ret">—</div></div>
+      <div class="metric" data-tip="把總報酬換算成「每年賺多少」的基準。方便和其他投資比較，例如定存、0050 等。"><div class="metric-label">年化 ⓘ</div><div class="metric-val neutral" data-m="cagr">—</div></div>
+      <div class="metric" data-tip="獲利因子：每虧 1 塊能賺回多少塊。PF&gt;1.5 才值得用，越高越好。低於 20 筆交易時數字僅供參考。"><div class="metric-label">PF ⓘ</div><div class="metric-val neutral" data-m="pf">—</div></div>
+      <div class="metric" data-tip="最大回撤：這段時間資金從最高點最多跌了多少。越低越穩，建議不超過 30%。"><div class="metric-label">回撤 ⓘ</div><div class="metric-val neutral" data-m="dd">—</div></div>
+      <div class="metric" data-tip="勝率：幾成的交易是賺錢的。順勢策略通常只有 25~40%，但賺的比虧的多，整體還是正的。"><div class="metric-label">勝率 ⓘ</div><div class="metric-val neutral" data-m="wr">—</div></div>
+      <div class="metric" data-tip="總交易筆數。建議至少 20 筆以上才有統計意義，太少的話 PF 和勝率僅供參考。"><div class="metric-label">交易 ⓘ</div><div class="metric-val neutral" data-m="tc">—</div></div>
     </div>
     <div class="card-status"><span style="color:var(--text2);">等待載入...</span></div>
     <div class="chart-section">
@@ -699,6 +753,19 @@ function renderCard(stock){
     </div>
   `;
   document.getElementById('grid').appendChild(div);
+}
+
+function closeIntro(){
+  const bar=document.getElementById('introBar');
+  if(bar){bar.style.display='none';}
+  localStorage.setItem('introSeen','1');
+}
+// 如果看過了就直接隱藏
+if(localStorage.getItem('introSeen')==='1'){
+  document.addEventListener('DOMContentLoaded',()=>{
+    const bar=document.getElementById('introBar');
+    if(bar) bar.style.display='none';
+  });
 }
 
 async function init(){
