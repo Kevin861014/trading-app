@@ -311,7 +311,11 @@ def best_strategy():
     # yfinance 1H 資料上限約 730 天，4H 策略用 1H 替代，超過會抓不到
     if yf_tf == '1h' and days > 700:
         days = 700
-    fetch_days = days + 300
+    # 跟一般查詢一樣用 +700 暖機資料，確保筆數一致
+    if yf_tf == '1h':
+        fetch_days = min(days + 100, 680)
+    else:
+        fetch_days = days + 700
     start_date = (datetime.datetime.now() - datetime.timedelta(days=fetch_days)).strftime('%Y-%m-%d')
 
     try:
