@@ -193,7 +193,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       這是一個<strong>程式化順勢策略分析工具</strong>，幫你用客觀的數據判斷「現在這支股票值不值得進場」，而不是靠感覺猜漲跌。
       <div class="intro-steps">
         <div class="intro-step"><span class="step-num">1</span><div><strong>選股票和策略</strong><br>選你想追蹤的股票，搭配適合的策略。<br>台股推薦 <em>DMI/ADX</em>，加密貨幣推薦 <em>六條線或 Keltner</em>，美股推薦 <em>時間序列動能（TSMOM）</em></div></div>
-        <div class="intro-step"><span class="step-num">2</span><div><strong>用 2~5 年回測評估策略好不好</strong><br>看三個指標：PF &gt; 1.5、最大回撤 &lt; 30%、交易筆數夠多。<br>⚠ 筆數參考：台股／美股日線至少 8 筆，加密 4H 至少 15 筆。筆數越少越不可信，PF 容易被少數幾筆拉高失真。</div></div>
+        <div class="intro-step"><span class="step-num">2</span><div><strong>用 2~5 年回測評估策略好不好</strong><br>看三個指標：PF &gt; 1.5、最大回撤 &lt; 30%、交易筆數夠多。建議選 3~5 年回測，筆數越多越可信。<br>⚠ 筆數參考：台股／美股日線建議跑 3~5 年，4 筆以下不可信，8 筆以上才有參考價值。加密 4H 訊號較多，2 年至少 15 筆。筆數越少 PF 越容易虛高失真，寧可拉長時間範圍確認。</div></div>
         <div class="intro-step"><span class="step-num">3</span><div><strong>每天收盤後切換短期看訊號</strong><br>切換到「1 個月」或「7 天」，看 K 線最右邊有沒有 ▲ 綠色買進三角。<br>有訊號才考慮進場，沒有就繼續等，不要強行操作。</div></div>
         <div class="intro-step"><span class="step-num">4</span><div><strong>風險控制最重要</strong><br>這套策略不保證獲利，盤整期會連續小虧。<br>只用你「虧光也不影響生活」的資金，有訊號也要設好停損，單筆最多虧 1~2%。</div></div>
       </div>
@@ -855,7 +855,7 @@ function renderCard(stock){
       <div class="metric" data-tip="獲利因子：每虧 1 塊能賺回多少塊。PF>1.5 才值得用，越高越好。注意：交易筆數太少時 PF 容易虛高，需配合筆數一起判斷。"><div class="metric-label">PF ⓘ</div><div class="metric-val neutral" data-m="pf">—</div></div>
       <div class="metric" data-tip="最大回撤：這段時間資金從最高點最多跌了多少。越低越穩，建議不超過 30%。"><div class="metric-label">回撤 ⓘ</div><div class="metric-val neutral" data-m="dd">—</div></div>
       <div class="metric" data-tip="勝率：幾成的交易是賺錢的。順勢策略通常只有 25~40%，但賺的比虧的多，整體還是正的。"><div class="metric-label">勝率 ⓘ</div><div class="metric-val neutral" data-m="wr">—</div></div>
-      <div class="metric" data-tip="總交易筆數。台股/美股日線建議至少 8 筆，加密 4H 建議至少 15 筆。筆數太少時 PF 容易失真，建議選更長時間範圍確認。"><div class="metric-label">交易 ⓘ</div><div class="metric-val neutral" data-m="tc">—</div></div>
+      <div class="metric" data-tip="總交易筆數。台股/美股日線：4筆以下不可信，8筆以上才有參考價值，建議跑3~5年。加密4H：至少15筆。筆數太少時PF容易虛高，要拉長時間範圍確認。"><div class="metric-label">交易 ⓘ</div><div class="metric-val neutral" data-m="tc">—</div></div>
     </div>
     <div class="card-status"><span style="color:var(--text2);">等待載入...</span></div>
     <div class="chart-section">
