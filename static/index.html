@@ -75,9 +75,6 @@ select:focus { outline: none; border-color: var(--blue); }
     <select id="symbol"></select>
     <select id="strategy">
       <option value="dmi">DMI 方向動能</option>
-      <option value="ema">EMA 快慢交叉</option>
-      <option value="vol">波動突破</option>
-      <option value="sixline">六條線</option>
     </select>
     <select id="period">
       <option value="7d">7 天</option>
@@ -161,6 +158,33 @@ function updateSymbols() {
   });
 }
 updateSymbols();
+
+// 載入策略清單
+async function loadStrategies() {
+  try {
+    const res = await fetch('/api/strategies');
+    const list = await res.json();
+    const sel = document.getElementById('strategy');
+    sel.innerHTML = '';
+    list.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s.v; o.textContent = s.l;
+      sel.appendChild(o);
+    });
+  } catch(e) {
+    // fallback 預設幾個
+    const sel = document.getElementById('strategy');
+    sel.innerHTML = `
+      <option value="sixline">六條線 多頭排列（最推薦）</option>
+      <option value="diadx">DMI/ADX 方向動能（台股最強）</option>
+      <option value="supertrend">Supertrend（PAXG 最佳）</option>
+      <option value="keltner">Keltner 通道突破</option>
+      <option value="volbreak">波動突破（貴金屬最強）</option>
+      <option value="ema_cross">EMA 快慢線交叉</option>
+    `;
+  }
+}
+loadStrategies();
 
 let priceChart = null, signalChart = null;
 let chartDates = [], chartPrices = [], chartEma20 = [], chartEma50 = [];
