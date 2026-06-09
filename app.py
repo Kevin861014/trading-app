@@ -13,26 +13,45 @@ PERIOD_DAYS = {
 }
 
 STRAT_LIST = [
-    {"v": "sixline",    "l": "六條線 多頭排列（最推薦）"},
-    {"v": "diadx",      "l": "DMI/ADX 方向動能（台股最強）"},
+    # ── 核心順勢 ──
+    {"v": "sixline",    "l": "⭐ 六條線 多頭排列（最推薦）"},
+    {"v": "diadx",      "l": "⭐ DMI/ADX 方向動能（台股最強）"},
+    {"v": "tsmom",      "l": "⭐ 時間序列動能（美股最強）"},
+    {"v": "vbreakr",    "l": "⭐ 波動突破+趨勢過濾（美股強）"},
     {"v": "supertrend", "l": "Supertrend（黃金/PAXG 最佳）"},
     {"v": "keltner",    "l": "Keltner 通道突破"},
     {"v": "volbreak",   "l": "波動突破（貴金屬最強）"},
     {"v": "ttm",        "l": "TTM 擠壓突破（加密4H最強）"},
     {"v": "donchian",   "l": "Donchian 突破"},
-    {"v": "ema_cross",  "l": "EMA 快慢線交叉"},
-    {"v": "hma",        "l": "Hull MA 斜率翻轉"},
-    {"v": "rsi50",      "l": "RSI-50 收復"},
-    {"v": "tsmom",      "l": "時間序列動能（美股最強）"},
+    {"v": "smc",        "l": "SMC 結構突破+FVG"},
+    {"v": "bbreak",     "l": "布林帶突破"},
+    {"v": "lrs",        "l": "線性回歸斜率"},
     {"v": "ichimoku",   "l": "Ichimoku 雲突破"},
     {"v": "cci",        "l": "CCI 動能突破"},
     {"v": "vortex",     "l": "Vortex 渦流順勢"},
-    {"v": "bbreak",     "l": "布林帶突破"},
-    {"v": "lrs",        "l": "線性回歸斜率"},
+    {"v": "hma",        "l": "Hull MA 斜率翻轉"},
+    {"v": "rsi50",      "l": "RSI-50 收復"},
+    {"v": "ema_cross",  "l": "EMA 快慢線交叉"},
+    {"v": "pullback",   "l": "順勢回檔買進（貴金屬佳）"},
+    {"v": "pullbk",     "l": "順勢回檔買 2.0（美股佳）"},
+    {"v": "rolltrend",  "l": "順勢滾倉加碼（美股日線）"},
+    {"v": "trend",      "l": "順勢 EMA20/100（通用）"},
+    {"v": "trend3",     "l": "三點一線趨勢線突破"},
+    # ── 指標類 ──
     {"v": "macd",       "l": "MACD 趨勢"},
+    {"v": "psar",       "l": "Parabolic SAR 順勢"},
+    {"v": "kama",       "l": "KAMA 自適應均線（貴金屬佳）"},
+    {"v": "heikin",     "l": "Heikin-Ashi 趨勢（貴金屬佳）"},
+    # ── 量能類（需成交量，加密4H） ──
+    {"v": "vwap",       "l": "VWAP 收復（加密4H量能）"},
+    {"v": "obv",        "l": "OBV 量能趨勢（加密4H）"},
+    {"v": "force",      "l": "Force Index 力度（加密4H）"},
+    {"v": "cmf",        "l": "Chaikin 資金流（加密4H）"},
+    # ── 型態類 ──
+    {"v": "wbottom",    "l": "雙重/三重底反轉"},
+    # ── 逆勢類 ──
     {"v": "crsi",       "l": "Connors RSI 逆勢（勝率67%）"},
     {"v": "rsi",        "l": "RSI 均值回歸（逆勢）"},
-    {"v": "trend",      "l": "順勢 EMA20/100（通用）"},
 ]
 
 _cache = {}
