@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>順勢策略分析</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0f1117;--bg2:#1a1d27;--bg3:#22263a;
+  --border:rgba(255,255,255,0.08);
+  --text:#e8eaf0;--text2:#8b90a0;--text3:#555a6e;
+  --green:#26a69a;--red:#ef5350;--blue:#378ADD;--r:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.header{padding:14px 16px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.header h1{font-size:16px;font-weight:600;}
+.add-bar{display:flex;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.add-bar input{flex:1;min-width:140px;font-size:13px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);}
+.add-bar input:focus{outline:none;border-color:var(--blue);}
+.add-bar input::placeholder{color:var(--text3);}
+.add-bar select{font-size:12px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);}
+.add-bar select:focus{outline:none;border-color:var(--blue);}
+.btn-add{font-size:13px;padding:8px 16px;border-radius:8px;background:var(--blue);color:#fff;border:none;cursor:pointer;font-weight:500;}
+.btn-add:hover{opacity:0.85;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px 16px;}
+@media(max-width:640px){.grid{grid-template-columns:1fr;gap:12px;padding:12px;}}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.card-top{padding:14px 14px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.card-name{font-size:15px;font-weight:600;margin-bottom:3px;}
+.card-sub{font-size:11px;color:var(--text2);}
+.card-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.btn-icon{font-size:13px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;padding:5px 8px;line-height:1;}
+.btn-icon:hover{color:var(--text);border-color:rgba(255,255,255,0.2);}
+.btn-icon.del:hover{color:var(--red);border-color:var(--red);}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);}
+.metric{background:var(--bg2);padding:8px 10px;text-align:center;}
+.metric-label{font-size:10px;color:var(--text2);margin-bottom:2px;text-transform:uppercase;}
+.metric-val{font-size:14px;font-weight:600;}
+.up{color:var(--green);}.down{color:var(--red);}.neutral{color:var(--text);}
+.card-status{padding:8px 14px;font-size:11px;color:var(--text2);border-top:1px solid var(--border);display:flex;align-items:center;gap:6px;min-height:32px;}
+.chart-section{border-top:1px solid var(--border);padding:12px 14px;}
+/* 工具列 */
+.toolbar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center;}
+.sel-sm{font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);cursor:pointer;}
+.sel-sm:focus{outline:none;border-color:var(--blue);}
+.period-sel{font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);cursor:pointer;}
+.period-sel:focus{outline:none;border-color:var(--blue);}
+.tf-sel{font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);cursor:pointer;}
+.tf-sel:focus{outline:none;border-color:var(--blue);}
+.btn-sm{font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;}
+.btn-sm:hover{background:var(--bg3);color:var(--text);}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+.li{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);}
+.ld{width:12px;height:2px;border-radius:1px;}
+.lt-up{width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:8px solid var(--green);}
+.lt-dn{width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:8px solid var(--red);}
+.chart-wrap{position:relative;width:100%;height:260px;margin-bottom:6px;}
+.signal-wrap{position:relative;width:100%;height:55px;margin-bottom:10px;}
+.ct{position:absolute;background:rgba(20,24,36,0.97);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:7px 10px;font-size:11px;pointer-events:none;white-space:nowrap;z-index:10;display:none;box-shadow:0 4px 16px rgba(0,0,0,0.5);}
+.ct-date{color:var(--text2);margin-bottom:4px;font-size:10px;}
+.ct-row{display:flex;justify-content:space-between;gap:14px;line-height:1.8;}
+.ct-l{color:var(--text2);}.ct-v{font-weight:500;}
+.trades-section{margin-top:2px;}
+.trades-title{font-size:10px;color:var(--text2);text-transform:uppercase;margin-bottom:6px;}
+.tm-row{font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);color:var(--text2);}
+.tm-row:last-child{border-bottom:none;}
+.sbadge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;}
+.sbadge.buy{background:rgba(38,166,154,0.15);color:var(--green);border:1px solid rgba(38,166,154,0.3);}
+.sbadge.sell{background:rgba(239,83,80,0.15);color:var(--red);border:1px solid rgba(239,83,80,0.3);}
+.sbadge.hold{background:rgba(139,144,160,0.1);color:var(--text2);border:1px solid rgba(139,144,160,0.2);}
+.spinner{width:11px;height:11px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;padding:16px;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:1100px;max-height:92vh;overflow:auto;padding:20px;}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.modal-title{font-size:15px;font-weight:600;}
+.modal-toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.btn-close{font-size:18px;background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;}
+.btn-close:hover{color:var(--text);}
+.modal-chart-wrap{position:relative;width:100%;height:420px;margin-bottom:8px;}
+.modal-signal-wrap{position:relative;width:100%;height:70px;}
+@media(max-width:640px){.modal-chart-wrap{height:260px;}}
+.note{font-size:10px;color:var(--text3);padding:8px 16px 16px;text-align:center;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📈 順勢策略分析</h1>
+  <span style="font-size:11px;color:var(--text2);">台股1D · 加密4H</span>
+</div>
+
+<div class="add-bar">
+  <input id="addInput" placeholder="代碼：2330.TW / AAPL / PAXG-USD" onkeydown="if(event.key==='Enter')addStock()">
+  <select id="addStrat"></select>
+  <button class="btn-add" onclick="addStock()">＋ 加入</button>
+</div>
+
+<div class="grid" id="grid"></div>
+<p class="note">資料來源：Yahoo Finance｜台股含0.45%成本｜加密含0.24%｜過去績效不代表未來</p>
+
+<!-- 放大 Modal -->
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">K 線圖</span>
+      <div class="modal-toolbar">
+        <select class="period-sel" id="modalPeriod" onchange="reloadModal()">
+          <option value="7d">7天</option>
+          <option value="1mo">1個月</option>
+          <option value="1y" selected>1年</option>
+          <option value="2y">2年</option>
+          <option value="3y">3年</option>
+          <option value="5y">5年</option>
+        </select>
+        <select class="tf-sel" id="modalTf" onchange="reloadModal()">
+          <option value="1d">日線 1D</option>
+          <option value="4h">4小時 4H</option>
+          <option value="1h">1小時 1H</option>
+        </select>
+        <button class="btn-close" onclick="closeModal()">✕</button>
+      </div>
+    </div>
+    <div class="legend">
+      <div class="li"><div class="ld" style="background:#378ADD;"></div>收盤</div>
+      <div class="li"><div class="ld" style="background:#26a69a;"></div>EMA20</div>
+      <div class="li"><div class="ld" style="background:#ef5350;"></div>EMA50</div>
+      <div class="li"><div class="lt-up"></div>買進</div>
+      <div class="li"><div class="lt-dn"></div>賣出</div>
+    </div>
+    <div class="modal-chart-wrap"><canvas id="modalPriceCanvas"></canvas><div class="ct" id="modalTooltip"></div></div>
+    <div class="modal-signal-wrap"><canvas id="modalSignalCanvas"></canvas></div>
+  </div>
+</div>
+
+<script>
+// ── 常數 ──────────────────────────────────────────────
+const PERIODS = ['7d','1mo','1y','2y','3y','5y'];
+const PERIOD_LABELS = {'7d':'7天','1mo':'1月','1y':'1年','2y':'2年','3y':'3年','5y':'5年'};
+const TFS = ['1d','4h','1h'];
+const TF_LABELS = {'1d':'日線','4h':'4H','1h':'1H'};
+
+// 自動判斷預設時間框架（加密用4H，其他用1D）
+function defaultTf(symbol){
+  const crypto = ['BTC','ETH','BNB','SOL','XRP','DOGE','PAXG','LINK','LTC','TRX','ADA','USDT','USD'];
+  return crypto.some(c=>symbol.toUpperCase().includes(c)) ? '4h' : '1d';
+}
+
+// ── 狀態 ──────────────────────────────────────────────
+let strategies = [];
+let stocks = JSON.parse(localStorage.getItem('stocks_v3') || 'null') || [
+  {id:1,symbol:'2330.TW',name:'台積電 2330',strat:'diadx',   period:'2y',tf:'1d'},
+  {id:2,symbol:'2317.TW',name:'鴻海 2317',  strat:'diadx',   period:'2y',tf:'1d'},
+  {id:3,symbol:'2603.TW',name:'長榮 2603',  strat:'diadx',   period:'2y',tf:'1d'},
+  {id:4,symbol:'0050.TW',name:'0050',        strat:'sixline', period:'2y',tf:'1d'},
+  {id:5,symbol:'PAXG-USD',name:'PAXG 黃金幣',strat:'supertrend',period:'2y',tf:'1d'},
+  {id:6,symbol:'SOL-USD', name:'SOL',        strat:'keltner', period:'2y',tf:'4h'},
+  {id:7,symbol:'ETH-USD', name:'ETH',        strat:'ttm',     period:'2y',tf:'4h'},
+];
+let nextId = Math.max(...stocks.map(s=>s.id),0)+1;
+let chartInsts = {};
+let modalCharts = {};
+let modalStockId = null;
+
+function save(){ localStorage.setItem('stocks_v3',JSON.stringify(stocks)); }
+
+// ── 策略載入 ──────────────────────────────────────────
+async function loadStrategies(){
+  try{
+    const r=await fetch('/api/strategies');
+    strategies=await r.json();
+  }catch(e){
+    strategies=[
+      {v:'sixline',l:'六條線（最推薦）'},{v:'diadx',l:'DMI/ADX（台股最強）'},
+      {v:'supertrend',l:'Supertrend'},{v:'keltner',l:'Keltner 突破'},
+      {v:'volbreak',l:'波動突破'},{v:'ttm',l:'TTM 擠壓'},
+      {v:'ema_cross',l:'EMA 快慢交叉'},{v:'donchian',l:'Donchian 突破'},
+      {v:'trend',l:'順勢 EMA'},{v:'rsi',l:'RSI 逆勢'},
+    ];
+  }
+  const sel=document.getElementById('addStrat');
+  sel.innerHTML=strategies.map(s=>`<option value="${s.v}">${s.l}</option>`).join('');
+}
+
+function getStratName(v){
+  const s=strategies.find(s=>s.v===v);
+  return s?s.l.split('（')[0].split('(')[0]:v;
+}
+
+// ── 新增 ──────────────────────────────────────────────
+function addStock(){
+  const input=document.getElementById('addInput');
+  const stratSel=document.getElementById('addStrat');
+  const raw=input.value.trim().toUpperCase();
+  if(!raw) return;
+  const symbol=/^\d{4}$/.test(raw)?raw+'.TW':raw;
+  const strat=stratSel.value||'diadx';
+  const tf=defaultTf(symbol);
+  const id=nextId++;
+  const stock={id,symbol,name:symbol,strat,period:'2y',tf};
+  stocks.push(stock);
+  save();
+  input.value='';
+  renderCard(stock);
+  loadCard(id);
+}
+
+// ── 刪除 ──────────────────────────────────────────────
+function deleteStock(id,e){
+  e.stopPropagation();
+  if(!confirm('確定刪除？')) return;
+  stocks=stocks.filter(s=>s.id!==id);
+  save();
+  destroyCharts(id);
+  const el=document.getElementById(`card-${id}`);
+  if(el) el.remove();
+}
+
+function destroyCharts(id){
+  if(chartInsts[id]){
+    if(chartInsts[id].price) chartInsts[id].price.destroy();
+    if(chartInsts[id].signal) chartInsts[id].signal.destroy();
+    delete chartInsts[id];
+  }
+}
+
+// ── 設定變更 ──────────────────────────────────────────
+function changeStrat(id,val){
+  const s=stocks.find(s=>s.id===id);
+  if(s){ s.strat=val; save(); }
+  updateCardSub(id);
+  reloadCard(id);
+}
+
+function changePeriod(id,val){
+  const s=stocks.find(s=>s.id===id);
+  if(s){ s.period=val; save(); }
+  reloadCard(id);
+}
+
+function changeTf(id,val){
+  const s=stocks.find(s=>s.id===id);
+  if(s){ s.tf=val; save(); }
+  reloadCard(id);
+}
+
+function updateCardSub(id){
+  const stock=stocks.find(s=>s.id===id);
+  const card=document.getElementById(`card-${id}`);
+  if(!stock||!card) return;
+  const sub=card.querySelector('.card-sub');
+  if(sub) sub.textContent=`${stock.symbol} · ${getStratName(stock.strat)} · ${TF_LABELS[stock.tf]||stock.tf}`;
+}
+
+function reloadCard(id){
+  const card=document.getElementById(`card-${id}`);
+  if(card){ card.dataset.loaded='0'; destroyCharts(id); }
+  loadCard(id);
+}
+
+// ── 載入資料 ──────────────────────────────────────────
+async function loadCard(id){
+  const stock=stocks.find(s=>s.id===id);
+  if(!stock) return;
+  const card=document.getElementById(`card-${id}`);
+  if(!card) return;
+
+  const status=card.querySelector('.card-status');
+  status.innerHTML=`<span class="spinner"></span> 載入中...`;
+  setMetrics(card,null);
+  card.dataset.loaded='0';
+
+  try{
+    const p=stock.period||'2y';
+    const tf=stock.tf||'1d';
+    const r=await fetch(`/api/analyze?symbol=${stock.symbol}&strategy=${stock.strat}&period=${p}&timeframe=${tf}`);
+    const data=await r.json();
+    if(data.error){
+      status.innerHTML=`<span style="color:var(--red);">⚠ ${data.error}</span>`;
+      return;
+    }
+    card.dataset.loaded='1';
+    card.dataset.chartdata=JSON.stringify(data);
+    setMetrics(card,data.metrics);
+
+    const lastDiff=data.diff[data.diff.length-1];
+    let badge='';
+    if(lastDiff>0.1) badge='<span class="sbadge buy">▲ 多頭</span>';
+    else if(lastDiff<-0.1) badge='<span class="sbadge sell">▼ 空頭</span>';
+    else badge='<span class="sbadge hold">— 中立</span>';
+    const time=new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+    status.innerHTML=`${badge} <span style="color:var(--text3);margin-left:4px;">${time}</span>`;
+
+    drawCardCharts(id,data);
+
+    const tbl=card.querySelector('.trades-list');
+    if(data.metrics.trades&&data.metrics.trades.length){
+      tbl.innerHTML=data.metrics.trades.map(t=>`
+        <div class="tm-row">
+          <span style="color:var(--green);">▲${t.buyPrice}</span>
+          <span style="color:var(--text3);margin:0 4px;">→</span>
+          <span style="color:var(--red);">▼${t.sellPrice}</span>
+          <span class="${t.ret>=0?'up':'down'}" style="font-weight:600;margin-left:8px;">${t.ret>=0?'+':''}${t.ret}%</span>
+          <div style="font-size:10px;color:var(--text3);margin-top:1px;">${t.buyDate||''} → ${t.sellDate||''}</div>
+        </div>`).join('');
+    } else {
+      tbl.innerHTML='<div style="color:var(--text2);padding:8px 0;text-align:center;font-size:12px;">此期間無交易紀錄</div>';
+    }
+  }catch(e){
+    status.innerHTML=`<span style="color:var(--red);">⚠ 連線失敗</span>`;
+  }
+}
+
+function setMetrics(card,m){
+  [
+    {k:'ret',fn:m=>(m.totalReturn>=0?'+':'')+m.totalReturn+'%',c:m=>m.totalReturn>=0?'up':'down'},
+    {k:'cagr',fn:m=>(m.cagr>=0?'+':'')+m.cagr+'%',c:m=>m.cagr>=0?'up':'down'},
+    {k:'pf',fn:m=>m.pf>=999?'∞':m.pf.toFixed(2),c:m=>m.pf>=1?'up':'down'},
+    {k:'dd',fn:m=>m.maxDD+'%',c:()=>'down'},
+    {k:'wr',fn:m=>m.wr+'%',c:m=>m.wr>=40?'up':'neutral'},
+    {k:'tc',fn:m=>m.tradeCount+'筆',c:()=>'neutral'},
+  ].forEach(d=>{
+    const el=card.querySelector(`[data-m="${d.k}"]`);
+    if(el){ el.textContent=m?d.fn(m):'—'; el.className='metric-val '+(m?d.c(m):'neutral'); }
+  });
+}
+
+// ── 圖表 ──────────────────────────────────────────────
+const crosshairPlugin={
+  id:'crosshair',
+  afterDraw(chart){
+    if(chart.tooltip._active&&chart.tooltip._active.length){
+      const ctx=chart.ctx,x=chart.tooltip._active[0].element.x;
+      ctx.save();ctx.beginPath();
+      ctx.moveTo(x,chart.scales.y.top);ctx.lineTo(x,chart.scales.y.bottom);
+      ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+      ctx.stroke();ctx.restore();
+    }
+  }
+};
+Chart.register(crosshairPlugin);
+
+function buildChartConfig(data,tooltipEl){
+  const bp=data.prices.map((p,i)=>data.buyPoints[i]!==null?p:null);
+  const sp=data.prices.map((p,i)=>data.sellPoints[i]!==null?p:null);
+  return {
+    type:'line',
+    data:{labels:data.dates,datasets:[
+      {label:'收盤',data:data.prices,borderColor:'#378ADD',borderWidth:1.5,pointRadius:0,tension:0.1,fill:false,order:4},
+      {label:'EMA20',data:data.ema20,borderColor:'#26a69a',borderWidth:1,pointRadius:0,tension:0.1,fill:false,order:3},
+      {label:'EMA50',data:data.ema50,borderColor:'#ef5350',borderWidth:1,pointRadius:0,tension:0.1,fill:false,borderDash:[5,3],order:3},
+      {label:'買進',data:bp,borderColor:'transparent',backgroundColor:'#26a69a',
+       pointRadius:data.prices.map((_,i)=>data.buyPoints[i]!==null?8:0),pointStyle:'triangle',showLine:false,order:1},
+      {label:'賣出',data:sp,borderColor:'transparent',backgroundColor:'#ef5350',
+       pointRadius:data.prices.map((_,i)=>data.sellPoints[i]!==null?8:0),pointStyle:'triangle',pointRotation:180,showLine:false,order:1},
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{enabled:false,
+        external({chart,tooltip:tt}){
+          if(!tooltipEl) return;
+          if(tt.opacity===0){tooltipEl.style.display='none';return;}
+          const i=tt.dataPoints?tt.dataPoints[0].dataIndex:-1;
+          if(i<0) return;
+          tooltipEl.innerHTML=`
+            <div class="ct-date">${data.dates[i]}</div>
+            <div class="ct-row"><span class="ct-l">收盤</span><span class="ct-v" style="color:#378ADD">${data.prices[i]}</span></div>
+            <div class="ct-row"><span class="ct-l">EMA20</span><span class="ct-v" style="color:#26a69a">${data.ema20[i]||'—'}</span></div>
+            <div class="ct-row"><span class="ct-l">EMA50</span><span class="ct-v" style="color:#ef5350">${data.ema50[i]||'—'}</span></div>
+            ${data.buyPoints[i]!==null?'<div style="color:#26a69a;font-weight:700;margin-top:3px;">▲ 買進訊號</div>':''}
+            ${data.sellPoints[i]!==null?'<div style="color:#ef5350;font-weight:700;margin-top:3px;">▼ 賣出訊號</div>':''}
+          `;
+          let left=tt.caretX+12;
+          if(left+170>chart.width) left=tt.caretX-182;
+          tooltipEl.style.display='block';
+          tooltipEl.style.left=left+'px';
+          tooltipEl.style.top=Math.max(0,tt.caretY-30)+'px';
+        }
+      }},
+      scales:{
+        x:{ticks:{maxTicksLimit:7,color:'#8b90a0',font:{size:10},autoSkip:true},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{ticks:{color:'#8b90a0',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}}
+      }
+    }
+  };
+}
+
+function buildSignalConfig(data){
+  return {
+    type:'bar',
+    data:{labels:data.dates,datasets:[{label:'EMA差距',data:data.diff,
+      backgroundColor:data.diff.map(v=>v>=0?'rgba(38,166,154,0.55)':'rgba(239,83,80,0.55)'),borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{display:false},y:{ticks:{color:'#8b90a0',font:{size:9},maxTicksLimit:3},grid:{color:'rgba(255,255,255,0.04)'}}}}
+  };
+}
+
+function drawCardCharts(id,data){
+  destroyCharts(id);
+  const card=document.getElementById(`card-${id}`);
+  const ttEl=card.querySelector('.ct');
+  chartInsts[id]={
+    price:new Chart(card.querySelector('.price-canvas').getContext('2d'),buildChartConfig(data,ttEl)),
+    signal:new Chart(card.querySelector('.signal-canvas').getContext('2d'),buildSignalConfig(data))
+  };
+}
+
+// ── Modal ──────────────────────────────────────────────
+function openModal(id){
+  const card=document.getElementById(`card-${id}`);
+  if(!card||card.dataset.loaded!=='1') return;
+  const stock=stocks.find(s=>s.id===id);
+  modalStockId=id;
+  document.getElementById('modalTitle').textContent=`${stock?.name||stock?.symbol} — 放大圖`;
+  // 同步選單到該股票的設定
+  document.getElementById('modalPeriod').value=stock?.period||'2y';
+  document.getElementById('modalTf').value=stock?.tf||'1d';
+  document.getElementById('modalBg').classList.add('open');
+  drawModalCharts(JSON.parse(card.dataset.chartdata||'null'));
+}
+
+async function reloadModal(){
+  if(!modalStockId) return;
+  const stock=stocks.find(s=>s.id===modalStockId);
+  if(!stock) return;
+  const p=document.getElementById('modalPeriod').value;
+  const tf=document.getElementById('modalTf').value;
+  try{
+    const r=await fetch(`/api/analyze?symbol=${stock.symbol}&strategy=${stock.strat}&period=${p}&timeframe=${tf}`);
+    const data=await r.json();
+    if(!data.error) drawModalCharts(data);
+  }catch(e){}
+}
+
+function drawModalCharts(data){
+  if(!data) return;
+  if(modalCharts.price) modalCharts.price.destroy();
+  if(modalCharts.signal) modalCharts.signal.destroy();
+  const ttEl=document.getElementById('modalTooltip');
+  modalCharts.price=new Chart(document.getElementById('modalPriceCanvas').getContext('2d'),buildChartConfig(data,ttEl));
+  modalCharts.signal=new Chart(document.getElementById('modalSignalCanvas').getContext('2d'),buildSignalConfig(data));
+}
+
+function closeModal(e){
+  if(e&&e.target!==document.getElementById('modalBg')) return;
+  document.getElementById('modalBg').classList.remove('open');
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.getElementById('modalBg').classList.remove('open'); });
+
+// ── 渲染卡片 ──────────────────────────────────────────
+function renderCard(stock){
+  const div=document.createElement('div');
+  div.className='card';
+  div.id=`card-${stock.id}`;
+  div.dataset.loaded='0';
+
+  const periodOpts=PERIODS.map(p=>`<option value="${p}" ${p===(stock.period||'2y')?'selected':''}>${PERIOD_LABELS[p]}</option>`).join('');
+  const tfOpts=TFS.map(t=>`<option value="${t}" ${t===(stock.tf||'1d')?'selected':''}>${TF_LABELS[t]}</option>`).join('');
+  const stratOpts=strategies.map(s=>`<option value="${s.v}" ${s.v===stock.strat?'selected':''}>${s.l}</option>`).join('');
+
+  div.innerHTML=`
+    <div class="card-top">
+      <div>
+        <div class="card-name">${stock.name||stock.symbol}</div>
+        <div class="card-sub">${stock.symbol} · ${getStratName(stock.strat)} · ${TF_LABELS[stock.tf]||stock.tf||'1d'}</div>
+      </div>
+      <div class="card-actions">
+        <button class="btn-icon" onclick="openModal(${stock.id})" title="放大">⛶</button>
+        <button class="btn-icon" onclick="reloadCard(${stock.id})" title="重新載入">↺</button>
+        <button class="btn-icon del" onclick="deleteStock(${stock.id},event)" title="刪除">✕</button>
+      </div>
+    </div>
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">總報酬</div><div class="metric-val neutral" data-m="ret">—</div></div>
+      <div class="metric"><div class="metric-label">年化</div><div class="metric-val neutral" data-m="cagr">—</div></div>
+      <div class="metric"><div class="metric-label">PF</div><div class="metric-val neutral" data-m="pf">—</div></div>
+      <div class="metric"><div class="metric-label">回撤</div><div class="metric-val neutral" data-m="dd">—</div></div>
+      <div class="metric"><div class="metric-label">勝率</div><div class="metric-val neutral" data-m="wr">—</div></div>
+      <div class="metric"><div class="metric-label">交易</div><div class="metric-val neutral" data-m="tc">—</div></div>
+    </div>
+    <div class="card-status"><span style="color:var(--text2);font-size:12px;">等待載入...</span></div>
+    <div class="chart-section">
+      <div class="toolbar">
+        <select class="sel-sm" id="strat-sel-${stock.id}" onchange="changeStrat(${stock.id},this.value)">${stratOpts}</select>
+        <select class="period-sel" id="period-sel-${stock.id}" onchange="changePeriod(${stock.id},this.value)">${periodOpts}</select>
+        <select class="tf-sel" id="tf-sel-${stock.id}" onchange="changeTf(${stock.id},this.value)">${tfOpts}</select>
+      </div>
+      <div class="legend">
+        <div class="li"><div class="ld" style="background:#378ADD;"></div>收盤</div>
+        <div class="li"><div class="ld" style="background:#26a69a;"></div>EMA20</div>
+        <div class="li"><div class="ld" style="background:#ef5350;"></div>EMA50</div>
+        <div class="li"><div class="lt-up"></div>買進</div>
+        <div class="li"><div class="lt-dn"></div>賣出</div>
+      </div>
+      <div class="chart-wrap"><canvas class="price-canvas"></canvas><div class="ct"></div></div>
+      <div class="signal-wrap"><canvas class="signal-canvas"></canvas></div>
+      <div class="trades-section">
+        <div class="trades-title">最近進出場</div>
+        <div class="trades-list"></div>
+      </div>
+    </div>
+  `;
+  document.getElementById('grid').appendChild(div);
+}
+
+// ── 初始化 ────────────────────────────────────────────
+async function init(){
+  await loadStrategies();
+  stocks.forEach(s=>renderCard(s));
+  stocks.forEach(s=>loadCard(s.id));
+}
+init();
+</script>
+</body>
+</html>
