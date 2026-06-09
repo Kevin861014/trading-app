@@ -1,6 +1,6 @@
-flask>=3.0.0
-flask-cors>=4.0.0
-yfinance>=0.2.40
-pandas>=2.2.3
-numpy>=2.0.0
-gunicorn>=22.0.0
+flask
+flask-cors
+yfinance
+pandas
+numpy
+gunicorn
