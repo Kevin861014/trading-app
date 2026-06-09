@@ -164,25 +164,30 @@ def analyze():
             else:
                 diff.append(0)
 
-        # 交易紀錄：用完整 ohlcv 資料配對，不限於顯示期間
-        # 這樣即使買進在顯示期間之前，賣出在期間之內也能配對
+        # 交易紀錄：賣出日期必須在顯示期間內，買進可以在之前
+        # 先用完整資料配對所有交易
         trades_list = []
         buy_px = None; buy_date = None
         full_prices = [r[4] for r in ohlcv]
         full_dates = [datetime.datetime.utcfromtimestamp(r[0]/1000).strftime(
             '%Y-%m-%d %H:%M' if yf_tf=='1h' else '%Y-%m-%d') for r in ohlcv]
+        # 顯示期間的起始日期
+        display_start = dates[0] if dates else ''
         for i in range(len(full_prices)):
             if real_buy[i]:
                 buy_px = full_prices[i]; buy_date = full_dates[i]
             elif real_sell[i] and buy_px:
-                ret = round((full_prices[i] - buy_px) / buy_px * 100, 2)
-                trades_list.append({
-                    'buyPrice': round(buy_px,2),
-                    'sellPrice': round(full_prices[i],2),
-                    'buyDate': buy_date,
-                    'sellDate': full_dates[i],
-                    'ret': ret
-                })
+                sell_date = full_dates[i]
+                # 只顯示賣出日期在顯示期間內的交易
+                if sell_date >= display_start:
+                    ret = round((full_prices[i] - buy_px) / buy_px * 100, 2)
+                    trades_list.append({
+                        'buyPrice': round(buy_px,2),
+                        'sellPrice': round(full_prices[i],2),
+                        'buyDate': buy_date,
+                        'sellDate': sell_date,
+                        'ret': ret
+                    })
                 buy_px = None
         trades_list = trades_list[-10:][::-1]
 
