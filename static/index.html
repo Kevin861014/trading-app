@@ -76,6 +76,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-close:hover{color:var(--text);}
 .modal-ind-toggles{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
 .note{font-size:10px;color:var(--text3);padding:8px 16px 16px;text-align:center;}
+/* 骨架畫面 */
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.skeleton{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg2) 50%,var(--bg3) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px;}
+.card-skeleton{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;padding:14px;}
+.sk-line{height:12px;margin-bottom:8px;}
+.sk-chart{height:200px;margin-top:12px;}
+.sk-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;}
+.sk-metric{height:40px;}
 /* 快速導覽列（頂部橫向）*/
 .nav-bar{display:flex;gap:4px;padding:6px 16px;overflow-x:auto;border-bottom:1px solid var(--border);background:var(--bg);transition:max-height 0.2s,padding 0.2s;}
 .nav-bar::-webkit-scrollbar{height:3px;}
@@ -815,7 +823,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape') document.getElement
 // ── 渲染卡片 ──────────────────────────────────────────
 function renderCard(stock){
   const div=document.createElement('div');
-  div.className='card';div.id=`card-${stock.id}`;div.dataset.loaded='0';
+  div.className='card';div.id=`card-${stock.id}`;div.dataset.loaded='0';div.dataset.stockId=stock.id;
   const periodOpts=PERIODS.map(p=>`<option value="${p}" ${p===(stock.period||'2y')?'selected':''}>${PERIOD_LABELS[p]}</option>`).join('');
   const tfOpts=TFS.map(t=>`<option value="${t}" ${t===(stock.tf||'1d')?'selected':''}>${TF_LABELS[t]}</option>`).join('');
   const stratOpts=strategies.map(s=>`<option value="${s.v}" ${s.v===stock.strat?'selected':''}>${s.l}</option>`).join('');
@@ -992,35 +1000,7 @@ function getSignalState(data){
 
 // ── 快速導覽列 ──────────────────────────────────────────
 function updateNavBar(){
-  const nav=document.getElementById('navBar');
-  if(!nav) return;
-  nav.innerHTML=stocks.map(s=>{
-    const card=document.getElementById(`card-${s.id}`);
-    const loaded=card&&card.dataset.loaded==='1';
-    let dot='hold',sigText='載入中...';
-    if(loaded){
-      const data=JSON.parse(card.dataset.chartdata||'null');
-      if(data){
-        const sig=getSignalState(data);
-        dot=sig.dot;
-        const shortLabel={
-          'buy':'▲ 買進！','sell':'▼ 賣出！','holding':'▲ 持有中',
-          'expired':'⚠ 已過期','exited':'▼ 已出場','wait':'多頭等待',
-          'bear':'▼ 空頭','neutral':'— 中立'
-        }[sig.type]||sig.label;
-        sigText=shortLabel;
-      }
-    }
-    const colorMap={buy:'#26a69a',sell:'#ef5350',expired:'#f5a623',hold:'#555a6e'};
-    const sigColor=colorMap[dot]||'#555a6e';
-    return `<div class="nav-item" onclick="scrollToCard(${s.id})">
-      <div class="nav-dot ${dot}"></div>
-      <div>
-        <div class="nav-item-name">${s.name||s.symbol}</div>
-        <div class="nav-item-sig" style="color:${sigColor};">${sigText}</div>
-      </div>
-    </div>`;
-  }).join('');
+  updateNavBarFromSignals();
 }
 
 // ── 導覽列開關 ──────────────────────────────────────────
@@ -1063,11 +1043,110 @@ if(localStorage.getItem('introSeen')==='1'){
   });
 }
 
+const PRELOAD_COUNT = 5; // 預先載入前幾張
+
 async function init(){
   await loadStrategies();
   stocks.forEach(s=>renderCard(s));
-  stocks.forEach(s=>loadCard(s.id));
   applyNavState();
+
+  // 1. 背景靜默載入所有股票輕量訊號 → 更新導覽列
+  loadAllSignals();
+
+  // 2. 前5張完整載入
+  const preload = stocks.slice(0, PRELOAD_COUNT);
+  preload.forEach(s => loadCard(s.id));
+
+  // 3. 其餘卡片用 Intersection Observer 懶加載
+  const lazyStocks = stocks.slice(PRELOAD_COUNT);
+  if(lazyStocks.length > 0) setupLazyLoad(lazyStocks);
+}
+
+// 背景靜默載入輕量訊號（只更新導覽列，不渲染圖表）
+async function loadAllSignals(){
+  const results = await Promise.allSettled(
+    stocks.map(s =>
+      fetch(`/api/signal?symbol=${s.symbol}&strategy=${s.strat}&timeframe=${s.tf||'1d'}`)
+        .then(r => r.json())
+        .then(data => ({id: s.id, data}))
+        .catch(() => null)
+    )
+  );
+  // 把輕量訊號存到卡片上
+  results.forEach(r => {
+    if(r.status === 'fulfilled' && r.value) {
+      const {id, data} = r.value;
+      const card = document.getElementById(`card-${id}`);
+      if(card && card.dataset.loaded !== '1') {
+        card.dataset.signaldata = JSON.stringify(data);
+      }
+    }
+  });
+  updateNavBarFromSignals();
+}
+
+// 從輕量訊號更新導覽列
+function updateNavBarFromSignals(){
+  const nav = document.getElementById('navBar');
+  if(!nav) return;
+  nav.innerHTML = stocks.map(s => {
+    const card = document.getElementById(`card-${s.id}`);
+    let dot = 'hold', sigText = '載入中...', sigColor = '#555a6e';
+
+    // 優先用完整資料，其次用輕量訊號
+    if(card && card.dataset.loaded === '1'){
+      const data = JSON.parse(card.dataset.chartdata || 'null');
+      if(data){
+        const sig = getSignalState(data);
+        dot = sig.dot;
+        sigText = {
+          'buy':'▲ 買進！','sell':'▼ 賣出！','holding':'▲ 持有中',
+          'expired':'⚠ 已過期','exited':'▼ 已出場','wait':'多頭等待',
+          'bear':'▼ 空頭','neutral':'— 中立'
+        }[sig.type] || sig.label;
+      }
+    } else if(card && card.dataset.signaldata){
+      const sig = JSON.parse(card.dataset.signaldata);
+      dot = sig.dot || 'hold';
+      sigText = sig.label || '— 載入中';
+    }
+
+    const colorMap = {buy:'#26a69a', sell:'#ef5350', expired:'#f5a623', hold:'#555a6e'};
+    sigColor = colorMap[dot] || '#555a6e';
+
+    return `<div class="nav-item" onclick="scrollToCard(${s.id})">
+      <div class="nav-dot ${dot}"></div>
+      <div>
+        <div class="nav-item-name">${s.name||s.symbol}</div>
+        <div class="nav-item-sig" style="color:${sigColor};">${sigText}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Intersection Observer 懶加載
+function setupLazyLoad(lazyStocks){
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        const id = parseInt(entry.target.dataset.stockId);
+        const card = document.getElementById(`card-${id}`);
+        if(card && card.dataset.loaded !== '1' && card.dataset.loading !== '1'){
+          card.dataset.loading = '1';
+          loadCard(id);
+          observer.unobserve(entry.target);
+        }
+      }
+    });
+  }, {rootMargin: '200px'}); // 提前 200px 開始載入
+
+  lazyStocks.forEach(s => {
+    const card = document.getElementById(`card-${s.id}`);
+    if(card){
+      card.dataset.stockId = s.id;
+      observer.observe(card);
+    }
+  });
 }
 init();
 </script>

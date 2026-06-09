@@ -261,6 +261,139 @@ def analyze():
         import traceback
         return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500
 
+@app.route('/api/signal')
+def signal():
+    """輕量版：只回傳訊號狀態，不回傳完整 K 線資料，用於導覽列快速載入"""
+    symbol   = request.args.get('symbol', '2330.TW')
+    strategy = request.args.get('strategy', 'diadx')
+    timeframe = request.args.get('timeframe', '1d')
+    yf_tf = {'1d':'1d', '4h':'1h', '1h':'1h'}.get(timeframe, '1d')
+
+    # 輕量版只需要最近 300 天
+    start_date = (datetime.datetime.now() - datetime.timedelta(days=300)).strftime('%Y-%m-%d')
+
+    try:
+        import sim as _sim
+        spec = ('yf', symbol)
+        _sim.COMMISSION, _sim.SLIPPAGE = market_cost(spec, strategy)
+
+        ohlcv = fetch_data(symbol, start_date, interval=yf_tf)
+        if not ohlcv or len(ohlcv) < 50:
+            return jsonify({'error': '資料不足', 'state': 'unknown'})
+
+        # 補暖機資料不夠就拉長
+        if len(ohlcv) < 220:
+            start_date2 = (datetime.datetime.now() - datetime.timedelta(days=700)).strftime('%Y-%m-%d')
+            ohlcv = fetch_data(symbol, start_date2, interval=yf_tf)
+
+        if not ohlcv or len(ohlcv) < 100:
+            return jsonify({'error': '資料不足', 'state': 'unknown'})
+
+        O=[r[1] for r in ohlcv]; H=[r[2] for r in ohlcv]
+        L=[r[3] for r in ohlcv]; C=[r[4] for r in ohlcv]
+        V=[(r[5] if len(r)>5 else 0.0) for r in ohlcv]
+        s = STRATS.get(strategy, STRATS['trend'])
+        el_full, xl_full = s['build'](O, H, L, C, V, yf_tf)
+
+        real_buy, real_sell = get_real_trades(ohlcv, el_full, xl_full)
+
+        # 只看最後狀態
+        prices = [r[4] for r in ohlcv]
+        dates = [datetime.datetime.utcfromtimestamp(r[0]/1000).strftime('%Y-%m-%d') for r in ohlcv]
+
+        current_pos = False
+        last_buy_price = None
+        last_buy_date = None
+        last_sell_date = None
+
+        for i in range(len(prices)):
+            if real_buy[i]:
+                current_pos = True
+                last_buy_price = prices[i]
+                last_buy_date = dates[i]
+            elif real_sell[i]:
+                current_pos = False
+                last_sell_date = dates[i]
+
+        # EMA 差距判斷趨勢
+        from sim import ema as calc_ema_sig
+        ema20 = calc_ema_sig(prices, 20)
+        ema50 = calc_ema_sig(prices, 50)
+        last_diff = 0
+        if ema20[-1] and ema50[-1] and ema50[-1] > 0:
+            last_diff = (ema20[-1] - ema50[-1]) / ema50[-1] * 100
+
+        has_buy_now = real_buy[-1]
+        has_sell_now = real_sell[-1]
+
+        # 訊號有效期
+        signal_expired = False
+        float_pnl = None
+        signal_days_ago = None
+        if current_pos and last_buy_date:
+            try:
+                buy_dt = datetime.datetime.strptime(last_buy_date, '%Y-%m-%d')
+                days_diff = (datetime.datetime.now() - buy_dt).days
+                signal_days_ago = days_diff
+                expire_days = 1 if yf_tf == '1h' else 3
+                if days_diff > expire_days:
+                    signal_expired = True
+                if last_buy_price and prices[-1] > last_buy_price * 1.03:
+                    signal_expired = True
+                if last_buy_price:
+                    float_pnl = round((prices[-1] - last_buy_price) / last_buy_price * 100, 2)
+            except:
+                pass
+
+        # 判斷狀態
+        if has_buy_now:
+            state = 'buy'
+            label = '▲ 買進訊號！'
+            dot = 'buy'
+        elif has_sell_now:
+            state = 'sell'
+            label = '▼ 賣出訊號！'
+            dot = 'sell'
+        elif current_pos:
+            if signal_expired:
+                state = 'expired'
+                label = '⚠ 訊號已過期'
+                dot = 'expired'
+            else:
+                days_str = f'第{signal_days_ago+1}天' if signal_days_ago is not None else ''
+                state = 'holding'
+                label = f'▲ 持有中 {days_str}'
+                dot = 'buy'
+        elif last_sell_date:
+            state = 'exited'
+            label = '▼ 已出場'
+            dot = 'sell'
+        elif last_diff > 0.1:
+            state = 'wait'
+            label = '▲ 多頭等待'
+            dot = 'hold'
+        elif last_diff < -0.1:
+            state = 'bear'
+            label = '▼ 空頭觀望'
+            dot = 'sell'
+        else:
+            state = 'neutral'
+            label = '— 中立'
+            dot = 'hold'
+
+        return jsonify({
+            'state': state,
+            'label': label,
+            'dot': dot,
+            'floatPnl': float_pnl,
+            'lastBuyDate': last_buy_date,
+            'lastSellDate': last_sell_date,
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e), 'state': 'unknown', 'label': '— 載入失敗', 'dot': 'hold'})
+
+
 @app.route('/')
 def index():
     return app.send_static_file('index.html')
