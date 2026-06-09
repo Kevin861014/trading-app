@@ -85,9 +85,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 @media(max-width:600px){.intro-steps{grid-template-columns:1fr;}}
 .intro-step{display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
 .step-num{width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
-.intro-step div{font-size:12px;color:var(--text2);line-height:1.6;}
+.intro-step div{font-size:12px;color:var(--text2);line-height:1.6;} .intro-step em{color:#378ADD;font-style:normal;font-weight:500;}
 .intro-step strong{color:var(--text);display:block;margin-bottom:2px;}
-.intro-note{font-size:11px;color:var(--text3);background:rgba(239,83,80,0.06);border:1px solid rgba(239,83,80,0.15);border-radius:6px;padding:8px 12px;margin-top:10px;}
+.intro-note{font-size:11px;color:#c0c4d0;background:rgba(239,83,80,0.1);border:1px solid rgba(239,83,80,0.3);border-radius:6px;padding:8px 12px;margin-top:10px;line-height:1.6;}
 .intro-close{display:block;margin:14px auto 0;font-size:13px;padding:9px 24px;border-radius:8px;background:var(--blue);color:#fff;border:none;cursor:pointer;font-weight:500;}
 .intro-close:hover{opacity:0.85;}
 /* Tooltip 說明 */
@@ -123,12 +123,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="intro-body">
       這是一個<strong>程式化順勢策略分析工具</strong>，幫你用客觀的數據判斷「現在這支股票值不值得進場」，而不是靠感覺猜漲跌。
       <div class="intro-steps">
-        <div class="intro-step"><span class="step-num">1</span><div><strong>選股票和策略</strong><br>選你想追蹤的股票，搭配適合的策略（台股推薦 DMI，加密貨幣推薦六條線）</div></div>
-        <div class="intro-step"><span class="step-num">2</span><div><strong>用 2 年回測評估</strong><br>選 2 年時間範圍，看 PF 是否 > 1.5、回撤是否 < 30%、交易筆數是否 > 20 筆，三個條件都符合才值得用</div></div>
-        <div class="intro-step"><span class="step-num">3</span><div><strong>每天收盤後看訊號</strong><br>切換到 1 個月，看 K 線最右邊有沒有 ▲ 買進訊號。有訊號才考慮進場，沒有就繼續等</div></div>
-        <div class="intro-step"><span class="step-num">4</span><div><strong>風險控制</strong><br>這套策略不保證獲利，盤整期會小虧。每筆只用你能接受虧掉的資金，訊號出現也要設好停損</div></div>
+        <div class="intro-step"><span class="step-num">1</span><div><strong>選股票和策略</strong><br>選你想追蹤的股票，搭配適合的策略。<br>台股推薦 <em>DMI/ADX</em>，加密貨幣推薦 <em>六條線或 Keltner</em>，美股推薦 <em>時間序列動能（TSMOM）</em></div></div>
+        <div class="intro-step"><span class="step-num">2</span><div><strong>用 2~5 年回測評估策略好不好</strong><br>看三個指標：PF &gt; 1.5、最大回撤 &lt; 30%、交易筆數夠多。<br>⚠ 筆數參考：台股／美股日線至少 8 筆，加密 4H 至少 15 筆。筆數越少越不可信，PF 容易被少數幾筆拉高失真。</div></div>
+        <div class="intro-step"><span class="step-num">3</span><div><strong>每天收盤後切換短期看訊號</strong><br>切換到「1 個月」或「7 天」，看 K 線最右邊有沒有 ▲ 綠色買進三角。<br>有訊號才考慮進場，沒有就繼續等，不要強行操作。</div></div>
+        <div class="intro-step"><span class="step-num">4</span><div><strong>風險控制最重要</strong><br>這套策略不保證獲利，盤整期會連續小虧。<br>只用你「虧光也不影響生活」的資金，有訊號也要設好停損，單筆最多虧 1~2%。</div></div>
       </div>
-      <div class="intro-note">⚠ 本工具僅供學習參考，不構成投資建議。過去績效不代表未來，加密貨幣與股票均有虧損風險，請自行評估後決策。</div>
+      <div class="intro-note">⚠ 本工具僅供學習參考，不構成任何投資建議。回測績效是歷史數據，不代表未來表現。加密貨幣、台股與美股均有虧損風險，甚至本金歸零，請務必自行評估風險後再決策。</div>
     </div>
   </div>
   <button class="intro-close" onclick="closeIntro()">我知道了，開始使用 →</button>
@@ -732,10 +732,10 @@ function renderCard(stock){
     <div class="metrics">
       <div class="metric" data-tip="這段期間內策略的總獲利。扣除手續費後的真實報酬，正值代表賺錢。"><div class="metric-label">總報酬 ⓘ</div><div class="metric-val neutral" data-m="ret">—</div></div>
       <div class="metric" data-tip="把總報酬換算成「每年賺多少」的基準。方便和其他投資比較，例如定存、0050 等。"><div class="metric-label">年化 ⓘ</div><div class="metric-val neutral" data-m="cagr">—</div></div>
-      <div class="metric" data-tip="獲利因子：每虧 1 塊能賺回多少塊。PF&gt;1.5 才值得用，越高越好。低於 20 筆交易時數字僅供參考。"><div class="metric-label">PF ⓘ</div><div class="metric-val neutral" data-m="pf">—</div></div>
+      <div class="metric" data-tip="獲利因子：每虧 1 塊能賺回多少塊。PF>1.5 才值得用，越高越好。注意：交易筆數太少時 PF 容易虛高，需配合筆數一起判斷。"><div class="metric-label">PF ⓘ</div><div class="metric-val neutral" data-m="pf">—</div></div>
       <div class="metric" data-tip="最大回撤：這段時間資金從最高點最多跌了多少。越低越穩，建議不超過 30%。"><div class="metric-label">回撤 ⓘ</div><div class="metric-val neutral" data-m="dd">—</div></div>
       <div class="metric" data-tip="勝率：幾成的交易是賺錢的。順勢策略通常只有 25~40%，但賺的比虧的多，整體還是正的。"><div class="metric-label">勝率 ⓘ</div><div class="metric-val neutral" data-m="wr">—</div></div>
-      <div class="metric" data-tip="總交易筆數。建議至少 20 筆以上才有統計意義，太少的話 PF 和勝率僅供參考。"><div class="metric-label">交易 ⓘ</div><div class="metric-val neutral" data-m="tc">—</div></div>
+      <div class="metric" data-tip="總交易筆數。台股/美股日線建議至少 8 筆，加密 4H 建議至少 15 筆。筆數太少時 PF 容易失真，建議選更長時間範圍確認。"><div class="metric-label">交易 ⓘ</div><div class="metric-val neutral" data-m="tc">—</div></div>
     </div>
     <div class="card-status"><span style="color:var(--text2);">等待載入...</span></div>
     <div class="chart-section">
