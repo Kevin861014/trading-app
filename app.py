@@ -177,6 +177,8 @@ def analyze():
         wr = stats['win'] / 100
         pf = round(payoff * wr / max(1 - wr, 0.001), 2) if payoff > 0 else 0
 
+        volumes = [round(r[5], 0) if r[5] > 0 else None for r in disp]
+
         return jsonify({
             'dates': dates,
             'prices': [round(p,2) for p in prices],
@@ -185,6 +187,7 @@ def analyze():
             'buyPoints': buy_points,
             'sellPoints': sell_points,
             'diff': diff,
+            'volumes': volumes,
             'metrics': {
                 'totalReturn': round(stats['total'],2),
                 'cagr': round(stats['cagr'],2),
