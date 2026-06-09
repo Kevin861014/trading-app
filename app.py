@@ -332,11 +332,12 @@ def best_strategy():
                 if not result:
                     continue
                 _, _, stats = result
+                # 計算真實 PF（用 payoff 和勝率推算）
+                payoff = stats.get('payoff', 0)
+                wr = stats['win'] / 100
+                pf = round(payoff * wr / max(1 - wr, 0.001), 2) if payoff > 0 and wr > 0 else 0
                 # 篩選條件：PF > 1 且交易筆數 >= 3
-                if stats.get('pf', 0) > 1 and stats.get('trades', 0) >= 3:
-                    payoff = stats.get('payoff', 0)
-                    wr = stats['win'] / 100
-                    pf = round(payoff * wr / max(1 - wr, 0.001), 2) if payoff > 0 else 0
+                if pf > 1 and stats.get('trades', 0) >= 3:
                     results.append({
                         'strat': strat_key,
                         'name': strat_info['name'],
