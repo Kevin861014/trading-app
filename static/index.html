@@ -438,16 +438,11 @@ async function loadCard(id){
 }
 
 function updateSignalBanner(card,data){
-  const lastDiff=data.diff[data.diff.length-1];
-  const hasBuy=data.buyPoints[data.buyPoints.length-1]!==null;
-  const hasSell=data.sellPoints[data.sellPoints.length-1]!==null;
-  let html='';
-  if(hasBuy) html='<span class="signal-big buy">▲ 買進訊號！</span>';
-  else if(hasSell) html='<span class="signal-big sell">▼ 賣出訊號！</span>';
-  else if(lastDiff>0.1) html='<span class="signal-big buy" style="font-size:12px;">▲ 多頭趨勢 · 等待訊號</span>';
-  else if(lastDiff<-0.1) html='<span class="signal-big sell" style="font-size:12px;">▼ 空頭趨勢 · 觀望</span>';
-  else html='<span class="signal-big hold">— 中立 · 等待訊號</span>';
-  card.querySelector('.signal-banner').innerHTML=html; // data-tip 由 renderCard 設定
+  const sig=getSignalState(data);
+  const typeClass={'buy':'buy','sell':'sell','holding':'buy','expired':'hold','exited':'sell','wait':'buy','bear':'sell','neutral':'hold'}[sig.type]||'hold';
+  let html=`<span class="signal-big ${typeClass}">${sig.label}</span>`;
+  if(sig.sub) html+=`<span style="font-size:10px;color:var(--text3);margin-left:8px;">${sig.sub}</span>`;
+  card.querySelector('.signal-banner').innerHTML=html;
 }
 
 function setMetrics(card,m){
@@ -969,6 +964,67 @@ document.addEventListener('click', e=>{
     document.getElementById('searchDropdown').style.display = 'none';
   }
 });
+
+// ── 訊號狀態判斷 ──────────────────────────────────────────
+function getSignalState(data){
+  const ps = data.posState || {};
+  const lastDiff = data.diff[data.diff.length-1];
+  const hasBuyNow = data.buyPoints[data.buyPoints.length-1] !== null;
+  const hasSellNow = data.sellPoints[data.sellPoints.length-1] !== null;
+  if(hasBuyNow) return {type:'buy',label:'▲ 買進訊號！',sub:'',dot:'buy'};
+  if(hasSellNow) return {type:'sell',label:'▼ 賣出訊號！',sub:'',dot:'sell'};
+  if(ps.inPos){
+    if(ps.signalExpired){
+      const pnl=ps.floatPnl!=null?`(浮動 ${ps.floatPnl>=0?'+':''}${ps.floatPnl}%)`:'';
+      return {type:'expired',label:'⚠ 訊號已過期',sub:`進場 ${ps.lastBuyPrice} ${pnl}`,dot:'expired'};
+    }
+    const days=ps.signalDaysAgo!=null?`第 ${ps.signalDaysAgo+1} 天`:'';
+    const pnl=ps.floatPnl!=null?`${ps.floatPnl>=0?'+':''}${ps.floatPnl}%`:'';
+    return {type:'holding',label:`▲ 策略建議持有中 ${days}`,sub:`進場 ${ps.lastBuyPrice}　浮動 ${pnl}`,dot:'buy'};
+  }
+  if(ps.lastSellDate) return {type:'exited',label:'▼ 策略已出場',sub:ps.lastSellDate||'',dot:'sell'};
+  if(lastDiff>0.1) return {type:'wait',label:'▲ 多頭趨勢 · 等待訊號',sub:'',dot:'hold'};
+  if(lastDiff<-0.1) return {type:'bear',label:'▼ 空頭趨勢 · 觀望',sub:'',dot:'sell'};
+  return {type:'neutral',label:'— 中立 · 等待訊號',sub:'',dot:'hold'};
+}
+
+// ── 快速導覽列 ──────────────────────────────────────────
+function updateNavBar(){
+  const nav=document.getElementById('navBar');
+  if(!nav) return;
+  nav.innerHTML=stocks.map(s=>{
+    const card=document.getElementById(`card-${s.id}`);
+    const loaded=card&&card.dataset.loaded==='1';
+    let dot='hold',sigText='載入中...';
+    if(loaded){
+      const data=JSON.parse(card.dataset.chartdata||'null');
+      if(data){
+        const sig=getSignalState(data);
+        dot=sig.dot;
+        const shortLabel={
+          'buy':'▲ 買進！','sell':'▼ 賣出！','holding':'▲ 持有中',
+          'expired':'⚠ 已過期','exited':'▼ 已出場','wait':'多頭等待',
+          'bear':'▼ 空頭','neutral':'— 中立'
+        }[sig.type]||sig.label;
+        sigText=shortLabel;
+      }
+    }
+    const colorMap={buy:'#26a69a',sell:'#ef5350',expired:'#f5a623',hold:'#555a6e'};
+    const sigColor=colorMap[dot]||'#555a6e';
+    return `<div class="nav-item" onclick="scrollToCard(${s.id})">
+      <div class="nav-dot ${dot}"></div>
+      <div>
+        <div class="nav-item-name">${s.name||s.symbol}</div>
+        <div class="nav-item-sig" style="color:${sigColor};">${sigText}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function scrollToCard(id){
+  const card=document.getElementById(`card-${id}`);
+  if(card) card.scrollIntoView({behavior:'smooth',block:'start'});
+}
 
 function closeIntro(){
   const bar=document.getElementById('introBar');
