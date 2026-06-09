@@ -327,11 +327,33 @@ def best_strategy():
         V=[(r[5] if len(r)>5 else 0.0) for r in ohlcv]
 
         results = []
-        # 跳過剝頭皮類（限掛單，不適合一般評估）
-        skip = {'rsi2dip', 'ibsdip', 'zdip'}
+
+        # 根據市場選擇適合的策略，避免跑不適合的策略浪費時間
+        tw_strats  = {'diadx','volbreak','sixline','pullback','supertrend','donchian',
+                      'ema_cross','bbreak','lrs','ichimoku','cci','vortex','macd','kama','heikin','crsi','tsmom','rolltrend'}
+        us_strats  = {'tsmom','vbreakr','bbreak','lrs','sixline','ema_cross','pullbk',
+                      'rolltrend','crsi','macd','supertrend','ichimoku','cci','vortex','donchian'}
+        crypto_strats = {'sixline','ttm','keltner','donchian','smc','hma','rsi50',
+                         'vwap','obv','force','cmf','bbreak','lrs','cci','vortex','diadx'}
+        metal_strats  = {'volbreak','supertrend','kama','heikin','ema_cross','pullback',
+                         'macd','psar','rsi50','sixline','donchian'}
+
+        # 判斷市場
+        sym = symbol.upper()
+        if sym.endswith('.TW'):
+            allowed = tw_strats
+        elif any(sym.endswith(x) for x in ['-USD','/USDT']) or any(c in sym for c in ['BTC','ETH','BNB','SOL','XRP','PAXG']):
+            allowed = crypto_strats
+        elif sym in {'GC=F','SI=F','PL=F','PA=F','GLD','SLV','PPLT','PALL'}:
+            allowed = metal_strats
+        else:
+            allowed = us_strats
+
+        # 永遠跳過剝頭皮類
+        skip = {'rsi2dip','ibsdip','zdip'}
 
         for strat_key, strat_info in _sim.STRATS.items():
-            if strat_key in skip:
+            if strat_key in skip or strat_key not in allowed:
                 continue
             try:
                 _sim.COMMISSION, _sim.SLIPPAGE = market_cost(('yf', symbol), strat_key)
@@ -362,7 +384,8 @@ def best_strategy():
         results.sort(key=lambda x: x['pf'], reverse=True)
         top = results[:8]
 
-        return jsonify({'results': top, 'total_tested': len(_sim.STRATS) - len(skip)})
+        tested_count = len([k for k in _sim.STRATS if k not in skip and k in allowed])
+        return jsonify({'results': top, 'total_tested': tested_count})
 
     except Exception as e:
         import traceback
