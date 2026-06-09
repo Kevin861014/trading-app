@@ -934,7 +934,7 @@ function renderCard(stock){
     <div class="card-status"><span style="color:var(--text2);">等待載入...</span></div>
     <div class="chart-section">
       <div class="toolbar">
-        <select class="sel-sm" onchange="changeStrat(${stock.id},this.value)">${stratOpts}</select>
+        <select class="sel-sm" id="strat-sel-${stock.id}" onchange="changeStrat(${stock.id},this.value)">${stratOpts}</select>
         <select class="sel-sm" onchange="changePeriod(${stock.id},this.value)">${periodOpts}</select>
         <select class="sel-sm" onchange="changeTf(${stock.id},this.value)">${tfOpts}</select>
       </div>
@@ -1240,17 +1240,19 @@ function applyBestStrategy(id, strat, name){
   const stock = stocks.find(s=>s.id===id);
   if(!stock) return;
   stock.strat = strat; save();
-  // 更新卡片選單
-  const sel = document.getElementById(`strat-sel-${id}`);
-  if(sel) sel.value = strat;
-  // 更新卡片副標題
-  const card = document.getElementById(`card-${id}`);
-  if(card){
-    const sub = card.querySelector('.card-sub');
-    if(sub) sub.textContent = `${stock.symbol} · ${getStratName(strat)} · ${TF_LABELS[stock.tf]||'1d'}`;
-  }
   closeAnalysis();
+  // reloadCard 會重新渲染整張卡片，之後再更新選單值才不會被蓋掉
   reloadCard(id);
+  // 用 setTimeout 等 reloadCard 渲染完再更新選單
+  setTimeout(()=>{
+    const sel = document.getElementById(`strat-sel-${id}`);
+    if(sel) sel.value = strat;
+    const card = document.getElementById(`card-${id}`);
+    if(card){
+      const sub = card.querySelector('.card-sub');
+      if(sub) sub.textContent = `${stock.symbol} · ${getStratName(strat)} · ${TF_LABELS[stock.tf]||'1d'}`;
+    }
+  }, 100);
 }
 
 function closeAnalysis(e){

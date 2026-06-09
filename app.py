@@ -402,28 +402,41 @@ def validate():
     symbol = request.args.get('symbol', '')
     if not symbol:
         return jsonify({'valid': False, 'error': '代碼不能為空'})
-    try:
-        import yfinance as yf
-        ticker = yf.Ticker(symbol)
-        info = ticker.info
-        # 嘗試抓最近 5 天資料確認能用
-        df = ticker.history(period='5d')
-        if df is None or df.empty:
-            # 嘗試加 .TW
-            if not symbol.endswith('.TW') and symbol.isdigit():
-                symbol2 = symbol + '.TW'
-                ticker2 = yf.Ticker(symbol2)
-                df2 = ticker2.history(period='5d')
-                if df2 is not None and not df2.empty:
-                    name = ticker2.info.get('longName') or ticker2.info.get('shortName') or symbol2
-                    return jsonify({'valid': True, 'symbol': symbol2, 'name': name, 'suggestion': symbol2})
-            return jsonify({'valid': False, 'error': f'找不到 {symbol}，請確認代碼是否正確'})
-        name = info.get('longName') or info.get('shortName') or symbol
-        # 簡化名稱
-        name = name.replace(' Inc.','').replace(' Corp.','').replace(' Co.','').replace(',','').strip()
+
+    def try_fetch(sym):
+        """嘗試抓資料，回傳 (成功, 名稱)"""
+        try:
+            import yfinance as yf
+            ticker = yf.Ticker(sym)
+            # 先抓資料，不抓 info（info 很慢容易超時）
+            df = ticker.history(period='5d')
+            if df is not None and not df.empty:
+                # 有資料才嘗試抓名稱
+                try:
+                    info = ticker.fast_info
+                    name = getattr(info, 'long_name', None) or sym
+                except:
+                    name = sym
+                name = str(name).replace(' Inc.','').replace(' Corp.','').replace(' Co.','').replace(',','').strip()
+                return True, name
+            return False, None
+        except:
+            return False, None
+
+    # 先試原本代碼
+    ok, name = try_fetch(symbol)
+    if ok:
         return jsonify({'valid': True, 'symbol': symbol, 'name': name})
-    except Exception as e:
-        return jsonify({'valid': False, 'error': str(e)})
+
+    # 4位數字自動補 .TW
+    if symbol.isdigit() and len(symbol) == 4:
+        symbol2 = symbol + '.TW'
+        ok2, name2 = try_fetch(symbol2)
+        if ok2:
+            return jsonify({'valid': True, 'symbol': symbol2, 'name': name2 or symbol2, 'suggestion': symbol2})
+
+    # 都找不到
+    return jsonify({'valid': False, 'error': f'找不到 {symbol}，請確認代碼是否正確（台股格式：1101.TW，加密：BTC-USD）'})
 
 
 @app.route('/api/signal')
