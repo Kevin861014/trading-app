@@ -1,8 +1,8 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-import sys, os, datetime
+import sys, os, datetime, time
 sys.path.insert(0, os.path.dirname(__file__))
-from sim import run_backtest, STRATS, market_cost
+from sim import run_backtest, STRATS, market_cost, atr as calc_atr
 from sim import ema as calc_ema
 
 app = Flask(__name__)
@@ -35,27 +35,62 @@ STRAT_LIST = [
     {"v": "trend",      "l": "順勢 EMA20/100（通用）"},
 ]
 
+_cache = {}
+_cache_time = {}
+CACHE_TTL = 3600
+
 def fetch_data(symbol, start_date):
-    """用 yfinance 抓資料，加上 headers 避免被擋"""
     import yfinance as yf
-    try:
-        ticker = yf.Ticker(symbol)
-        df = ticker.history(start=start_date, auto_adjust=True)
-        if df is None or df.empty:
-            return []
-        out = []
-        for ts, row in df.iterrows():
-            try:
-                o = float(row['Open']); h = float(row['High'])
-                l = float(row['Low']);  c = float(row['Close'])
-                v = float(row['Volume']) if 'Volume' in row else 0.0
-                if c > 0:
-                    out.append([int(ts.timestamp() * 1000), o, h, l, c, v])
-            except Exception:
-                continue
-        return out
-    except Exception as e:
-        return []
+    cache_key = f"{symbol}_{start_date}"
+    now = time.time()
+    if cache_key in _cache and (now - _cache_time.get(cache_key, 0)) < CACHE_TTL:
+        return _cache[cache_key]
+    for attempt in range(3):
+        try:
+            if attempt > 0:
+                time.sleep(2 * attempt)
+            ticker = yf.Ticker(symbol)
+            df = ticker.history(start=start_date, auto_adjust=True)
+            if df is not None and not df.empty:
+                out = []
+                for ts, row in df.iterrows():
+                    try:
+                        o=float(row['Open']); h=float(row['High'])
+                        l=float(row['Low']);  c=float(row['Close'])
+                        v=float(row['Volume']) if 'Volume' in row else 0.0
+                        if c > 0:
+                            out.append([int(ts.timestamp()*1000), o, h, l, c, v])
+                    except Exception:
+                        continue
+                if out:
+                    _cache[cache_key] = out
+                    _cache_time[cache_key] = now
+                    return out
+        except Exception as e:
+            if attempt == 2: raise e
+            time.sleep(2)
+    return []
+
+def get_real_trades(ohlcv, el_full, xl_full):
+    """
+    模擬 sim.py 的進出場邏輯，只回傳真實成交的買賣點索引。
+    規則：進場後必須等出場才能再進場（long-only，一次一筆）。
+    """
+    N = len(ohlcv)
+    pos = False
+    buy_idx = [None] * N   # 真實買進點
+    sell_idx = [None] * N  # 真實賣出點
+
+    for i in range(N - 1):
+        if not pos and el_full[i]:
+            # 以下一根開盤成交（模擬 sim 的 o2=O[i+1]）
+            pos = True
+            buy_idx[i+1] = True
+        elif pos and xl_full[i]:
+            pos = False
+            sell_idx[i+1] = True
+
+    return buy_idx, sell_idx
 
 @app.route('/api/strategies')
 def get_strategies():
@@ -80,7 +115,7 @@ def analyze():
 
         if not ohlcv or len(ohlcv) < 220:
             cnt = len(ohlcv) if ohlcv else 0
-            return jsonify({'error': f'資料不足（取得 {cnt} 根 K 棒）。台股代碼格式如 2330.TW，美股如 AAPL，加密如 PAXG-USD'}), 400
+            return jsonify({'error': f'資料不足（取得 {cnt} 根）。台股如 2330.TW，美股如 AAPL，加密如 PAXG-USD'}), 400
 
         result = run_backtest(ohlcv, strategy=strategy, risk_pct=0.015, timeframe='1d')
         if not result:
@@ -88,8 +123,20 @@ def analyze():
 
         dates_dt, equity, stats = result
 
+        # 取完整訊號
+        O=[r[1] for r in ohlcv]; H=[r[2] for r in ohlcv]
+        L=[r[3] for r in ohlcv]; C=[r[4] for r in ohlcv]
+        V=[(r[5] if len(r)>5 else 0.0) for r in ohlcv]
+        s = STRATS.get(strategy, STRATS['trend'])
+        el_full, xl_full = s['build'](O, H, L, C, V, '1d')
+
+        # 取真實成交點（模擬 sim 邏輯）
+        real_buy, real_sell = get_real_trades(ohlcv, el_full, xl_full)
+
+        # 截取顯示段
         display_n = min(days + 30, len(ohlcv))
         disp = ohlcv[-display_n:]
+        offset = len(ohlcv) - display_n
 
         prices = [r[4] for r in disp]
         dates  = [datetime.datetime.utcfromtimestamp(r[0]/1000).strftime('%Y-%m-%d') for r in disp]
@@ -97,18 +144,9 @@ def analyze():
         ema20 = calc_ema(prices, 20)
         ema50 = calc_ema(prices, 50)
 
-        O=[r[1] for r in ohlcv]; H=[r[2] for r in ohlcv]
-        L=[r[3] for r in ohlcv]; C=[r[4] for r in ohlcv]
-        V=[(r[5] if len(r)>5 else 0.0) for r in ohlcv]
-        s = STRATS.get(strategy, STRATS['trend'])
-        el_full, xl_full = s['build'](O, H, L, C, V, '1d')
-
-        offset = len(ohlcv) - display_n
-        el = el_full[offset:]
-        xl = xl_full[offset:]
-
-        buy_points  = [prices[i] if el[i] else None for i in range(len(prices))]
-        sell_points = [prices[i] if xl[i] else None for i in range(len(prices))]
+        # 截取顯示段的真實買賣點
+        buy_points  = [prices[i] if real_buy[offset+i]  else None for i in range(len(prices))]
+        sell_points = [prices[i] if real_sell[offset+i] else None for i in range(len(prices))]
 
         diff = []
         for i in range(len(prices)):
@@ -117,16 +155,21 @@ def analyze():
             else:
                 diff.append(0)
 
+        # 真實交易紀錄（配對買賣）
         trades_list = []
         buy_px = None
+        buy_date = None
         for i in range(len(prices)):
-            if el[i]:
+            if real_buy[offset+i]:
                 buy_px = prices[i]
-            elif xl[i] and buy_px:
+                buy_date = dates[i]
+            elif real_sell[offset+i] and buy_px:
                 ret = round((prices[i] - buy_px) / buy_px * 100, 2)
                 trades_list.append({
                     'buyPrice':  round(buy_px, 2),
                     'sellPrice': round(prices[i], 2),
+                    'buyDate':   buy_date,
+                    'sellDate':  dates[i],
                     'ret': ret
                 })
                 buy_px = None
