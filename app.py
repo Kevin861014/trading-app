@@ -145,6 +145,9 @@ def analyze():
         disp = ohlcv[-display_n:]
         offset = len(ohlcv) - display_n
 
+        opens  = [r[1] for r in disp]
+        highs  = [r[2] for r in disp]
+        lows   = [r[3] for r in disp]
         prices = [r[4] for r in disp]
         dates  = [datetime.datetime.utcfromtimestamp(r[0]/1000).strftime('%Y-%m-%d %H:%M' if yf_tf=='1h' else '%Y-%m-%d') for r in disp]
 
@@ -181,6 +184,9 @@ def analyze():
 
         return jsonify({
             'dates': dates,
+            'opens':  [round(p,2) for p in opens],
+            'highs':  [round(p,2) for p in highs],
+            'lows':   [round(p,2) for p in lows],
             'prices': [round(p,2) for p in prices],
             'ema20': [round(v,2) if v is not None else None for v in ema20],
             'ema50': [round(v,2) if v is not None else None for v in ema50],

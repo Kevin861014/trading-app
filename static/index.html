@@ -375,13 +375,32 @@ function buildChartsInContainer(container,data,indicators,height){
   container.appendChild(mainDiv);
 
   const mainChart=LightweightCharts.createChart(mainDiv,{...CHART_OPTS,height:mainH});
-  const lineSeries=mainChart.addLineSeries({color:'#378ADD',lineWidth:2,priceLineVisible:false,lastValueVisible:false});
-  lineSeries.setData(dates.map((d,i)=>({time:toTime(d),value:prices[i]})));
 
-  const ema20Series=mainChart.addLineSeries({color:'#26a69a',lineWidth:1,priceLineVisible:false,lastValueVisible:false});
+  // 蠟燭圖
+  const candleSeries=mainChart.addCandlestickSeries({
+    upColor:'#26a69a',downColor:'#ef5350',
+    borderUpColor:'#26a69a',borderDownColor:'#ef5350',
+    wickUpColor:'#26a69a',wickDownColor:'#ef5350',
+    priceLineVisible:false,lastValueVisible:false,
+  });
+  // 如果有 OHLC 資料就用蠟燭圖，否則退回折線圖
+  const hasOHLC = data.opens && data.opens.length === prices.length;
+  if(hasOHLC){
+    candleSeries.setData(dates.map((d,i)=>({
+      time:toTime(d),
+      open:data.opens[i],high:data.highs[i],low:data.lows[i],close:prices[i]
+    })));
+  } else {
+    // 退回折線圖
+    const lineSeries2=mainChart.addLineSeries({color:'#378ADD',lineWidth:2,priceLineVisible:false,lastValueVisible:false});
+    lineSeries2.setData(dates.map((d,i)=>({time:toTime(d),value:prices[i]})));
+  }
+  const mainSeries = candleSeries; // 主要 series 參考
+
+  const ema20Series=mainChart.addLineSeries({color:'#26a69a',lineWidth:1.2,priceLineVisible:false,lastValueVisible:false});
   ema20Series.setData(dates.map((d,i)=>data.ema20[i]!=null?{time:toTime(d),value:data.ema20[i]}:null).filter(Boolean));
 
-  const ema50Series=mainChart.addLineSeries({color:'#ef5350',lineWidth:1,lineStyle:1,priceLineVisible:false,lastValueVisible:false});
+  const ema50Series=mainChart.addLineSeries({color:'#ef5350',lineWidth:1.2,lineStyle:1,priceLineVisible:false,lastValueVisible:false});
   ema50Series.setData(dates.map((d,i)=>data.ema50[i]!=null?{time:toTime(d),value:data.ema50[i]}:null).filter(Boolean));
 
   // 買進賣出標記
@@ -390,16 +409,14 @@ function buildChartsInContainer(container,data,indicators,height){
     if(data.buyPoints[i]!==null) markers.push({time:toTime(d),position:'belowBar',color:'#26a69a',shape:'arrowUp',text:'買',size:1});
     if(data.sellPoints[i]!==null) markers.push({time:toTime(d),position:'aboveBar',color:'#ef5350',shape:'arrowDown',text:'賣',size:1});
   });
-  lineSeries.setMarkers(markers);
+  mainSeries.setMarkers(markers);
   charts.push(mainChart);
 
   // ── Crosshair 事件：顯示 tooltip ──
   mainChart.subscribeCrosshairMove(param=>{
     if(!param||!param.point||param.point.x<0){tooltip.style.display='none';return;}
-    // 用 seriesData 取得當前 hover 的資料點
-    const seriesData=param.seriesData.get(lineSeries);
+    const seriesData=param.seriesData.get(mainSeries);
     if(!seriesData){tooltip.style.display='none';return;}
-    // 找到對應的 index
     const hoverTime=seriesData.time;
     const idx=dates.findIndex(d=>toTime(d)===hoverTime||d===hoverTime);
     if(idx<0||idx>=dates.length){tooltip.style.display='none';return;}
@@ -409,19 +426,26 @@ function buildChartsInContainer(container,data,indicators,height){
     const hasBuy=data.buyPoints[idx]!==null;
     const hasSell=data.sellPoints[idx]!==null;
     const k=K[idx],d_=D[idx],rsi=rsiVals[idx],df=diff[idx];
+    const isUp=idx===0||prices[idx]>=prices[idx-1];
+    const priceColor=isUp?'#26a69a':'#ef5350';
+    function row(label,val,color){return `<div style="display:flex;justify-content:space-between;gap:14px;line-height:1.9;"><span style="color:#8b90a0;">${label}</span><span style="color:${color};font-weight:500;">${val}</span></div>`;}
     let html=`<div style="color:#8b90a0;margin-bottom:5px;font-size:10px;">${dates[idx]}</div>`;
-    html+=`<div style="display:flex;justify-content:space-between;gap:14px;line-height:1.9;">`;
-    html+=`<span style="color:#8b90a0;">收盤</span><span style="color:#378ADD;font-weight:500;">${price}</span></div>`;
-    if(e20!=null) html+=`<div style="display:flex;justify-content:space-between;gap:14px;line-height:1.9;"><span style="color:#8b90a0;">EMA20</span><span style="color:#26a69a;font-weight:500;">${e20}</span></div>`;
-    if(e50!=null) html+=`<div style="display:flex;justify-content:space-between;gap:14px;line-height:1.9;"><span style="color:#8b90a0;">EMA50</span><span style="color:#ef5350;font-weight:500;">${e50}</span></div>`;
-    if(indicators.ema) html+=`<div style="display:flex;justify-content:space-between;gap:14px;line-height:1.9;"><span style="color:#8b90a0;">EMA差距</span><span style="color:${df>=0?"#26a69a":"#ef5350"};font-weight:500;">${df>0?"+":""}${df}%</span></div>`;
+    if(hasOHLC){
+      html+=row('開盤',data.opens[idx],priceColor);
+      html+=row('最高',data.highs[idx],'#26a69a');
+      html+=row('最低',data.lows[idx],'#ef5350');
+      html+=row('收盤',price,priceColor);
+    } else {
+      html+=row('收盤',price,'#378ADD');
+    }
+    if(e20!=null) html+=row('EMA20',e20,'#26a69a');
+    if(e50!=null) html+=row('EMA50',e50,'#ef5350');
+    if(indicators.ema) html+=row('EMA差距',(df>0?'+':'')+df+'%',df>=0?'#26a69a':'#ef5350');
     if(indicators.kd&&k!=null) html+=`<div style="display:flex;justify-content:space-between;gap:14px;line-height:1.9;"><span style="color:#8b90a0;">K/D</span><span style="font-weight:500;"><span style="color:#f5a623;">${k}</span> / <span style="color:#378ADD;">${d_}</span></span></div>`;
-    if(indicators.rsi&&rsi!=null) html+=`<div style="display:flex;justify-content:space-between;gap:14px;line-height:1.9;"><span style="color:#8b90a0;">RSI</span><span style="color:#9c27b0;font-weight:500;">${rsi}</span></div>`;
+    if(indicators.rsi&&rsi!=null) html+=row('RSI',rsi,'#9c27b0');
     if(hasBuy) html+=`<div style="color:#26a69a;font-weight:700;margin-top:3px;">▲ 買進訊號</div>`;
     if(hasSell) html+=`<div style="color:#ef5350;font-weight:700;margin-top:3px;">▼ 賣出訊號</div>`;
     tooltip.innerHTML=html;
-    // 計算位置
-    const containerRect=container.getBoundingClientRect();
     const mainRect=mainDiv.getBoundingClientRect();
     let left=param.point.x+15;
     if(left+180>mainRect.width) left=param.point.x-195;
@@ -431,11 +455,37 @@ function buildChartsInContainer(container,data,indicators,height){
   });
   mainDiv.addEventListener('mouseleave',()=>{tooltip.style.display='none';});
 
+  // ── 子圖 tooltip 共用函數 ──
+  function makeSubTooltip(paneDiv){
+    const tt=document.createElement('div');
+    tt.style.cssText='position:absolute;z-index:99;display:none;background:rgba(20,24,36,0.95);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 9px;font-size:10px;color:#e8eaf0;pointer-events:none;white-space:nowrap;';
+    paneDiv.style.position='relative';
+    paneDiv.appendChild(tt);
+    return tt;
+  }
+  function syncCrosshair(chart,series,dates,formatter){
+    const paneDiv=chart.chartElement().parentElement;
+    const tt=makeSubTooltip(paneDiv);
+    chart.subscribeCrosshairMove(param=>{
+      if(!param||!param.point||param.point.x<0){tt.style.display='none';return;}
+      const sd=param.seriesData.get(series);
+      if(!sd){tt.style.display='none';return;}
+      const idx=dates.findIndex(d=>toTime(d)===sd.time||d===sd.time);
+      if(idx<0){tt.style.display='none';return;}
+      tt.innerHTML=formatter(idx,sd);
+      let left=param.point.x+10;
+      if(left+160>paneDiv.offsetWidth) left=param.point.x-170;
+      tt.style.left=Math.max(0,left)+'px';
+      tt.style.top='2px';
+      tt.style.display='block';
+    });
+    paneDiv.addEventListener('mouseleave',()=>{tt.style.display='none';});
+  }
+
   // ── EMA差距 ──
   if(indicators.ema){
-    const diff=calcEMADiff(data.ema20,data.ema50);
     const emaDiv=document.createElement('div');
-    emaDiv.style.width='100%';emaDiv.style.height='60px';
+    emaDiv.style.cssText='width:100%;height:60px;position:relative;';
     const label=document.createElement('div');
     label.className='chart-pane-label';label.textContent='EMA差距';
     container.appendChild(label);container.appendChild(emaDiv);
@@ -446,13 +496,16 @@ function buildChartsInContainer(container,data,indicators,height){
     charts.push(emaChart);
     mainChart.timeScale().subscribeVisibleLogicalRangeChange(r=>{if(r)emaChart.timeScale().setVisibleLogicalRange(r);});
     emaChart.timeScale().subscribeVisibleLogicalRangeChange(r=>{if(r)mainChart.timeScale().setVisibleLogicalRange(r);});
+    syncCrosshair(emaChart,emaHist,dates,(idx,sd)=>{
+      const v=diff[idx];
+      return `<span style="color:#8b90a0;">${dates[idx]}</span> &nbsp; EMA差距 <span style="color:${v>=0?"#26a69a":"#ef5350"};font-weight:600;">${v>0?"+":""}${v}%</span>`;
+    });
   }
 
   // ── KD 線 ──
   if(indicators.kd){
-    const {K,D}=calcKD(prices);
     const kdDiv=document.createElement('div');
-    kdDiv.style.width='100%';kdDiv.style.height='70px';
+    kdDiv.style.cssText='width:100%;height:70px;position:relative;';
     const label=document.createElement('div');
     label.className='chart-pane-label';label.textContent='KD';
     container.appendChild(label);container.appendChild(kdDiv);
@@ -465,29 +518,37 @@ function buildChartsInContainer(container,data,indicators,height){
     charts.push(kdChart);
     mainChart.timeScale().subscribeVisibleLogicalRangeChange(r=>{if(r)kdChart.timeScale().setVisibleLogicalRange(r);});
     kdChart.timeScale().subscribeVisibleLogicalRangeChange(r=>{if(r)mainChart.timeScale().setVisibleLogicalRange(r);});
+    syncCrosshair(kdChart,kLine,dates,(idx)=>{
+      return `<span style="color:#8b90a0;">${dates[idx]}</span> &nbsp; <span style="color:#f5a623;">K ${K[idx]}</span> &nbsp; <span style="color:#378ADD;">D ${D[idx]}</span>`;
+    });
   }
 
   // ── RSI ──
   if(indicators.rsi){
-    const rsi=calcRSI(prices);
     const rsiDiv=document.createElement('div');
-    rsiDiv.style.width='100%';rsiDiv.style.height='70px';
+    rsiDiv.style.cssText='width:100%;height:70px;position:relative;';
     const label=document.createElement('div');
     label.className='chart-pane-label';label.textContent='RSI(14)';
     container.appendChild(label);container.appendChild(rsiDiv);
     const rsiChart=LightweightCharts.createChart(rsiDiv,{...CHART_OPTS,height:70,
       timeScale:{visible:false},rightPriceScale:{scaleMargins:{top:0.1,bottom:0.1}}});
     const rsiLine=rsiChart.addLineSeries({color:'#9c27b0',lineWidth:1.2,priceLineVisible:false,lastValueVisible:true,title:'RSI'});
-    rsiLine.setData(dates.map((d,i)=>rsi[i]!=null?{time:toTime(d),value:rsi[i]}:null).filter(Boolean));
+    rsiLine.setData(dates.map((d,i)=>rsiVals[i]!=null?{time:toTime(d),value:rsiVals[i]}:null).filter(Boolean));
     charts.push(rsiChart);
     mainChart.timeScale().subscribeVisibleLogicalRangeChange(r=>{if(r)rsiChart.timeScale().setVisibleLogicalRange(r);});
     rsiChart.timeScale().subscribeVisibleLogicalRangeChange(r=>{if(r)mainChart.timeScale().setVisibleLogicalRange(r);});
+    syncCrosshair(rsiChart,rsiLine,dates,(idx)=>{
+      const v=rsiVals[idx];
+      if(v==null) return '';
+      const color=v>=70?'#ef5350':v<=30?'#26a69a':'#9c27b0';
+      return `<span style="color:#8b90a0;">${dates[idx]}</span> &nbsp; RSI <span style="color:${color};font-weight:600;">${v}</span>${v>=70?' <span style="color:#ef5350;">超買</span>':v<=30?' <span style="color:#26a69a;">超賣</span>':''}`;
+    });
   }
 
   // ── 成交量 ──
   if(indicators.vol&&data.volumes&&data.volumes.some(v=>v>0)){
     const volDiv=document.createElement('div');
-    volDiv.style.width='100%';volDiv.style.height='50px';
+    volDiv.style.cssText='width:100%;height:50px;position:relative;';
     const label=document.createElement('div');
     label.className='chart-pane-label';label.textContent='成交量';
     container.appendChild(label);container.appendChild(volDiv);
@@ -501,6 +562,11 @@ function buildChartsInContainer(container,data,indicators,height){
     charts.push(volChart);
     mainChart.timeScale().subscribeVisibleLogicalRangeChange(r=>{if(r)volChart.timeScale().setVisibleLogicalRange(r);});
     volChart.timeScale().subscribeVisibleLogicalRangeChange(r=>{if(r)mainChart.timeScale().setVisibleLogicalRange(r);});
+    syncCrosshair(volChart,volHist,dates,(idx)=>{
+      const v=data.volumes[idx]||0;
+      const fmt=v>=1e8?(v/1e8).toFixed(1)+'億':v>=1e4?(v/1e4).toFixed(0)+'萬':v.toFixed(0);
+      return `<span style="color:#8b90a0;">${dates[idx]}</span> &nbsp; 成交量 <span style="font-weight:600;">${fmt}</span>`;
+    });
   }
 
   // 同步所有圖表的時間軸
