@@ -1,195 +1,131 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-import yfinance as yf
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
+import sys, os
+sys.path.insert(0, os.path.dirname(__file__))
+from sim import run_backtest, fetch_yf, STRATS, COMMISSION, SLIPPAGE, market_cost
+import datetime
 
 app = Flask(__name__)
 CORS(app)
 
-def get_period_dates(period):
-    end = datetime.now()
-    periods = {
-        '7d': timedelta(days=7),
-        '1mo': timedelta(days=30),
-        '1y': timedelta(days=365),
-        '2y': timedelta(days=730),
-        '3y': timedelta(days=1095),
-        '5y': timedelta(days=1825),
-    }
-    start = end - periods.get(period, timedelta(days=365))
-    return start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d')
+PERIOD_DAYS = {
+    '7d': 7, '1mo': 30, '1y': 365, '2y': 730, '3y': 1095, '5y': 1825
+}
 
-def calc_ema(prices, period):
-    k = 2 / (period + 1)
-    ema = [prices[0]]
-    for p in prices[1:]:
-        ema.append(p * k + ema[-1] * (1 - k))
-    return ema
+STRAT_LIST = [
+    {"v": "sixline",    "l": "六條線 多頭排列（最推薦）"},
+    {"v": "diadx",      "l": "DMI/ADX 方向動能（台股最強）"},
+    {"v": "supertrend", "l": "Supertrend（黃金/PAXG 最佳）"},
+    {"v": "keltner",    "l": "Keltner 通道突破"},
+    {"v": "volbreak",   "l": "波動突破（貴金屬最強）"},
+    {"v": "ttm",        "l": "TTM 擠壓突破（加密4H最強）"},
+    {"v": "donchian",   "l": "Donchian 突破"},
+    {"v": "ema_cross",  "l": "EMA 快慢線交叉"},
+    {"v": "hma",        "l": "Hull MA 斜率翻轉"},
+    {"v": "rsi50",      "l": "RSI-50 收復"},
+    {"v": "tsmom",      "l": "時間序列動能（美股最強）"},
+    {"v": "ichimoku",   "l": "Ichimoku 雲突破"},
+    {"v": "cci",        "l": "CCI 動能突破"},
+    {"v": "vortex",     "l": "Vortex 渦流順勢"},
+    {"v": "bbreak",     "l": "布林帶突破"},
+    {"v": "lrs",        "l": "線性回歸斜率"},
+    {"v": "macd",       "l": "MACD 趨勢"},
+    {"v": "crsi",       "l": "Connors RSI 逆勢（勝率67%）"},
+    {"v": "rsi",        "l": "RSI 均值回歸（逆勢）"},
+    {"v": "trend",      "l": "順勢 EMA20/100（通用）"},
+]
 
-def calc_atr(highs, lows, closes, period=14):
-    tr = [abs(highs[i] - lows[i]) for i in range(len(highs))]
-    atr = [None] * period
-    atr.append(sum(tr[:period]) / period)
-    for i in range(period + 1, len(tr)):
-        atr.append((atr[-1] * (period - 1) + tr[i]) / period)
-    return atr
-
-def run_strategy(prices, strategy, cost=0.0045):
-    n = len(prices)
-    signals = []
-
-    if strategy == 'ema':
-        fast = calc_ema(prices, 20)
-        slow = calc_ema(prices, 50)
-        in_pos = False
-        for i in range(1, n):
-            if not in_pos and fast[i] > slow[i] and fast[i-1] <= slow[i-1]:
-                signals.append({'i': i, 'type': 'buy', 'price': prices[i]})
-                in_pos = True
-            elif in_pos and fast[i] < slow[i] and fast[i-1] >= slow[i-1]:
-                signals.append({'i': i, 'type': 'sell', 'price': prices[i]})
-                in_pos = False
-
-    elif strategy == 'dmi':
-        fast = calc_ema(prices, 20)
-        slow = calc_ema(prices, 100)
-        in_pos = False
-        for i in range(15, n):
-            up = prices[i] - prices[i-1]
-            down = prices[i-1] - prices[i]
-            plus_di = (up if up > down and up > 0 else 0)
-            minus_di = (down if down > up and down > 0 else 0)
-            if not in_pos and plus_di > 0 and fast[i] > slow[i]:
-                signals.append({'i': i, 'type': 'buy', 'price': prices[i]})
-                in_pos = True
-            elif in_pos and minus_di > plus_di and fast[i] < slow[i]:
-                signals.append({'i': i, 'type': 'sell', 'price': prices[i]})
-                in_pos = False
-
-    elif strategy == 'vol':
-        slow = calc_ema(prices, 100)
-        in_pos = False
-        for i in range(15, n):
-            atr_val = abs(prices[i] - prices[i-1]) * 1.5
-            vol_break = prices[i] > prices[i-1] + atr_val
-            if not in_pos and vol_break and prices[i] > slow[i]:
-                signals.append({'i': i, 'type': 'buy', 'price': prices[i]})
-                in_pos = True
-            elif in_pos and prices[i] < slow[i]:
-                signals.append({'i': i, 'type': 'sell', 'price': prices[i]})
-                in_pos = False
-
-    elif strategy == 'sixline':
-        emas = [calc_ema(prices, p) for p in [10, 20, 30, 60, 120, 200]]
-        in_pos = False
-        for i in range(200, n):
-            all_up = all(emas[j][i] > emas[j+1][i] for j in range(5))
-            if not in_pos and all_up:
-                signals.append({'i': i, 'type': 'buy', 'price': prices[i]})
-                in_pos = True
-            elif in_pos and prices[i] < emas[2][i]:
-                signals.append({'i': i, 'type': 'sell', 'price': prices[i]})
-                in_pos = False
-
-    return signals
-
-def calc_metrics(prices, signals, cost=0.0045):
-    trades = []
-    wins = 0
-    total_win = 0
-    total_loss = 0
-    equity = 10000
-    max_eq = 10000
-    max_dd = 0
-    last_buy = None
-
-    for s in signals:
-        if s['type'] == 'buy':
-            last_buy = s
-        elif s['type'] == 'sell' and last_buy:
-            ret = (s['price'] - last_buy['price']) / last_buy['price'] - cost
-            equity *= (1 + ret)
-            if equity > max_eq:
-                max_eq = equity
-            dd = (max_eq - equity) / max_eq
-            if dd > max_dd:
-                max_dd = dd
-            if ret > 0:
-                wins += 1
-                total_win += ret
-            else:
-                total_loss += abs(ret)
-            trades.append({
-                'buyPrice': round(last_buy['price'], 2),
-                'sellPrice': round(s['price'], 2),
-                'ret': round(ret * 100, 2),
-                'buyIdx': last_buy['i'],
-                'sellIdx': s['i']
-            })
-            last_buy = None
-
-    total_return = (equity - 10000) / 10000
-    pf = total_win / total_loss if total_loss > 0 else (999 if total_win > 0 else 0)
-    wr = wins / len(trades) if trades else 0
-    years = len(prices) / 252
-    cagr = (equity / 10000) ** (1 / years) - 1 if years > 0 else 0
-
-    return {
-        'totalReturn': round(total_return * 100, 2),
-        'pf': round(pf, 2),
-        'maxDD': round(max_dd * 100, 2),
-        'wr': round(wr * 100, 2),
-        'tradeCount': len(trades),
-        'cagr': round(cagr * 100, 2),
-        'trades': trades[-10:][::-1]
-    }
+@app.route('/api/strategies')
+def get_strategies():
+    return jsonify(STRAT_LIST)
 
 @app.route('/api/analyze')
 def analyze():
-    symbol = request.args.get('symbol', '2330.TW')
-    strategy = request.args.get('strategy', 'dmi')
-    period = request.args.get('period', '1y')
+    symbol  = request.args.get('symbol', '2330.TW')
+    strategy= request.args.get('strategy', 'diadx')
+    period  = request.args.get('period', '1y')
+
+    days = PERIOD_DAYS.get(period, 365)
+    start_date = (datetime.datetime.now() - datetime.timedelta(days=days+400)).strftime('%Y-%m-%d')
 
     try:
-        start, end = get_period_dates(period)
-        ticker = yf.Ticker(symbol)
-        df = ticker.history(start=start, end=end)
+        # 設定正確費率
+        spec = ('yf', symbol)
+        import sim as _sim
+        _sim.COMMISSION, _sim.SLIPPAGE = market_cost(spec, strategy)
 
-        if df.empty:
-            return jsonify({'error': '無法取得資料，請確認股票代碼'}), 400
+        ohlcv = fetch_yf(symbol, start=start_date, interval='1d')
+        if not ohlcv or len(ohlcv) < 50:
+            return jsonify({'error': '資料不足，請確認股票代碼'}), 400
 
-        df = df.dropna()
-        prices = df['Close'].tolist()
-        dates = [d.strftime('%Y-%m-%d') for d in df.index]
+        # 只取需要的天數
+        target = days + 30
+        if len(ohlcv) > target:
+            ohlcv = ohlcv[-target:]
 
-        signals = run_strategy(prices, strategy)
-        metrics = calc_metrics(prices, signals)
+        result = run_backtest(ohlcv, strategy=strategy, risk_pct=0.015, timeframe='1d')
+        if not result:
+            return jsonify({'error': '回測資料不足（至少需要 220 根 K 棒）'}), 400
 
+        dates_dt, equity, stats = result
+
+        # 準備 K 線資料
+        prices  = [r[4] for r in ohlcv]
+        dates   = [datetime.datetime.utcfromtimestamp(r[0]/1000).strftime('%Y-%m-%d') for r in ohlcv]
+
+        # 計算 EMA20/50 用於顯示
+        from sim import ema as calc_ema
         ema20 = calc_ema(prices, 20)
         ema50 = calc_ema(prices, 50)
 
-        buy_points = [None] * len(prices)
-        sell_points = [None] * len(prices)
-        for s in signals:
-            if s['i'] < len(prices):
-                if s['type'] == 'buy':
-                    buy_points[s['i']] = prices[s['i']]
-                else:
-                    sell_points[s['i']] = prices[s['i']]
+        # 重新跑訊號取得進出場點
+        O=[r[1] for r in ohlcv]; H=[r[2] for r in ohlcv]
+        L=[r[3] for r in ohlcv]; C=[r[4] for r in ohlcv]
+        V=[(r[5] if len(r)>5 else 0.0) for r in ohlcv]
+        s = STRATS.get(strategy, STRATS['trend'])
+        el, xl = s['build'](O, H, L, C, V, '1d')
 
-        diff = [round((ema20[i] - ema50[i]) / ema50[i] * 100, 3) for i in range(len(prices))]
+        buy_points  = [prices[i] if el[i] else None for i in range(len(prices))]
+        sell_points = [prices[i] if xl[i] else None for i in range(len(prices))]
+
+        # EMA 差距
+        diff = []
+        for i in range(len(prices)):
+            if ema20[i] is not None and ema50[i] is not None and ema50[i] > 0:
+                diff.append(round((ema20[i] - ema50[i]) / ema50[i] * 100, 3))
+            else:
+                diff.append(0)
+
+        # 最近交易紀錄
+        from sim import atr as calc_atr
+        A = calc_atr(H, L, C, 14)
+        trades_list = []
+        buy_px = None
+        for i in range(len(prices)):
+            if el[i]: buy_px = prices[i]
+            elif xl[i] and buy_px:
+                ret = round((prices[i] - buy_px) / buy_px * 100, 2)
+                trades_list.append({'buyPrice': round(buy_px,2), 'sellPrice': round(prices[i],2), 'ret': ret})
+                buy_px = None
+        trades_list = trades_list[-10:][::-1]
 
         return jsonify({
-            'dates': dates,
-            'prices': [round(p, 2) for p in prices],
-            'ema20': [round(e, 2) for e in ema20],
-            'ema50': [round(e, 2) for e in ema50],
-            'buyPoints': buy_points,
+            'dates':      dates,
+            'prices':     [round(p, 2) for p in prices],
+            'ema20':      [round(v, 2) if v is not None else None for v in ema20],
+            'ema50':      [round(v, 2) if v is not None else None for v in ema50],
+            'buyPoints':  buy_points,
             'sellPoints': sell_points,
-            'diff': diff,
-            'metrics': metrics
+            'diff':       diff,
+            'metrics': {
+                'totalReturn': round(stats['total'], 2),
+                'cagr':        round(stats['cagr'], 2),
+                'pf':          round(stats.get('payoff', 0) * (stats['win']/100) / max((1 - stats['win']/100), 0.001), 2),
+                'maxDD':       round(stats['mdd'], 2),
+                'wr':          round(stats['win'], 1),
+                'tradeCount':  stats['trades'],
+                'trades':      trades_list,
+            }
         })
 
     except Exception as e:
