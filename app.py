@@ -164,15 +164,25 @@ def analyze():
             else:
                 diff.append(0)
 
+        # 交易紀錄：用完整 ohlcv 資料配對，不限於顯示期間
+        # 這樣即使買進在顯示期間之前，賣出在期間之內也能配對
         trades_list = []
         buy_px = None; buy_date = None
-        for i in range(len(prices)):
-            if real_buy[offset+i]:
-                buy_px = prices[i]; buy_date = dates[i]
-            elif real_sell[offset+i] and buy_px:
-                ret = round((prices[i] - buy_px) / buy_px * 100, 2)
-                trades_list.append({'buyPrice':round(buy_px,2),'sellPrice':round(prices[i],2),
-                                    'buyDate':buy_date,'sellDate':dates[i],'ret':ret})
+        full_prices = [r[4] for r in ohlcv]
+        full_dates = [datetime.datetime.utcfromtimestamp(r[0]/1000).strftime(
+            '%Y-%m-%d %H:%M' if yf_tf=='1h' else '%Y-%m-%d') for r in ohlcv]
+        for i in range(len(full_prices)):
+            if real_buy[i]:
+                buy_px = full_prices[i]; buy_date = full_dates[i]
+            elif real_sell[i] and buy_px:
+                ret = round((full_prices[i] - buy_px) / buy_px * 100, 2)
+                trades_list.append({
+                    'buyPrice': round(buy_px,2),
+                    'sellPrice': round(full_prices[i],2),
+                    'buyDate': buy_date,
+                    'sellDate': full_dates[i],
+                    'ret': ret
+                })
                 buy_px = None
         trades_list = trades_list[-10:][::-1]
 
