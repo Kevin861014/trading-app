@@ -164,8 +164,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="sticky-top">
   <div class="header">
     <h1>📈 順勢策略分析</h1>
-    <div style="display:flex;align-items:center;gap:10px;">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
       <button class="nav-toggle-btn" onclick="toggleNav()" id="navToggleBtn">☰ 股票列表</button>
+      <button class="nav-toggle-btn" onclick="exportStocks()" title="匯出股票清單">⬇ 匯出</button>
+      <label class="nav-toggle-btn" style="cursor:pointer;" title="匯入股票清單">⬆ 匯入<input type="file" accept=".json" style="display:none;" onchange="importStocks(event)"></label>
       <span style="font-size:11px;color:var(--text2);">台股1D · 加密4H</span>
     </div>
   </div>
@@ -346,18 +348,52 @@ async function loadStrategies(){
 function getStratName(v){const s=strategies.find(s=>s.v===v);return s?s.l.split('（')[0].split('(')[0]:v;}
 
 // ── 新增/刪除 ──────────────────────────────────────────
-function addStock(){
+async function addStock(){
   const input=document.getElementById('addInput');
+  const btn=document.querySelector('.btn-add');
   const raw=input.value.trim().toUpperCase();
   if(!raw) return;
   const symbol=/^\d{4}$/.test(raw)?raw+'.TW':raw;
   const strat=document.getElementById('addStrat').value||'diadx';
+
+  // 先從固定清單找
+  const dbEntry=(typeof STOCK_DB!=='undefined')?STOCK_DB.find(s=>s.s===symbol||s.s===symbol.toUpperCase()):null;
+
+  let finalSymbol=symbol;
+  let finalName=dbEntry?dbEntry.full:autoName(symbol);
+
+  // 固定清單找不到 → 去後端驗證
+  if(!dbEntry){
+    btn.textContent='驗證中...';
+    btn.disabled=true;
+    try{
+      const r=await fetch(`/api/validate?symbol=${symbol}`);
+      const data=await r.json();
+      if(!data.valid){
+        alert(`❌ ${data.error}`);
+        btn.textContent='＋ 加入';
+        btn.disabled=false;
+        return;
+      }
+      finalSymbol=data.symbol;
+      finalName=data.name||finalSymbol;
+      // 如果有建議代碼（如補 .TW）
+      if(data.suggestion && data.suggestion !== symbol){
+        input.value=data.suggestion;
+      }
+    }catch(e){
+      alert('連線失敗，請稍後再試');
+      btn.textContent='＋ 加入';
+      btn.disabled=false;
+      return;
+    }
+    btn.textContent='＋ 加入';
+    btn.disabled=false;
+  }
+
+  const tf=dbEntry&&MARKET_TF?(MARKET_TF[dbEntry.market]||defaultTf(finalSymbol)):defaultTf(finalSymbol);
   const id=nextId++;
-  // 從 STOCK_DB 找資料
-  const dbEntry = (typeof STOCK_DB !== 'undefined') ? STOCK_DB.find(s=>s.s===symbol||s.s===symbol.toUpperCase()) : null;
-  const tf = dbEntry && MARKET_TF ? (MARKET_TF[dbEntry.market]||defaultTf(symbol)) : defaultTf(symbol);
-  const name = dbEntry ? dbEntry.full : autoName(symbol);
-  const stock={id,symbol,name,strat,period:'2y',tf,
+  const stock={id,symbol:finalSymbol,name:finalName,strat,period:'2y',tf,
     indicators:{ema:true,kd:true,rsi:true,vol:true}};
   stocks.push(stock);save();
   input.value='';
@@ -1030,6 +1066,67 @@ function scrollToCard(id){
   if(card) card.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+// ── 匯出股票清單 ──────────────────────────────────────────
+function exportStocks(){
+  const data = {
+    version: '1.0',
+    exportDate: new Date().toISOString().slice(0,10),
+    stocks: stocks
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `trading-watchlist-${data.exportDate}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── 匯入股票清單 ──────────────────────────────────────────
+function importStocks(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try{
+      const data = JSON.parse(e.target.result);
+      const imported = data.stocks || data; // 支援舊格式
+      if(!Array.isArray(imported)) throw new Error('格式錯誤');
+      if(!confirm(`確定匯入 ${imported.length} 支股票？目前清單會被取代。`)) return;
+      // 清除現有
+      stocks.forEach(s => destroyCard(s.id));
+      document.getElementById('grid').innerHTML = '';
+      stocks = imported.map((s,i) => ({
+        ...s,
+        id: i+1,
+        indicators: s.indicators || {ema:true,kd:true,rsi:true,vol:true}
+      }));
+      nextId = stocks.length + 1;
+      save();
+      stocks.forEach(s => renderCard(s));
+      applyNavState();
+      loadAllSignals();
+      stocks.slice(0, PRELOAD_COUNT).forEach(s => loadCard(s.id));
+      setupLazyLoad(stocks.slice(PRELOAD_COUNT));
+      alert(`✅ 成功匯入 ${stocks.length} 支股票！`);
+    }catch(err){
+      alert('匯入失敗：' + err.message);
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ── 導覽列分類顯示 ──────────────────────────────────────────
+function getMarket(symbol){
+  if(symbol.endsWith('.TW')) return 'tw';
+  if(symbol.includes('-USD') || symbol.includes('/USDT')) return 'crypto';
+  if(['GC=F','SI=F','PL=F','PA=F','GLD','SLV'].includes(symbol)) return 'metal';
+  return 'us';
+}
+
+const MARKET_GROUP_LABEL = {tw:'📈 台股', us:'🇺🇸 美股', crypto:'₿ 加密', metal:'🥇 貴金屬'};
+
 function closeIntro(){
   const bar=document.getElementById('introBar');
   if(bar){bar.style.display='none';}
@@ -1089,39 +1186,51 @@ async function loadAllSignals(){
 function updateNavBarFromSignals(){
   const nav = document.getElementById('navBar');
   if(!nav) return;
-  nav.innerHTML = stocks.map(s => {
-    const card = document.getElementById(`card-${s.id}`);
-    let dot = 'hold', sigText = '載入中...', sigColor = '#555a6e';
 
-    // 優先用完整資料，其次用輕量訊號
-    if(card && card.dataset.loaded === '1'){
-      const data = JSON.parse(card.dataset.chartdata || 'null');
-      if(data){
-        const sig = getSignalState(data);
-        dot = sig.dot;
-        sigText = {
-          'buy':'▲ 買進！','sell':'▼ 賣出！','holding':'▲ 持有中',
-          'expired':'⚠ 已過期','exited':'▼ 已出場','wait':'多頭等待',
-          'bear':'▼ 空頭','neutral':'— 中立'
-        }[sig.type] || sig.label;
+  // 按市場分組
+  const groups = {tw:[], us:[], crypto:[], metal:[]};
+  stocks.forEach(s => {
+    const m = getMarket(s.symbol);
+    (groups[m] = groups[m]||[]).push(s);
+  });
+
+  let html = '';
+  ['tw','us','crypto','metal'].forEach(market => {
+    const group = groups[market];
+    if(!group || !group.length) return;
+    // 分隔標籤
+    html += `<span style="font-size:10px;color:var(--text3);padding:4px 6px;white-space:nowrap;flex-shrink:0;">${MARKET_GROUP_LABEL[market]||market}</span>`;
+    group.forEach(s => {
+      const card = document.getElementById(`card-${s.id}`);
+      let dot = 'hold', sigText = '載入中...';
+      if(card && card.dataset.loaded === '1'){
+        const data = JSON.parse(card.dataset.chartdata || 'null');
+        if(data){
+          const sig = getSignalState(data);
+          dot = sig.dot;
+          sigText = {'buy':'▲ 買進！','sell':'▼ 賣出！','holding':'▲ 持有中',
+            'expired':'⚠ 已過期','exited':'▼ 已出場','wait':'多頭等待',
+            'bear':'▼ 空頭','neutral':'— 中立'}[sig.type] || sig.label;
+        }
+      } else if(card && card.dataset.signaldata){
+        const sig = JSON.parse(card.dataset.signaldata);
+        dot = sig.dot || 'hold';
+        sigText = sig.label || '— 載入中';
       }
-    } else if(card && card.dataset.signaldata){
-      const sig = JSON.parse(card.dataset.signaldata);
-      dot = sig.dot || 'hold';
-      sigText = sig.label || '— 載入中';
-    }
-
-    const colorMap = {buy:'#26a69a', sell:'#ef5350', expired:'#f5a623', hold:'#555a6e'};
-    sigColor = colorMap[dot] || '#555a6e';
-
-    return `<div class="nav-item" onclick="scrollToCard(${s.id})">
-      <div class="nav-dot ${dot}"></div>
-      <div>
-        <div class="nav-item-name">${s.name||s.symbol}</div>
-        <div class="nav-item-sig" style="color:${sigColor};">${sigText}</div>
-      </div>
-    </div>`;
-  }).join('');
+      const colorMap = {buy:'#26a69a', sell:'#ef5350', expired:'#f5a623', hold:'#555a6e'};
+      const sigColor = colorMap[dot] || '#555a6e';
+      html += `<div class="nav-item" onclick="scrollToCard(${s.id})">
+        <div class="nav-dot ${dot}"></div>
+        <div>
+          <div class="nav-item-name">${s.name||s.symbol}</div>
+          <div class="nav-item-sig" style="color:${sigColor};">${sigText}</div>
+        </div>
+      </div>`;
+    });
+    // 分隔線
+    html += `<div style="width:1px;background:var(--border);margin:4px 2px;flex-shrink:0;"></div>`;
+  });
+  nav.innerHTML = html;
 }
 
 // Intersection Observer 懶加載

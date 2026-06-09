@@ -276,6 +276,36 @@ def analyze():
         import traceback
         return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500
 
+@app.route('/api/validate')
+def validate():
+    """驗證股票代碼是否能抓到資料，並嘗試取得名稱"""
+    symbol = request.args.get('symbol', '')
+    if not symbol:
+        return jsonify({'valid': False, 'error': '代碼不能為空'})
+    try:
+        import yfinance as yf
+        ticker = yf.Ticker(symbol)
+        info = ticker.info
+        # 嘗試抓最近 5 天資料確認能用
+        df = ticker.history(period='5d')
+        if df is None or df.empty:
+            # 嘗試加 .TW
+            if not symbol.endswith('.TW') and symbol.isdigit():
+                symbol2 = symbol + '.TW'
+                ticker2 = yf.Ticker(symbol2)
+                df2 = ticker2.history(period='5d')
+                if df2 is not None and not df2.empty:
+                    name = ticker2.info.get('longName') or ticker2.info.get('shortName') or symbol2
+                    return jsonify({'valid': True, 'symbol': symbol2, 'name': name, 'suggestion': symbol2})
+            return jsonify({'valid': False, 'error': f'找不到 {symbol}，請確認代碼是否正確'})
+        name = info.get('longName') or info.get('shortName') or symbol
+        # 簡化名稱
+        name = name.replace(' Inc.','').replace(' Corp.','').replace(' Co.','').replace(',','').strip()
+        return jsonify({'valid': True, 'symbol': symbol, 'name': name})
+    except Exception as e:
+        return jsonify({'valid': False, 'error': str(e)})
+
+
 @app.route('/api/signal')
 def signal():
     """輕量版：只回傳訊號狀態，不回傳完整 K 線資料，用於導覽列快速載入"""
