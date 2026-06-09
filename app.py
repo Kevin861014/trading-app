@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import sys, os
 sys.path.insert(0, os.path.dirname(__file__))
-from sim import run_backtest, fetch_yf, STRATS, COMMISSION, SLIPPAGE, market_cost
+from sim import run_backtest, fetch_yf, STRATS, market_cost
 import datetime
 
 app = Flask(__name__)
@@ -41,54 +41,59 @@ def get_strategies():
 
 @app.route('/api/analyze')
 def analyze():
-    symbol  = request.args.get('symbol', '2330.TW')
-    strategy= request.args.get('strategy', 'diadx')
-    period  = request.args.get('period', '1y')
+    symbol   = request.args.get('symbol', '2330.TW')
+    strategy = request.args.get('strategy', 'diadx')
+    period   = request.args.get('period', '1y')
 
     days = PERIOD_DAYS.get(period, 365)
-    start_date = (datetime.datetime.now() - datetime.timedelta(days=days+400)).strftime('%Y-%m-%d')
+    # 多抓 600 天暖機（六條線需要 EMA200 約 200 個交易日）
+    fetch_days = days + 600
+    start_date = (datetime.datetime.now() - datetime.timedelta(days=fetch_days)).strftime('%Y-%m-%d')
 
     try:
-        # 設定正確費率
-        spec = ('yf', symbol)
         import sim as _sim
+        spec = ('yf', symbol)
         _sim.COMMISSION, _sim.SLIPPAGE = market_cost(spec, strategy)
 
         ohlcv = fetch_yf(symbol, start=start_date, interval='1d')
-        if not ohlcv or len(ohlcv) < 50:
-            return jsonify({'error': '資料不足，請確認股票代碼'}), 400
 
-        # 只取需要的天數
-        target = days + 30
-        if len(ohlcv) > target:
-            ohlcv = ohlcv[-target:]
+        if not ohlcv or len(ohlcv) < 220:
+            cnt = len(ohlcv) if ohlcv else 0
+            return jsonify({'error': f'資料不足（取得 {cnt} 根 K 棒），請確認股票代碼是否正確，或選擇更長的時間範圍'}), 400
 
+        # 完整資料跑回測（需要暖機）
         result = run_backtest(ohlcv, strategy=strategy, risk_pct=0.015, timeframe='1d')
         if not result:
-            return jsonify({'error': '回測資料不足（至少需要 220 根 K 棒）'}), 400
+            return jsonify({'error': '回測失敗，請選擇更長的時間範圍（建議至少 1 年）'}), 400
 
         dates_dt, equity, stats = result
 
-        # 準備 K 線資料
-        prices  = [r[4] for r in ohlcv]
-        dates   = [datetime.datetime.utcfromtimestamp(r[0]/1000).strftime('%Y-%m-%d') for r in ohlcv]
+        # K 線圖只顯示選擇的期間
+        display_n = min(days + 30, len(ohlcv))
+        disp = ohlcv[-display_n:]
 
-        # 計算 EMA20/50 用於顯示
-        from sim import ema as calc_ema
+        prices = [r[4] for r in disp]
+        dates  = [datetime.datetime.utcfromtimestamp(r[0]/1000).strftime('%Y-%m-%d') for r in disp]
+
+        from sim import ema as calc_ema, atr as calc_atr
         ema20 = calc_ema(prices, 20)
         ema50 = calc_ema(prices, 50)
 
-        # 重新跑訊號取得進出場點
+        # 取進出場訊號（用完整 ohlcv 計算，再截取顯示段）
         O=[r[1] for r in ohlcv]; H=[r[2] for r in ohlcv]
         L=[r[3] for r in ohlcv]; C=[r[4] for r in ohlcv]
         V=[(r[5] if len(r)>5 else 0.0) for r in ohlcv]
         s = STRATS.get(strategy, STRATS['trend'])
-        el, xl = s['build'](O, H, L, C, V, '1d')
+        el_full, xl_full = s['build'](O, H, L, C, V, '1d')
+
+        # 截取顯示段的訊號
+        offset = len(ohlcv) - display_n
+        el = el_full[offset:]
+        xl = xl_full[offset:]
 
         buy_points  = [prices[i] if el[i] else None for i in range(len(prices))]
         sell_points = [prices[i] if xl[i] else None for i in range(len(prices))]
 
-        # EMA 差距
         diff = []
         for i in range(len(prices)):
             if ema20[i] is not None and ema50[i] is not None and ema50[i] > 0:
@@ -97,17 +102,25 @@ def analyze():
                 diff.append(0)
 
         # 最近交易紀錄
-        from sim import atr as calc_atr
-        A = calc_atr(H, L, C, 14)
         trades_list = []
         buy_px = None
         for i in range(len(prices)):
-            if el[i]: buy_px = prices[i]
+            if el[i]:
+                buy_px = prices[i]
             elif xl[i] and buy_px:
                 ret = round((prices[i] - buy_px) / buy_px * 100, 2)
-                trades_list.append({'buyPrice': round(buy_px,2), 'sellPrice': round(prices[i],2), 'ret': ret})
+                trades_list.append({
+                    'buyPrice':  round(buy_px, 2),
+                    'sellPrice': round(prices[i], 2),
+                    'ret': ret
+                })
                 buy_px = None
         trades_list = trades_list[-10:][::-1]
+
+        # PF 計算
+        payoff = stats.get('payoff', 0)
+        wr = stats['win'] / 100
+        pf = round(payoff * wr / max(1 - wr, 0.001), 2) if payoff > 0 else 0
 
         return jsonify({
             'dates':      dates,
@@ -120,7 +133,7 @@ def analyze():
             'metrics': {
                 'totalReturn': round(stats['total'], 2),
                 'cagr':        round(stats['cagr'], 2),
-                'pf':          round(stats.get('payoff', 0) * (stats['win']/100) / max((1 - stats['win']/100), 0.001), 2),
+                'pf':          pf,
                 'maxDD':       round(stats['mdd'], 2),
                 'wr':          round(stats['win'], 1),
                 'tradeCount':  stats['trades'],
@@ -129,7 +142,8 @@ def analyze():
         })
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        import traceback
+        return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500
 
 @app.route('/')
 def index():
