@@ -1177,7 +1177,8 @@ async function runBestStrategy(id, e){
   // 開啟彈窗
   document.getElementById('analysisBg').classList.add('open');
   document.getElementById('analysisTitle').textContent = `🔍 ${stock.name||stock.symbol} — 最佳策略分析`;
-  document.getElementById('analysisSub').textContent = `正在測試所有策略，找出最適合這支股票的前 8 名...`;
+  const tfNote = (stock.tf==='4h'||stock.tf==='1h') ? '（4H策略建議選 2 年以內）' : '';
+  document.getElementById('analysisSub').textContent = `正在測試所有策略，找出最適合這支股票的前 8 名... ${tfNote}`;
   document.getElementById('analysisProgress').style.display = 'block';
   document.getElementById('analysisResults').innerHTML = '';
   document.getElementById('progressBar').style.width = '0%';

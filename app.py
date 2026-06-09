@@ -184,8 +184,12 @@ def analyze():
                 diff.append(0)
 
         # 交易紀錄：賣出日期必須在顯示期間內，買進可以在之前
-        # 先用完整資料配對所有交易
-        trades_list = []
+        # rolltrend 使用加碼引擎，訊號結構不同，略過交易紀錄
+        if strategy == 'rolltrend':
+            trades_list = [{'buyPrice': None, 'sellPrice': None, 'buyDate': None, 'sellDate': None,
+                           'ret': None, 'note': '此策略使用加碼引擎，交易紀錄請參考回測數據'}]
+        else:
+            trades_list = []
         buy_px = None; buy_date = None
         full_prices = [r[4] for r in ohlcv]
         full_dates = [datetime.datetime.utcfromtimestamp(r[0]/1000).strftime(
@@ -220,7 +224,7 @@ def analyze():
         for i in range(len(prices)):
             if real_buy[offset+i]:
                 current_pos = True
-                last_buy_price = prices[i]
+                last_buy_price = round(prices[i], 2)
                 last_buy_date = dates[i]
                 last_buy_idx_display = i
             elif real_sell[offset+i]:
@@ -304,7 +308,10 @@ def best_strategy():
     yf_tf = {'1d':'1d', '4h':'1h', '1h':'1h'}.get(timeframe, '1d')
 
     days = PERIOD_DAYS.get(period, 730)
-    fetch_days = days + 700
+    # yfinance 1H 資料上限約 730 天，4H 策略用 1H 替代，超過會抓不到
+    if yf_tf == '1h' and days > 700:
+        days = 700
+    fetch_days = days + 300
     start_date = (datetime.datetime.now() - datetime.timedelta(days=fetch_days)).strftime('%Y-%m-%d')
 
     try:
@@ -313,7 +320,7 @@ def best_strategy():
         # 只抓一次資料
         ohlcv = fetch_data(symbol, start_date, interval=yf_tf)
         if not ohlcv or len(ohlcv) < 220:
-            return jsonify({'error': f'資料不足（{len(ohlcv) if ohlcv else 0} 根）'}), 400
+            return jsonify({'error': f'資料不足（{len(ohlcv) if ohlcv else 0} 根），4H 策略建議選 2 年以內'}), 400
 
         O=[r[1] for r in ohlcv]; H=[r[2] for r in ohlcv]
         L=[r[3] for r in ohlcv]; C=[r[4] for r in ohlcv]
@@ -440,7 +447,7 @@ def signal():
         for i in range(len(prices)):
             if real_buy[i]:
                 current_pos = True
-                last_buy_price = prices[i]
+                last_buy_price = round(prices[i], 2)
                 last_buy_date = dates[i]
             elif real_sell[i]:
                 current_pos = False
