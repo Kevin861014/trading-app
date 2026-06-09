@@ -350,22 +350,28 @@ function drawTrades(card,trades){
 
 // ── Lightweight Charts 繪圖 ──────────────────────────────
 function toTime(dateStr){
-  // 支援 "2024-01-01" 和 "2024-01-01 09:00"
-  if(dateStr.length>10){
-    return Math.floor(new Date(dateStr).getTime()/1000);
-  }
-  return dateStr; // YYYY-MM-DD 格式直接用
+  if(dateStr.length>10) return Math.floor(new Date(dateStr).getTime()/1000);
+  return dateStr;
 }
 
 function buildChartsInContainer(container,data,indicators,height){
   const charts=[];
   const prices=data.prices;
   const dates=data.dates;
+  const diff=calcEMADiff(data.ema20,data.ema50);
+  const {K,D}=calcKD(prices);
+  const rsiVals=calcRSI(prices);
+
+  // ── Tooltip 浮動框 ──
+  const tooltip=document.createElement('div');
+  tooltip.style.cssText='position:absolute;z-index:100;display:none;background:rgba(20,24,36,0.97);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:8px 12px;font-size:11px;color:#e8eaf0;pointer-events:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.5);min-width:160px;';
+  container.style.position='relative';
+  container.appendChild(tooltip);
 
   // ── 主圖：K線 + EMA20/50 + 買賣點 ──
   const mainH=height||240;
   const mainDiv=document.createElement('div');
-  mainDiv.style.width='100%';mainDiv.style.height=mainH+'px';
+  mainDiv.style.cssText=`width:100%;height:${mainH}px;`;
   container.appendChild(mainDiv);
 
   const mainChart=LightweightCharts.createChart(mainDiv,{...CHART_OPTS,height:mainH});
@@ -386,6 +392,39 @@ function buildChartsInContainer(container,data,indicators,height){
   });
   lineSeries.setMarkers(markers);
   charts.push(mainChart);
+
+  // ── Crosshair 事件：顯示 tooltip ──
+  mainChart.subscribeCrosshairMove(param=>{
+    if(!param||!param.point||param.point.x<0){tooltip.style.display='none';return;}
+    const idx=param.logical!=null?Math.round(param.logical):null;
+    if(idx==null||idx<0||idx>=dates.length){tooltip.style.display='none';return;}
+    const price=prices[idx];
+    const e20=data.ema20[idx];
+    const e50=data.ema50[idx];
+    const hasBuy=data.buyPoints[idx]!==null;
+    const hasSell=data.sellPoints[idx]!==null;
+    const k=K[idx],d_=D[idx],rsi=rsiVals[idx],df=diff[idx];
+    let html=`<div style="color:#8b90a0;margin-bottom:5px;font-size:10px;">${dates[idx]}</div>`;
+    html+=`<div style="display:flex;justify-content:space-between;gap:14px;line-height:1.9;">`;
+    html+=`<span style="color:#8b90a0;">收盤</span><span style="color:#378ADD;font-weight:500;">${price}</span></div>`;
+    if(e20!=null) html+=`<div style="display:flex;justify-content:space-between;gap:14px;line-height:1.9;"><span style="color:#8b90a0;">EMA20</span><span style="color:#26a69a;font-weight:500;">${e20}</span></div>`;
+    if(e50!=null) html+=`<div style="display:flex;justify-content:space-between;gap:14px;line-height:1.9;"><span style="color:#8b90a0;">EMA50</span><span style="color:#ef5350;font-weight:500;">${e50}</span></div>`;
+    if(indicators.ema) html+=`<div style="display:flex;justify-content:space-between;gap:14px;line-height:1.9;"><span style="color:#8b90a0;">EMA差距</span><span style="color:${df>=0?"#26a69a":"#ef5350"};font-weight:500;">${df>0?"+":""}${df}%</span></div>`;
+    if(indicators.kd&&k!=null) html+=`<div style="display:flex;justify-content:space-between;gap:14px;line-height:1.9;"><span style="color:#8b90a0;">K/D</span><span style="font-weight:500;"><span style="color:#f5a623;">${k}</span> / <span style="color:#378ADD;">${d_}</span></span></div>`;
+    if(indicators.rsi&&rsi!=null) html+=`<div style="display:flex;justify-content:space-between;gap:14px;line-height:1.9;"><span style="color:#8b90a0;">RSI</span><span style="color:#9c27b0;font-weight:500;">${rsi}</span></div>`;
+    if(hasBuy) html+=`<div style="color:#26a69a;font-weight:700;margin-top:3px;">▲ 買進訊號</div>`;
+    if(hasSell) html+=`<div style="color:#ef5350;font-weight:700;margin-top:3px;">▼ 賣出訊號</div>`;
+    tooltip.innerHTML=html;
+    // 計算位置
+    const containerRect=container.getBoundingClientRect();
+    const mainRect=mainDiv.getBoundingClientRect();
+    let left=param.point.x+15;
+    if(left+180>mainRect.width) left=param.point.x-195;
+    tooltip.style.left=left+'px';
+    tooltip.style.top='10px';
+    tooltip.style.display='block';
+  });
+  mainDiv.addEventListener('mouseleave',()=>{tooltip.style.display='none';});
 
   // ── EMA差距 ──
   if(indicators.ema){
