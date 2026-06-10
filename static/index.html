@@ -1183,54 +1183,7 @@ function applyNavState(){
 }
 
 function updateNavBar(){
-  const body = document.getElementById('navDrawerBody');
-  if(!body) return;
-
-  // 依市場分組
-  const groups = [
-    { label: '📈 台股', market: 'tw' },
-    { label: '🇺🇸 美股', market: 'us' },
-    { label: '₿ 加密貨幣', market: 'crypto' },
-    { label: '🥇 貴金屬', market: 'metal' },
-    { label: '📦 其他', market: 'other' },
-  ];
-
-  function getMarket(symbol){
-    const s = symbol.toUpperCase();
-    if(s.endsWith('.TW')) return 'tw';
-    if(['BTC','ETH','BNB','SOL','XRP','DOGE','ADA','LINK','LTC','TRX','PAXG','DOT'].some(c=>s.includes(c))) return 'crypto';
-    if(s.endsWith('-USD') || s.includes('/USDT')) return 'crypto';
-    if(['GC=F','SI=F','GLD','SLV'].includes(s)) return 'metal';
-    if(['AAPL','MSFT','NVDA','GOOGL','AMZN','META','TSLA','AMD','AVGO','JPM','SPY','QQQ'].includes(s)) return 'us';
-    return 'other';
-  }
-
-  let html = '';
-  groups.forEach(g => {
-    const groupStocks = stocks.filter(s => getMarket(s.symbol) === g.market);
-    if(!groupStocks.length) return;
-    html += `<div class="nav-group-label">${g.label}</div>`;
-    groupStocks.forEach(s => {
-      const sig = navSignals[s.id];
-      let dotClass = 'hold', sigText = '等待訊號', itemClass = '';
-      if(sig){
-        if(sig.state === 'buy'){ dotClass='buy'; sigText='▲ 買進訊號'; itemClass='active-signal'; }
-        else if(sig.state === 'hold'){ dotClass='buy'; sigText='持有中'; itemClass='active-signal'; }
-        else if(sig.state === 'sell'){ dotClass='sell'; sigText='▼ 賣出訊號'; itemClass='sell-signal'; }
-        else if(sig.state === 'expired'){ dotClass='expired'; sigText='訊號已過期'; }
-        else if(sig.state === 'bearish'){ dotClass='sell'; sigText='空頭觀望'; }
-      }
-      html += `<div class="nav-item ${itemClass}" onclick="scrollToCard(${s.id});closeNav();">
-        <div class="nav-dot ${dotClass}"></div>
-        <div class="nav-item-info">
-          <div class="nav-item-name">${s.name||s.symbol}</div>
-          <div class="nav-item-sig" style="color:${dotClass==='buy'?'#26a69a':dotClass==='sell'?'#ef5350':dotClass==='expired'?'#f5a623':'#555a6e'}">${sigText}</div>
-        </div>
-      </div>`;
-    });
-  });
-
-  body.innerHTML = html || '<div style="padding:16px;color:var(--text3);font-size:12px;">還沒有股票，先新增吧！</div>';
+  updateNavDrawer();
 }
 
 function scrollToCard(id){
@@ -1553,55 +1506,62 @@ async function loadAllSignals(){
   updateNavBarFromSignals();
 }
 
-// 從輕量訊號更新導覽列
+// 從輕量訊號更新導覽列（抽屜版）
 function updateNavBarFromSignals(){
-  const nav = document.getElementById('navBar');
-  if(!nav) return;
+  updateNavDrawer();
+}
 
-  // 按市場分組
-  const groups = {tw:[], us:[], crypto:[], metal:[]};
+function updateNavDrawer(){
+  const body = document.getElementById('navDrawerBody');
+  if(!body) return;
+
+  const MARKET_LABELS = {tw:'📈 台股', us:'🇺🇸 美股', crypto:'₿ 加密貨幣', metal:'🥇 貴金屬', other:'📦 其他'};
+  const groups = {tw:[], us:[], crypto:[], metal:[], other:[]};
   stocks.forEach(s => {
     const m = getMarket(s.symbol);
     (groups[m] = groups[m]||[]).push(s);
   });
 
   let html = '';
-  ['tw','us','crypto','metal'].forEach(market => {
+  ['tw','us','crypto','metal','other'].forEach(market => {
     const group = groups[market];
     if(!group || !group.length) return;
-    // 分隔標籤
-    html += `<span style="font-size:10px;color:var(--text3);padding:4px 6px;white-space:nowrap;flex-shrink:0;">${MARKET_GROUP_LABEL[market]||market}</span>`;
+    html += `<div class="nav-group-label">${MARKET_LABELS[market]||market}</div>`;
     group.forEach(s => {
       const card = document.getElementById(`card-${s.id}`);
-      let dot = 'hold', sigText = '載入中...';
+      let dot = 'hold', sigText = '載入中...', itemClass = '';
       if(card && card.dataset.loaded === '1'){
         const data = JSON.parse(card.dataset.chartdata || 'null');
         if(data){
           const sig = getSignalState(data);
           dot = sig.dot;
-          sigText = {'buy':'▲ 買進！','sell':'▼ 賣出！','holding':'▲ 持有中',
+          const sigMap = {'buy':'▲ 買進！','sell':'▼ 賣出！','holding':'▲ 持有中',
             'expired':'⚠ 已過期','exited':'▼ 已出場','wait':'多頭等待',
-            'bear':'▼ 空頭','neutral':'— 中立'}[sig.type] || sig.label;
+            'bear':'▼ 空頭','neutral':'— 中立'};
+          sigText = sigMap[sig.type] || sig.label;
+          if(sig.type==='buy'||sig.type==='holding') itemClass='active-signal';
+          else if(sig.type==='sell'||sig.type==='bear') itemClass='sell-signal';
         }
       } else if(card && card.dataset.signaldata){
         const sig = JSON.parse(card.dataset.signaldata);
         dot = sig.dot || 'hold';
         sigText = sig.label || '— 載入中';
+        if(dot==='buy') itemClass='active-signal';
+        else if(dot==='sell') itemClass='sell-signal';
       }
       const colorMap = {buy:'#26a69a', sell:'#ef5350', expired:'#f5a623', hold:'#555a6e'};
       const sigColor = colorMap[dot] || '#555a6e';
-      html += `<div class="nav-item" onclick="scrollToCard(${s.id})">
+      html += `<div class="nav-item ${itemClass}" onclick="scrollToCard(${s.id});closeNav();">
         <div class="nav-dot ${dot}"></div>
-        <div>
+        <div class="nav-item-info">
           <div class="nav-item-name">${s.name||s.symbol}</div>
           <div class="nav-item-sig" style="color:${sigColor};">${sigText}</div>
         </div>
       </div>`;
     });
-    // 分隔線
-    html += `<div style="width:1px;background:var(--border);margin:4px 2px;flex-shrink:0;"></div>`;
   });
-  nav.innerHTML = html;
+
+  body.innerHTML = html || '<div style="padding:16px;color:var(--text3);font-size:12px;">還沒有股票，先新增吧！</div>';
 }
 
 // Intersection Observer 懶加載
