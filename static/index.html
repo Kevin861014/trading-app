@@ -218,7 +218,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       這是一個<strong>程式化順勢策略分析工具</strong>，幫你用客觀的數據判斷「現在這支股票值不值得進場」，而不是靠感覺猜漲跌。
       <div class="intro-steps">
         <div class="intro-step"><span class="step-num">1</span><div><strong>選股票和策略</strong><br>選你想追蹤的股票，搭配適合的策略。<br>台股推薦 <em>DMI/ADX</em>，加密貨幣推薦 <em>六條線或 Keltner</em>，美股推薦 <em>時間序列動能（TSMOM）</em></div></div>
-        <div class="intro-step"><span class="step-num">2</span><div><strong>用 2~5 年回測評估策略好不好</strong><br>看三個指標：PF &gt; 1.5、最大回撤 &lt; 30%、交易筆數夠多。建議選 3~5 年回測，筆數越多越可信。<br>⚠ 筆數參考：台股／美股日線建議跑 3~5 年，4 筆以下不可信，8 筆以上才有參考價值。加密 4H 訊號較多，2 年至少 15 筆。筆數越少 PF 越容易虛高失真，寧可拉長時間範圍確認。</div></div>
+        <div class="intro-step"><span class="step-num">2</span><div><strong>用 2~5 年回測評估策略好不好</strong><br>看三個指標：PF &gt; 1.5、最大回撤 &lt; 30%、交易筆數夠多。建議選 3~5 年回測。<br>⚠ 筆數門檻：台股／美股日線至少 5 筆，加密 4H 至少 10 筆。排名依據是「報酬 × PF × 筆數」的綜合分數，三個指標都好才算真正可信。<br>⚠ 筆數參考：台股／美股日線建議跑 3~5 年，至少 5 筆才納入排名，筆數越多越可信。加密 4H 至少 10 筆。筆數太少時 PF 容易虛高（少數幾筆剛好都賺就會很高），要拉長時間範圍確認。</div></div>
         <div class="intro-step"><span class="step-num">3</span><div><strong>每天收盤後切換短期看訊號</strong><br>切換到「1 個月」或「7 天」，看 K 線最右邊有沒有 ▲ 綠色買進三角。<br>有訊號才考慮進場，沒有就繼續等，不要強行操作。</div></div>
         <div class="intro-step"><span class="step-num">4</span><div><strong>風險控制最重要</strong><br>這套策略不保證獲利，盤整期會連續小虧。<br>只用你「虧光也不影響生活」的資金，有訊號也要設好停損，單筆最多虧 1~2%。</div></div>
       </div>
@@ -902,10 +902,10 @@ function renderCard(stock){
   const stratOpts=strategies.map(s=>`<option value="${s.v}" ${s.v===stock.strat?'selected':''}>${s.l}</option>`).join('');
   const inds=stock.indicators||{ema:true,kd:true,rsi:true,vol:true};
   const indDefs=[
-    {k:'ema',l:'EMA差距',tip:'EMA20和EMA50的差距百分比。綠色代表短期均線在長期均線上方（多頭），紅色反之。'},
-    {k:'kd',l:'KD 線',tip:'隨機指標 K 值（橘）和 D 值（藍）。KD>80 超買可能回落，KD<20 超賣可能反彈。兩線黃金交叉（K上穿D）是買進參考。'},
-    {k:'rsi',l:'RSI',tip:'相對強弱指標，0~100。RSI>70 超買，RSI<30 超賣。配合趨勢使用：趨勢向上時 RSI 回踩 50 是買進參考點。'},
-    {k:'vol',l:'成交量',tip:'每天的交易量。綠色代表當天上漲，紅色代表下跌。成交量放大配合價格上漲，代表趨勢更可靠。'},
+    {k:'ema',l:'EMA差距',tip:'EMA20（短期）和EMA50（長期）均線的差距百分比。綠柱代表短期均線在長期均線上方（多頭趨勢），紅柱反之（空頭）。接近0代表趨勢中立，是策略等待進場的時機。'},
+    {k:'kd',l:'KD 線',tip:'隨機指標：K值（橘線）和D值（藍線），數值在0~100之間。KD>80進入超買區，可能回落；KD<20進入超賣區，可能反彈。K線從下往上穿越D線（黃金交叉）是買進參考，反之是賣出參考。'},
+    {k:'rsi',l:'RSI',tip:'相對強弱指標，0~100之間。RSI>70 超買（漲太多），RSI<30 超賣（跌太多）。順勢策略中，RSI 回踩 50 後反彈是買進參考點；逆勢策略中，RSI<30 是進場時機。'},
+    {k:'vol',l:'成交量',tip:'每根K棒的成交量。綠色代表收漲，紅色代表收跌。重要訊號：成交量放大且價格上漲，代表趨勢有動能支撐，更可靠；成交量萎縮但價格繼續漲，可能是假突破。'},
   ];
   const indToggles=indDefs.map(o=>`<button id="itoggle-${stock.id}-${o.k}" class="itoggle ${inds[o.k]?'on':''}" onclick="toggleIndicator(${stock.id},'${o.k}')" data-tip="${o.tip}">${o.l}</button>`).join('');
 
@@ -924,12 +924,12 @@ function renderCard(stock){
     </div>
     <div class="signal-banner" data-tip="目前策略狀態。▲買進訊號=現在符合進場條件；▼賣出訊號=現在符合出場條件；多頭趨勢=均線向上但尚未觸發訊號，持倉等待；空頭趨勢=不建議進場。"><span class="signal-big hold">— 等待載入</span></div>
     <div class="metrics">
-      <div class="metric" data-tip="這段期間內策略的總獲利。扣除手續費後的真實報酬，正值代表賺錢。"><div class="metric-label">總報酬 ⓘ</div><div class="metric-val neutral" data-m="ret">—</div></div>
+      <div class="metric" data-tip="這段期間內策略的總獲利（扣除手續費）。單看報酬不夠，要搭配 PF 和交易筆數一起判斷，三個都好才算真正可信。"><div class="metric-label">總報酬 ⓘ</div><div class="metric-val neutral" data-m="ret">—</div></div>
       <div class="metric" data-tip="把總報酬換算成「每年賺多少」的基準。方便和其他投資比較，例如定存、0050 等。"><div class="metric-label">年化 ⓘ</div><div class="metric-val neutral" data-m="cagr">—</div></div>
-      <div class="metric" data-tip="獲利因子：每虧 1 塊能賺回多少塊。PF>1.5 才值得用，越高越好。注意：交易筆數太少時 PF 容易虛高，需配合筆數一起判斷。"><div class="metric-label">PF ⓘ</div><div class="metric-val neutral" data-m="pf">—</div></div>
-      <div class="metric" data-tip="最大回撤：這段時間資金從最高點最多跌了多少。越低越穩，建議不超過 30%。"><div class="metric-label">回撤 ⓘ</div><div class="metric-val neutral" data-m="dd">—</div></div>
+      <div class="metric" data-tip="獲利因子：每虧 1 塊能賺回多少塊。PF>1.5 才值得用，越高越好。但 PF 要搭配總報酬和筆數一起看，「找最佳策略」用的綜合分數 = 總報酬 × PF × log(筆數)，三個都好才是真正強的策略。"><div class="metric-label">PF ⓘ</div><div class="metric-val neutral" data-m="pf">—</div></div>
+      <div class="metric" data-tip="最大回撤：這段時間資金從最高點最多跌了多少。越低越穩，建議不超過 30%。回撤大代表過程中會很煎熬，即使最終賺錢也很難抱住。"><div class="metric-label">回撤 ⓘ</div><div class="metric-val neutral" data-m="dd">—</div></div>
       <div class="metric" data-tip="勝率：幾成的交易是賺錢的。順勢策略通常只有 25~40%，但賺的比虧的多，整體還是正的。"><div class="metric-label">勝率 ⓘ</div><div class="metric-val neutral" data-m="wr">—</div></div>
-      <div class="metric" data-tip="總交易筆數。台股/美股日線：4筆以下不可信，8筆以上才有參考價值，建議跑3~5年。加密4H：至少15筆。筆數太少時PF容易虛高，要拉長時間範圍確認。"><div class="metric-label">交易 ⓘ</div><div class="metric-val neutral" data-m="tc">—</div></div>
+      <div class="metric" data-tip="總交易筆數。台股／美股日線至少 5 筆，加密 4H 至少 10 筆，才有統計參考價值。筆數越多越可信。「找最佳策略」的排名綜合分數 = 總報酬 × PF × log(筆數)，筆數少的策略會被壓低排名。"><div class="metric-label">交易 ⓘ</div><div class="metric-val neutral" data-m="tc">—</div></div>
     </div>
     <div class="card-status"><span style="color:var(--text2);">等待載入...</span></div>
     <div class="chart-section">
@@ -1178,7 +1178,7 @@ async function runBestStrategy(id, e){
   document.getElementById('analysisBg').classList.add('open');
   document.getElementById('analysisTitle').textContent = `🔍 ${stock.name||stock.symbol} — 最佳策略分析`;
   const tfNote = (stock.tf==='4h'||stock.tf==='1h') ? '（4H策略建議選 2 年以內）' : '';
-  document.getElementById('analysisSub').textContent = `正在測試所有策略，找出最適合這支股票的前 8 名... ${tfNote}`;
+  document.getElementById('analysisSub').textContent = `正在測試所有策略，依「報酬 × PF × 筆數」綜合評分排名前 8 名... ${tfNote}`;
   document.getElementById('analysisProgress').style.display = 'block';
   document.getElementById('analysisResults').innerHTML = '';
   document.getElementById('progressBar').style.width = '0%';
