@@ -134,7 +134,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* 左側抽屜導覽列 */
 .nav-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:498;}
 .nav-overlay.open{display:block;}
-.nav-drawer{position:fixed;left:0;top:0;bottom:0;width:220px;background:var(--bg2);border-right:1px solid var(--border);z-index:499;transform:translateX(-100%);transition:transform 0.25s ease;display:flex;flex-direction:column;overflow:hidden;}
+.nav-drawer{position:fixed;right:0;top:0;bottom:0;width:220px;background:var(--bg2);border-left:1px solid var(--border);z-index:499;transform:translateX(100%);transition:transform 0.25s ease;display:flex;flex-direction:column;overflow:hidden;}
 .nav-drawer.open{transform:translateX(0);}
 .nav-drawer-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .nav-drawer-title{font-size:13px;font-weight:600;color:var(--text);}
@@ -215,10 +215,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="header">
     <h1>📈 順勢策略分析</h1>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <button class="nav-toggle-btn" onclick="toggleNav()" id="navToggleBtn">☰ 股票列表</button>
       <button class="nav-toggle-btn" onclick="exportStocks()" title="匯出股票清單">⬇ 匯出</button>
       <label class="nav-toggle-btn" style="cursor:pointer;" title="匯入股票清單">⬆ 匯入<input type="file" accept=".json" style="display:none;" onchange="importStocks(event)"></label>
       <span style="font-size:11px;color:var(--text2);">台股1D · 加密4H</span>
+      <button class="nav-toggle-btn" onclick="toggleNav()" id="navToggleBtn">☰ 股票列表</button>
     </div>
   </div>
   <!-- 左側抽屜遮罩 -->
@@ -226,8 +226,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <!-- 左側抽屜導覽列 -->
   <div class="nav-drawer" id="navDrawer">
     <div class="nav-drawer-header">
-      <span class="nav-drawer-title">📋 我的股票</span>
       <button class="nav-drawer-close" onclick="closeNav()">✕</button>
+      <span class="nav-drawer-title">📋 我的股票</span>
     </div>
     <div class="nav-drawer-body" id="navDrawerBody"></div>
   </div>
