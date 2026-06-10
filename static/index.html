@@ -217,7 +217,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
       <button class="nav-toggle-btn" onclick="exportStocks()" title="匯出股票清單">⬇ 匯出</button>
       <label class="nav-toggle-btn" style="cursor:pointer;" title="匯入股票清單">⬆ 匯入<input type="file" accept=".json" style="display:none;" onchange="importStocks(event)"></label>
-      <span style="font-size:11px;color:var(--text2);">台股1D · 加密4H</span>
+      <span id="dataSourceLabel" style="font-size:11px;color:var(--text2);" title="資料來源">台股1D · 加密4H</span>
       <button class="nav-toggle-btn" onclick="toggleNav()" id="navToggleBtn">☰ 股票列表</button>
     </div>
   </div>
@@ -1256,6 +1256,17 @@ const MARKET_GROUP_LABEL = {tw:'📈 台股', us:'🇺🇸 美股', crypto:'₿ 
 let isRender = true; // 預設保守，載入後更新
 fetch('/api/config').then(r=>r.json()).then(data=>{
   isRender = data.isRender;
+  // 顯示資料來源
+  const srcEl = document.getElementById('dataSourceLabel');
+  if(srcEl){
+    if(!isRender && data.ccxtAvailable){
+      srcEl.textContent = '台股1D · 加密4H（ccxt）';
+      srcEl.style.color = '#26a69a';
+      srcEl.title = '本機模式：加密貨幣使用 ccxt 幣安資料，支援真正 4H 和更長歷史';
+    } else {
+      srcEl.textContent = '台股1D · 加密4H（yfinance）';
+    }
+  }
   // 如果是 Render，深度分析按鈕顯示提示
   if(isRender){
     document.querySelectorAll('[id^="deep-btn-"]').forEach(btn=>{

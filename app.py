@@ -11,6 +11,20 @@ CORS(app)
 import os
 IS_RENDER = os.environ.get('RENDER') == 'true'
 
+# 啟動時測試 ccxt 連線一次，之後直接用結果
+CCXT_AVAILABLE = False
+if not IS_RENDER:
+    try:
+        import ccxt as _ccxt_test
+        _ex = _ccxt_test.binanceusdm({'enableRateLimit': True,
+                                       'options': {'defaultType': 'future'}})
+        _ex.fetch_ohlcv('BTC/USDT', '1d', limit=1)
+        CCXT_AVAILABLE = True
+        print('✅ ccxt 幣安連線成功，加密貨幣使用真實 4H 資料')
+    except Exception as _e:
+        CCXT_AVAILABLE = False
+        print(f'⚠️  ccxt 連線失敗（{_e}），使用 yfinance')
+
 PERIOD_DAYS = {
     '7d': 7, '1mo': 30, '1y': 365, '2y': 730, '3y': 1095, '5y': 1825
 }
@@ -61,19 +75,74 @@ _cache = {}
 _cache_time = {}
 CACHE_TTL = 3600
 
+def is_crypto_symbol(symbol):
+    """判斷是不是加密貨幣代碼"""
+    s = symbol.upper()
+    return (s.endswith('-USD') or '/USDT' in s or
+            any(c in s for c in ['BTC','ETH','BNB','SOL','XRP','DOGE','ADA',
+                                  'LINK','LTC','TRX','PAXG','DOT','XLM']))
+
+def fetch_ccxt_ohlcv(symbol, interval, days):
+    """用 ccxt 從幣安抓加密貨幣 K 棒（本機專用）"""
+    try:
+        import ccxt
+        # 轉換代碼格式：BTC-USD → BTC/USDT，PAXG.TW → 不支援
+        sym = symbol.upper()
+        if '-USD' in sym:
+            base = sym.replace('-USD','')
+            ccxt_sym = f"{base}/USDT"
+        elif '/USDT' in sym:
+            ccxt_sym = sym
+        else:
+            # 嘗試直接用代碼加 /USDT
+            ccxt_sym = f"{sym}/USDT"
+
+        # 時框轉換
+        tf_map = {'1d':'1d', '1h':'1h', '4h':'4h'}
+        ccxt_tf = tf_map.get(interval, '1d')
+
+        ex = ccxt.binanceusdm({'enableRateLimit': True,
+                               'options': {'defaultType': 'future'}})
+        since = ex.milliseconds() - days * 24 * 3600 * 1000
+        all_ohlcv = []
+        while True:
+            batch = ex.fetch_ohlcv(ccxt_sym, ccxt_tf, since=since, limit=1000)
+            if not batch: break
+            all_ohlcv += batch
+            if len(batch) < 1000: break
+            since = batch[-1][0] + 1
+        # 格式：[ts, o, h, l, c, v]
+        return [[r[0],r[1],r[2],r[3],r[4],r[5]] for r in all_ohlcv if r[4] > 0]
+    except Exception as e:
+        print(f"ccxt 失敗（{symbol}）: {e}，退回 yfinance")
+        return None
+
 def fetch_data(symbol, start_date, interval='1d'):
-    import yfinance as yf
     cache_key = f"{symbol}_{start_date}_{interval}"
     now = time.time()
     if cache_key in _cache and (now - _cache_time.get(cache_key, 0)) < CACHE_TTL:
         return _cache[cache_key]
+
+    # 本機 + 加密貨幣 + ccxt 可用 → 用 ccxt（可抓真正 4H 和更長歷史）
+    if CCXT_AVAILABLE and is_crypto_symbol(symbol) and interval in ('1h','4h','1d'):
+        days = max(int((datetime.datetime.now() -
+                        datetime.datetime.strptime(start_date, '%Y-%m-%d')).days) + 30, 100)
+        # 4H 用真正的 4h 時框，不用 1H 替代
+        ccxt_interval = interval
+        result = fetch_ccxt_ohlcv(symbol, ccxt_interval, days)
+        if result and len(result) > 100:
+            _cache[cache_key] = result
+            _cache_time[cache_key] = now
+            return result
+
+    # 其他情況用 yfinance
+    import yfinance as yf
     for attempt in range(3):
         try:
             if attempt > 0:
                 time.sleep(2 * attempt)
             ticker = yf.Ticker(symbol)
             kw = dict(auto_adjust=True)
-            # yfinance 日內資料有時間限制
             if interval == '1h':
                 kw['period'] = '730d'
             else:
@@ -341,7 +410,11 @@ def analyze():
 
 @app.route('/api/config')
 def get_config():
-    return jsonify({'isRender': IS_RENDER})
+    return jsonify({
+        'isRender': IS_RENDER,
+        'ccxtAvailable': CCXT_AVAILABLE,
+        'dataSource': 'ccxt+yfinance' if CCXT_AVAILABLE else 'yfinance'
+    })
 
 
 @app.route('/api/best_strategy')
