@@ -804,11 +804,12 @@ def _simulate(T,O,H,L,C, el, xl, A, atr_stop, atr_trail, atr_tp, risk_pct, max_l
     return dates, equity, trades, trade_log
 
 def _simulate_pyramid(T,O,H,L,C, el, A, init_atr, trail_atr, add_atr, max_adds, risk_pct, max_lev, start):
-    """順勢滾倉(加碼)回測:el=進場訊號;進場後每 +add_atr×ATR 加一手(最多 max_adds 手,總名目受槓桿上限),
-       整個部位用吊燈追蹤止損(最高 − trail_atr×ATR)出場;初始寬止損 init_atr×ATR。回傳 (dates,equity,trades)。"""
+    """順勢滾倉(加碼)回測。回傳 (dates,equity,trades,trade_log)。
+    trade_log 每筆包含完整進出場資訊及加碼明細 add_log。"""
     N=len(C); eq=start; pos=False; entries=[]; peak=0.0; stop=None; last_add=0.0; adds=0
     cost=lambda px: px*(COMMISSION+SLIPPAGE)
-    dates=[]; equity=[]; trades=[]
+    dates=[]; equity=[]; trades=[]; trade_log=[]
+    entry_date=None; add_log=[]  # 本次進場的加碼紀錄
     tq=lambda: sum(q for _,q in entries)
     for i in range(N-1):
         o2=O[i+1]; av=A[i]
@@ -816,20 +817,45 @@ def _simulate_pyramid(T,O,H,L,C, el, A, init_atr, trail_atr, add_atr, max_adds, 
             peak=max(peak,H[i]); ns=peak-trail_atr*av; stop=ns if stop is None else max(stop,ns)
             if L[i]<=stop:                                       # 吊燈止損 → 全部出場
                 ex=min(stop,O[i])
+                avg_entry=sum(ep*q for ep,q in entries)/tq() if entries else 0
                 pnl=sum(q*(ex-ep) for ep,q in entries)-sum(q*(cost(ex)+cost(ep)) for ep,q in entries)
-                eq+=pnl; trades.append(pnl); pos=False; entries=[]; stop=None; adds=0; peak=0.0
+                eq+=pnl; trades.append(pnl)
+                exit_date=datetime.datetime.utcfromtimestamp(T[i]/1000)
+                trade_log.append({
+                    'entry_px':round(avg_entry,2),'exit_px':round(ex,2),
+                    'entry_date':entry_date,'exit_date':exit_date,
+                    'ret':round((ex-avg_entry)/avg_entry*100,2) if avg_entry else 0,
+                    'add_log': add_log[:],  # 加碼明細
+                    'is_pyramid': True
+                })
+                pos=False; entries=[]; stop=None; adds=0; peak=0.0; entry_date=None; add_log=[]
             elif adds<max_adds and C[i]>=last_add+add_atr*av:    # 順勢加碼(滾倉)
                 sd=trail_atr*av
                 want=min((eq*risk_pct)/sd, (eq*max_lev)/o2 - tq()) if sd>0 else 0
-                if want>0: entries.append((o2,want)); last_add=C[i]; adds+=1
+                if want>0:
+                    entries.append((o2,want)); last_add=C[i]; adds+=1
+                    add_date=datetime.datetime.utcfromtimestamp(T[i+1]/1000)
+                    add_log.append({'px':round(o2,2),'date':add_date,'n':adds})
         if (not pos) and av and av>0 and el[i]:                  # 突破進場(首手)
             entry=o2; sd=init_atr*av
             q=min((eq*risk_pct)/sd, (eq*max_lev)/entry) if sd>0 else 0
-            if q>0: pos=True; entries=[(entry,q)]; peak=H[i]; stop=entry-init_atr*av; last_add=C[i]; adds=0
+            if q>0:
+                pos=True; entries=[(entry,q)]; peak=H[i]
+                stop=entry-init_atr*av; last_add=C[i]; adds=0
+                entry_date=datetime.datetime.utcfromtimestamp(T[i+1]/1000)
+                add_log=[]
         avg=(sum(ep*q for ep,q in entries)/tq()) if entries else 0
         mtm=eq + (tq()*(C[i+1]-avg) if pos else 0)
         dates.append(datetime.datetime.utcfromtimestamp(T[i+1]/1000)); equity.append(mtm)
-    return dates, equity, trades
+    # 還在場內
+    if pos and entries and entry_date:
+        avg_entry=sum(ep*q for ep,q in entries)/tq() if entries else 0
+        trade_log.append({
+            'entry_px':round(avg_entry,2),'exit_px':None,
+            'entry_date':entry_date,'exit_date':None,'ret':None,
+            'add_log': add_log[:], 'is_pyramid': True, 'open': True
+        })
+    return dates, equity, trades, trade_log
 
 def run_backtest(ohlcv, strategy="trend", risk_pct=0.015, max_lev=3.0, start=10000.0,
                  timeframe=None, atr_len=14):
@@ -842,10 +868,9 @@ def run_backtest(ohlcv, strategy="trend", risk_pct=0.015, max_lev=3.0, start=100
     A=atr(H,L,C,atr_len)
     if s.get("pyramid"):
         pp=s["pyramid"]
-        dates,equity,trades=_simulate_pyramid(T,O,H,L,C, el, A,
+        dates,equity,trades,trade_log=_simulate_pyramid(T,O,H,L,C, el, A,
                                               pp["init_atr"], pp["trail_atr"], pp["add_atr"], pp["max_adds"],
                                               risk_pct, max_lev, start)
-        trade_log=[]  # pyramid 策略暫不支援明細
     else:
         dates,equity,trades,trade_log=_simulate(T,O,H,L,C, el,xl, A,
                                       s["atr_stop"], s["atr_trail"], s["atr_tp"],

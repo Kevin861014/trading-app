@@ -420,10 +420,17 @@ def best_strategy():
 
                 # 篩選條件：PF > 1 且筆數達標
                 if pf > 1 and trades >= min_trades:
-                    # 綜合分數 = 總報酬 × PF × log(筆數)
-                    # 三個指標合一，筆數用 log 避免筆數多的策略壓過一切
                     import math
-                    score = round(total * pf * math.log(max(trades, 2)), 2)
+                    # 報酬加成：有賺就加分，但不讓超高報酬壓過所有人
+                    if total >= 20:
+                        ret_bonus = 1.5
+                    elif total >= 10:
+                        ret_bonus = 1.2
+                    else:
+                        ret_bonus = 1.0
+                    # 綜合分數 = PF × log(筆數) × 報酬加成
+                    # PF 和筆數是主角，報酬是加分項
+                    score = round(pf * math.log(max(trades, 2)) * ret_bonus, 2)
                     results.append({
                         'strat': strat_key,
                         'name': strat_info['name'],
