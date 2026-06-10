@@ -96,18 +96,59 @@ def fetch_data(symbol, start_date, interval='1d'):
             time.sleep(2)
     return []
 
-def get_real_trades(ohlcv, el_full, xl_full):
+def get_real_trades(ohlcv, el_full, xl_full, strat_info=None):
+    """
+    模擬 sim.py 的進出場邏輯，包含停損判斷，確保交易筆數與 run_backtest 一致。
+    """
+    from sim import atr as calc_atr
     N = len(ohlcv)
+    O=[r[1] for r in ohlcv]; H=[r[2] for r in ohlcv]
+    L=[r[3] for r in ohlcv]; C=[r[4] for r in ohlcv]
+    A = calc_atr(H, L, C, 14)
+
     pos = False
     buy_idx = [None] * N
     sell_idx = [None] * N
+    entry = 0.0
+    stop = None
+
+    # 取策略停損參數
+    atr_stop = strat_info.get('atr_stop', 0) if strat_info else 0
+    atr_trail = strat_info.get('atr_trail', 0) if strat_info else 0
+    pct_stop = strat_info.get('pct_stop', 0) if strat_info else 0
+    peak = None
+
     for i in range(N - 1):
+        o2 = O[i+1]
+        if pos:
+            # 停損判斷
+            if stop is not None and L[i] <= stop:
+                pos = False
+                sell_idx[i] = True
+                stop = None; peak = None
+                continue
+            # 追蹤停損更新
+            if atr_trail > 0 and A[i] is not None:
+                peak = max(peak if peak else -1e18, H[i])
+                new_stop = peak - atr_trail * A[i]
+                stop = max(stop, new_stop) if stop else new_stop
+            # 一般出場訊號
+            if xl_full[i]:
+                pos = False
+                sell_idx[i+1] = True
+                stop = None; peak = None
         if not pos and el_full[i]:
             pos = True
+            entry = o2
             buy_idx[i+1] = True
-        elif pos and xl_full[i]:
-            pos = False
-            sell_idx[i+1] = True
+            peak = H[i]
+            if atr_stop > 0 and A[i] is not None:
+                stop = C[i] - atr_stop * A[i]
+            elif pct_stop > 0:
+                stop = entry * (1 - pct_stop)
+            else:
+                stop = None
+
     return buy_idx, sell_idx
 
 @app.route('/api/strategies')
@@ -158,7 +199,7 @@ def analyze():
         s = STRATS.get(strategy, STRATS['trend'])
         el_full, xl_full = s['build'](O, H, L, C, V, yf_tf)
 
-        real_buy, real_sell = get_real_trades(ohlcv, el_full, xl_full)
+        real_buy, real_sell = get_real_trades(ohlcv, el_full, xl_full, strat_info=s)
 
         display_n = min(days * (6 if yf_tf=='1h' else 1) + 30, len(ohlcv))
         disp = ohlcv[-display_n:]
@@ -473,7 +514,7 @@ def signal():
         s = STRATS.get(strategy, STRATS['trend'])
         el_full, xl_full = s['build'](O, H, L, C, V, yf_tf)
 
-        real_buy, real_sell = get_real_trades(ohlcv, el_full, xl_full)
+        real_buy, real_sell = get_real_trades(ohlcv, el_full, xl_full, strat_info=s)
 
         # 只看最後狀態
         prices = [r[4] for r in ohlcv]
