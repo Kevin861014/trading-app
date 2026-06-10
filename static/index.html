@@ -131,6 +131,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .nav-dot.expired{background:#f5a623;}
 /* Sticky 頂部 */
 .sticky-top{position:sticky;top:0;z-index:100;background:var(--bg);box-shadow:0 2px 12px rgba(0,0,0,0.3);}
+/* 左側抽屜導覽列 */
+.nav-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:498;}
+.nav-overlay.open{display:block;}
+.nav-drawer{position:fixed;left:0;top:0;bottom:0;width:220px;background:var(--bg2);border-right:1px solid var(--border);z-index:499;transform:translateX(-100%);transition:transform 0.25s ease;display:flex;flex-direction:column;overflow:hidden;}
+.nav-drawer.open{transform:translateX(0);}
+.nav-drawer-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.nav-drawer-title{font-size:13px;font-weight:600;color:var(--text);}
+.nav-drawer-close{background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;line-height:1;padding:0 4px;}
+.nav-drawer-close:hover{color:var(--text);}
+.nav-drawer-body{overflow-y:auto;flex:1;padding:6px 0 16px;}
+.nav-drawer-body::-webkit-scrollbar{width:3px;}
+.nav-drawer-body::-webkit-scrollbar-thumb{background:var(--border);}
+.nav-group-label{font-size:10px;color:var(--text3);padding:12px 14px 4px;letter-spacing:0.5px;font-weight:600;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;transition:background 0.12s;border-left:2px solid transparent;}
+.nav-item:hover{background:var(--bg3);}
+.nav-item.sig-buy{border-left-color:#26a69a;}
+.nav-item.sig-sell{border-left-color:#ef5350;}
+.nav-item-name{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;}
+.nav-item-sig{font-size:10px;margin-top:1px;}
 .nav-toggle-btn{font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:4px;}
 .nav-toggle-btn:hover{background:var(--bg3);color:var(--text);}
 /* 搜尋補全 */
@@ -1152,39 +1171,20 @@ let navOpen = localStorage.getItem('navOpen') !== '0';
 
 function toggleNav(){
   const drawer = document.getElementById('navDrawer');
-  const overlay = document.getElementById('navOverlay');
   if(!drawer) return;
-  if(drawer.classList.contains('open')){
-    closeNav();
-  } else {
-    openNav();
-  }
+  drawer.classList.contains('open') ? closeNav() : openNav();
 }
-
 function openNav(){
-  const drawer = document.getElementById('navDrawer');
-  const overlay = document.getElementById('navOverlay');
-  if(!drawer) return;
-  drawer.classList.add('open');
-  overlay.classList.add('open');
-  updateNavBar(); // 每次開啟更新內容
-}
-
-function closeNav(){
-  const drawer = document.getElementById('navDrawer');
-  const overlay = document.getElementById('navOverlay');
-  if(!drawer) return;
-  drawer.classList.remove('open');
-  overlay.classList.remove('open');
-}
-
-function applyNavState(){
-  updateNavBar();
-}
-
-function updateNavBar(){
+  document.getElementById('navDrawer').classList.add('open');
+  document.getElementById('navOverlay').classList.add('open');
   updateNavDrawer();
 }
+function closeNav(){
+  document.getElementById('navDrawer').classList.remove('open');
+  document.getElementById('navOverlay').classList.remove('open');
+}
+function applyNavState(){ updateNavDrawer(); }
+function updateNavBar(){ updateNavDrawer(); }
 
 function scrollToCard(id){
   const card=document.getElementById(`card-${id}`);
@@ -1514,54 +1514,41 @@ function updateNavBarFromSignals(){
 function updateNavDrawer(){
   const body = document.getElementById('navDrawerBody');
   if(!body) return;
-
   const MARKET_LABELS = {tw:'📈 台股', us:'🇺🇸 美股', crypto:'₿ 加密貨幣', metal:'🥇 貴金屬', other:'📦 其他'};
   const groups = {tw:[], us:[], crypto:[], metal:[], other:[]};
-  stocks.forEach(s => {
-    const m = getMarket(s.symbol);
-    (groups[m] = groups[m]||[]).push(s);
-  });
-
+  stocks.forEach(s => { const m = getMarket(s.symbol); (groups[m]=groups[m]||[]).push(s); });
+  const colorMap = {buy:'#26a69a', sell:'#ef5350', expired:'#f5a623', hold:'#555a6e'};
+  const sigMap = {buy:'▲ 買進！', sell:'▼ 賣出！', holding:'▲ 持有中',
+    expired:'⚠ 已過期', exited:'▼ 已出場', wait:'多頭等待', bear:'▼ 空頭', neutral:'— 中立'};
   let html = '';
   ['tw','us','crypto','metal','other'].forEach(market => {
     const group = groups[market];
-    if(!group || !group.length) return;
-    html += `<div class="nav-group-label">${MARKET_LABELS[market]||market}</div>`;
+    if(!group||!group.length) return;
+    html += `<div class="nav-group-label">${MARKET_LABELS[market]}</div>`;
     group.forEach(s => {
       const card = document.getElementById(`card-${s.id}`);
-      let dot = 'hold', sigText = '載入中...', itemClass = '';
-      if(card && card.dataset.loaded === '1'){
-        const data = JSON.parse(card.dataset.chartdata || 'null');
-        if(data){
-          const sig = getSignalState(data);
-          dot = sig.dot;
-          const sigMap = {'buy':'▲ 買進！','sell':'▼ 賣出！','holding':'▲ 持有中',
-            'expired':'⚠ 已過期','exited':'▼ 已出場','wait':'多頭等待',
-            'bear':'▼ 空頭','neutral':'— 中立'};
-          sigText = sigMap[sig.type] || sig.label;
-          if(sig.type==='buy'||sig.type==='holding') itemClass='active-signal';
-          else if(sig.type==='sell'||sig.type==='bear') itemClass='sell-signal';
-        }
+      let dot='hold', sigText='載入中...', itemClass='';
+      if(card && card.dataset.loaded==='1'){
+        const data = JSON.parse(card.dataset.chartdata||'null');
+        if(data){ const sig=getSignalState(data); dot=sig.dot; sigText=sigMap[sig.type]||sig.label;
+          if(sig.type==='buy'||sig.type==='holding') itemClass='sig-buy';
+          else if(sig.type==='sell'||sig.type==='bear') itemClass='sig-sell'; }
       } else if(card && card.dataset.signaldata){
-        const sig = JSON.parse(card.dataset.signaldata);
-        dot = sig.dot || 'hold';
-        sigText = sig.label || '— 載入中';
-        if(dot==='buy') itemClass='active-signal';
-        else if(dot==='sell') itemClass='sell-signal';
+        const sig=JSON.parse(card.dataset.signaldata);
+        dot=sig.dot||'hold'; sigText=sig.label||'— 載入中';
+        if(dot==='buy') itemClass='sig-buy';
+        else if(dot==='sell') itemClass='sig-sell';
       }
-      const colorMap = {buy:'#26a69a', sell:'#ef5350', expired:'#f5a623', hold:'#555a6e'};
-      const sigColor = colorMap[dot] || '#555a6e';
       html += `<div class="nav-item ${itemClass}" onclick="scrollToCard(${s.id});closeNav();">
         <div class="nav-dot ${dot}"></div>
-        <div class="nav-item-info">
+        <div>
           <div class="nav-item-name">${s.name||s.symbol}</div>
-          <div class="nav-item-sig" style="color:${sigColor};">${sigText}</div>
+          <div class="nav-item-sig" style="color:${colorMap[dot]||'#555a6e'}">${sigText}</div>
         </div>
       </div>`;
     });
   });
-
-  body.innerHTML = html || '<div style="padding:16px;color:var(--text3);font-size:12px;">還沒有股票，先新增吧！</div>';
+  body.innerHTML = html || '<div style="padding:16px;color:var(--text3);font-size:12px;">還沒有股票！</div>';
 }
 
 // Intersection Observer 懶加載
