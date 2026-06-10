@@ -934,6 +934,7 @@ function renderCard(stock){
       </div>
       <div class="card-actions">
         <button class="btn-analyze" onclick="runBestStrategy(${stock.id},event)" title="分析最佳策略">🔍 找最佳策略</button>
+        <button class="btn-analyze" id="deep-btn-${stock.id}" onclick="runDeepAnalysis(${stock.id},event)" title="深度分析（本機）" style="background:rgba(156,39,176,0.1);border-color:rgba(156,39,176,0.4);color:#9c27b0;">🔬 深度分析</button>
         <button class="btn-icon" onclick="openModal(${stock.id})" title="放大">⛶</button>
         <button class="btn-icon" onclick="reloadCard(${stock.id})" title="重新載入">↺</button>
         <button class="btn-icon del" onclick="deleteStock(${stock.id},event)" title="刪除">✕</button>
@@ -1224,6 +1225,107 @@ function getMarket(symbol){
 }
 
 const MARKET_GROUP_LABEL = {tw:'📈 台股', us:'🇺🇸 美股', crypto:'₿ 加密', metal:'🥇 貴金屬'};
+
+// ── 環境判斷 ──────────────────────────────────────────
+let isRender = true; // 預設保守，載入後更新
+fetch('/api/config').then(r=>r.json()).then(data=>{
+  isRender = data.isRender;
+  // 如果是 Render，深度分析按鈕顯示提示
+  if(isRender){
+    document.querySelectorAll('[id^="deep-btn-"]').forEach(btn=>{
+      btn.title = '深度分析僅支援本機執行';
+      btn.style.opacity = '0.4';
+      btn.style.cursor = 'not-allowed';
+    });
+  }
+}).catch(()=>{});
+
+// ── 深度分析 ──────────────────────────────────────────
+async function runDeepAnalysis(id, e){
+  e.stopPropagation();
+  if(isRender){
+    alert('❌ 深度分析僅支援本機執行
+
+Render 免費版有 30 秒請求限制，深度分析需要跑 3年+5年兩輪，時間太長會超時。
+
+建議：在自己電腦上執行 python app.py 後使用此功能。');
+    return;
+  }
+
+  const stock = stocks.find(s=>s.id===id);
+  if(!stock) return;
+  analysisStockId = id;
+
+  document.getElementById('analysisBg').classList.add('open');
+  document.getElementById('analysisTitle').textContent = `🔬 ${stock.name||stock.symbol} — 深度分析（3年+5年交叉驗證）`;
+  document.getElementById('analysisSub').textContent = '自動跑 3年和5年資料，找兩段都通過的策略（最可信）...';
+  document.getElementById('analysisProgress').style.display = 'block';
+  document.getElementById('analysisResults').innerHTML = '';
+  document.getElementById('progressBar').style.width = '0%';
+  document.getElementById('progressText').textContent = '連線中...';
+
+  let prog = 0;
+  const progInterval = setInterval(()=>{
+    prog = Math.min(prog + (100 - prog) * 0.02, 92);
+    document.getElementById('progressBar').style.width = prog + '%';
+    document.getElementById('progressText').textContent = `深度分析中... ${Math.round(prog)}%（約需 60~120 秒）`;
+  }, 1000);
+
+  try{
+    const r = await fetch(`/api/deep_analysis?symbol=${stock.symbol}&timeframe=${stock.tf||'1d'}`);
+    const data = await r.json();
+    clearInterval(progInterval);
+
+    if(data.error){
+      document.getElementById('analysisResults').innerHTML = `<div style="color:var(--red);padding:12px;">❌ ${data.error}</div>`;
+      document.getElementById('analysisProgress').style.display = 'none';
+      return;
+    }
+
+    document.getElementById('progressBar').style.width = '100%';
+    document.getElementById('progressText').textContent = `✅ 深度分析完成！3年+5年交叉驗證`;
+
+    const medals = ['🥇','🥈','🥉','4','5','6','7','8'];
+    const results = data.results;
+
+    if(!results.length){
+      document.getElementById('analysisResults').innerHTML = '<div style="color:var(--text2);padding:12px;text-align:center;">此股票在3年和5年資料中，沒有策略同時通過兩段驗證<br>建議直接使用「🔍 找最佳策略」</div>';
+      return;
+    }
+
+    document.getElementById('analysisResults').innerHTML = results.map((r,i)=>{
+      const trustBadge = r.trust === 2
+        ? '<span style="color:#26a69a;font-weight:700;">⭐⭐ 3年+5年都通過</span>'
+        : r.in5y
+          ? '<span style="color:#f5a623;">⭐ 僅5年通過</span>'
+          : '<span style="color:#8b90a0;">⭐ 僅3年通過</span>';
+      return `<div class="result-row ${i===0?'rank-1':''}" onclick="applyBestStrategy(${id},'${r.strat}','${r.name}')">
+        <div class="result-rank">${medals[i]||i+1}</div>
+        <div class="result-info">
+          <div class="result-name">${r.name}</div>
+          <div style="margin:3px 0;">${trustBadge}</div>
+          <div class="result-stats">
+            <span>報酬 <b style="color:${r.total>=0?'#26a69a':'#ef5350'}">${r.total>=0?'+':''}${r.total}%</b></span>
+            <span>PF <b style="color:#26a69a">${r.pf}</b></span>
+            <span>回撤 <b style="color:#ef5350">${r.mdd}%</b></span>
+            <span>勝率 ${r.win}%</span>
+            <span>${r.trades}筆</span>
+          </div>
+          ${r.oosPf!=null?`<div style="font-size:10px;color:#8b90a0;margin-top:3px;">OOS PF <span style="color:${r.oosPf>=1.5?'#26a69a':r.oosPf>=1?'#f5a623':'#ef5350'}">${r.oosPf}</span></div>`:''}
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:16px;font-weight:700;color:#26a69a;">${r.pf}</div>
+          <div style="font-size:10px;color:var(--text3);">綜合 ${r.score}</div>
+        </div>
+        <button class="btn-apply" onclick="event.stopPropagation();applyBestStrategy(${id},'${r.strat}','${r.name}')">套用</button>
+      </div>`;
+    }).join('');
+
+  }catch(e){
+    clearInterval(progInterval);
+    document.getElementById('analysisResults').innerHTML = `<div style="color:var(--red);padding:12px;">連線失敗，請稍後再試</div>`;
+  }
+}
 
 // ── 最佳策略分析 ──────────────────────────────────────────
 let analysisStockId = null;

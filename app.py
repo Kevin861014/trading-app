@@ -8,6 +8,9 @@ from sim import ema as calc_ema
 app = Flask(__name__)
 CORS(app)
 
+import os
+IS_RENDER = os.environ.get('RENDER') == 'true'
+
 PERIOD_DAYS = {
     '7d': 7, '1mo': 30, '1y': 365, '2y': 730, '3y': 1095, '5y': 1825
 }
@@ -336,6 +339,11 @@ def analyze():
         import traceback
         return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500
 
+@app.route('/api/config')
+def get_config():
+    return jsonify({'isRender': IS_RENDER})
+
+
 @app.route('/api/best_strategy')
 def best_strategy():
     """跑所有策略，回傳最佳前5名"""
@@ -484,6 +492,166 @@ def best_strategy():
 
         tested_count = len([k for k in _sim.STRATS if k not in skip and k in allowed])
         return jsonify({'results': top, 'total_tested': tested_count})
+
+    except Exception as e:
+        import traceback
+        return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500
+
+
+@app.route('/api/deep_analysis')
+def deep_analysis():
+    """深度分析：自動跑 3年+5年交叉驗證，找兩段都通過的策略"""
+    if IS_RENDER:
+        return jsonify({'error': '深度分析僅支援本機執行，Render 免費版會超時'}), 403
+
+    symbol    = request.args.get('symbol', '2330.TW')
+    timeframe = request.args.get('timeframe', '1d')
+    yf_tf = {'1d':'1d', '4h':'1h', '1h':'1h'}.get(timeframe, '1d')
+
+    try:
+        import sim as _sim
+        import math
+
+        def run_for_period(period_key, ohlcv_data, symbol, yf_tf):
+            """跑指定資料的最佳策略，回傳通過的策略 dict"""
+            sym_upper = symbol.upper()
+            if sym_upper.endswith('.TW'):
+                min_trades = 8
+            elif any(sym_upper.endswith(x) for x in ['-USD','/USDT']) or                  any(c in sym_upper for c in ['BTC','ETH','BNB','SOL','XRP','PAXG']):
+                min_trades = 15
+            else:
+                min_trades = 8
+
+            tw_strats  = {'diadx','volbreak','sixline','pullback','supertrend','donchian',
+                          'ema_cross','bbreak','lrs','ichimoku','cci','vortex','macd',
+                          'kama','heikin','crsi','tsmom','rolltrend'}
+            us_strats  = {'tsmom','vbreakr','bbreak','lrs','sixline','ema_cross','pullbk',
+                          'rolltrend','crsi','macd','supertrend','ichimoku','cci','vortex','donchian'}
+            crypto_strats = {'sixline','ttm','keltner','donchian','smc','hma','rsi50',
+                             'vwap','obv','force','cmf','bbreak','lrs','cci','vortex','diadx'}
+            metal_strats  = {'volbreak','supertrend','kama','heikin','ema_cross','pullback',
+                             'macd','psar','rsi50','sixline','donchian'}
+
+            if sym_upper.endswith('.TW'):
+                allowed = tw_strats
+            elif any(sym_upper.endswith(x) for x in ['-USD','/USDT']) or                  any(c in sym_upper for c in ['BTC','ETH','BNB','SOL','XRP','PAXG']):
+                allowed = crypto_strats
+            elif sym_upper in {'GC=F','SI=F','PL=F','PA=F','GLD','SLV'}:
+                allowed = metal_strats
+            else:
+                allowed = us_strats
+
+            skip = {'rsi2dip','ibsdip','zdip'}
+            passed = {}
+
+            split_idx = int(len(ohlcv_data) * 0.7)
+            ohlcv_is  = ohlcv_data[:split_idx]
+            ohlcv_oos = ohlcv_data[split_idx:]
+            do_oos = len(ohlcv_oos) >= 60 and len(ohlcv_is) >= 220
+
+            for strat_key, strat_info in _sim.STRATS.items():
+                if strat_key in skip or strat_key not in allowed:
+                    continue
+                try:
+                    _sim.COMMISSION, _sim.SLIPPAGE = market_cost(('yf', symbol), strat_key)
+                    result_is = run_backtest(ohlcv_is, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf)
+                    if not result_is:
+                        continue
+                    _, _, stats_is = result_is
+                    payoff = stats_is.get('payoff', 0)
+                    wr = stats_is['win'] / 100
+                    pf = round(payoff * wr / max(1 - wr, 0.001), 2) if payoff > 0 and wr > 0 else 0
+                    total = round(stats_is['total'], 2)
+                    trades = stats_is.get('trades', 0)
+                    mdd = round(stats_is['mdd'], 2)
+
+                    if pf <= 1 or trades < min_trades or mdd >= 50:
+                        continue
+
+                    # OOS 驗證
+                    if do_oos:
+                        result_oos = run_backtest(ohlcv_oos, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf)
+                        if not result_oos:
+                            continue
+                        _, _, stats_oos = result_oos
+                        payoff_oos = stats_oos.get('payoff', 0)
+                        wr_oos = stats_oos['win'] / 100
+                        oos_pf = round(payoff_oos * wr_oos / max(1 - wr_oos, 0.001), 2) if payoff_oos > 0 and wr_oos > 0 else 0
+                        if oos_pf <= 1:
+                            continue
+                        oos_total = round(stats_oos['total'], 2)
+                    else:
+                        oos_pf = None
+                        oos_total = None
+
+                    ret_bonus = 1.5 if total >= 20 else (1.2 if total >= 10 else 1.0)
+                    mdd_penalty = 1 + mdd / 100
+                    score = round(pf * math.log(max(trades, 2)) * ret_bonus / mdd_penalty, 2)
+
+                    passed[strat_key] = {
+                        'strat': strat_key,
+                        'name': strat_info['name'],
+                        'pf': pf, 'total': total,
+                        'cagr': round(stats_is['cagr'], 2),
+                        'mdd': mdd,
+                        'win': round(stats_is['win'], 1),
+                        'trades': trades,
+                        'score': score,
+                        'oosPf': oos_pf,
+                        'oosTotal': oos_total,
+                    }
+                except Exception:
+                    continue
+            return passed
+
+        # 抓 5 年資料（包含 3 年）
+        start_5y = (datetime.datetime.now() - datetime.timedelta(days=5*365+700)).strftime('%Y-%m-%d')
+        start_3y = (datetime.datetime.now() - datetime.timedelta(days=3*365+700)).strftime('%Y-%m-%d')
+
+        if yf_tf == '1h':
+            # 4H 資料限制，只跑 2 年
+            return jsonify({'error': '加密貨幣 4H 資料限制 730 天，建議使用一般分析模式'}), 400
+
+        ohlcv_5y = fetch_data(symbol, start_5y, interval=yf_tf)
+        if not ohlcv_5y or len(ohlcv_5y) < 220:
+            return jsonify({'error': '5年資料不足'}), 400
+
+        # 切出 3 年的部分
+        cutoff_3y = (datetime.datetime.now() - datetime.timedelta(days=3*365)).timestamp() * 1000
+        ohlcv_3y = [r for r in ohlcv_5y if r[0] >= cutoff_3y]
+        if len(ohlcv_3y) < 220:
+            return jsonify({'error': '3年資料不足'}), 400
+
+        _sim.COMMISSION, _sim.SLIPPAGE = market_cost(('yf', symbol), 'trend')
+
+        # 跑兩次
+        passed_3y = run_for_period('3y', ohlcv_3y, symbol, yf_tf)
+        passed_5y = run_for_period('5y', ohlcv_5y, symbol, yf_tf)
+
+        # 合併結果，標記可信度
+        all_strats = set(passed_3y.keys()) | set(passed_5y.keys())
+        results = []
+        for strat_key in all_strats:
+            in_3y = strat_key in passed_3y
+            in_5y = strat_key in passed_5y
+
+            if in_3y and in_5y:
+                trust = 2  # ⭐⭐ 兩段都通過
+                base = passed_5y[strat_key]  # 用5年的數據
+            elif in_5y:
+                trust = 1  # ⭐ 只有5年
+                base = passed_5y[strat_key]
+            else:
+                trust = 1  # ⭐ 只有3年
+                base = passed_3y[strat_key]
+
+            results.append({**base, 'trust': trust, 'in3y': in_3y, 'in5y': in_5y})
+
+        # 先按可信度，再按分數排序
+        results.sort(key=lambda x: (x['trust'], x['score']), reverse=True)
+        top = results[:8]
+
+        return jsonify({'results': top, 'hasOos': True, 'isDeep': True})
 
     except Exception as e:
         import traceback
