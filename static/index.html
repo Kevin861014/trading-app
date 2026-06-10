@@ -76,6 +76,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-close:hover{color:var(--text);}
 .modal-ind-toggles{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
 .note{font-size:10px;color:var(--text3);padding:8px 16px 16px;text-align:center;}
+/* 熱門選單 */
+.hotbar{padding:8px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.hotbar-tabs{display:flex;gap:4px;flex-shrink:0;}
+.htab{font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all 0.15s;}
+.htab.active{background:var(--bg3);color:var(--text);border-color:rgba(255,255,255,0.2);}
+.hotbar-stocks{display:flex;gap:6px;flex-wrap:wrap;flex:1;}
+.hstock{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;white-space:nowrap;transition:all 0.15s;}
+.hstock:hover{background:var(--bg3);color:var(--text);border-color:rgba(255,255,255,0.2);}
 /* 最佳策略彈窗 */
 .analysis-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:2000;align-items:center;justify-content:center;padding:16px;}
 .analysis-modal-bg.open{display:flex;}
@@ -203,7 +211,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <select id="addStrat"></select>
     <button class="btn-add" onclick="addStock()">＋ 加入</button>
   </div>
-  <div class="rec-bar" id="recBar" style="display:none;">
+  <div class="hotbar" id="hotBar">
+  <div class="hotbar-tabs">
+    <button class="htab active" onclick="switchHot('tw')">📈 台股</button>
+    <button class="htab" onclick="switchHot('us')">🇺🇸 美股</button>
+    <button class="htab" onclick="switchHot('crypto')">₿ 加密</button>
+    <button class="htab" onclick="switchHot('metal')">🥇 貴金屬</button>
+  </div>
+  <div class="hotbar-stocks" id="hotStocks"></div>
+</div>
+<div class="rec-bar" id="recBar" style="display:none;">
     <span class="rec-label">推薦策略：</span>
     <div class="rec-tags" id="recTags"></div>
     <span class="rec-hint">點擊策略標籤自動套用</span>
@@ -947,6 +964,49 @@ function renderCard(stock){
     </div>
   `;
   document.getElementById('grid').appendChild(div);
+}
+
+// ── 熱門選單 ──────────────────────────────────────────
+let currentHotMarket = 'tw';
+
+function switchHot(market){
+  currentHotMarket = market;
+  document.querySelectorAll('.htab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.htab').forEach(t => {
+    if(t.textContent.includes(market==='tw'?'台股':market==='us'?'美股':market==='crypto'?'加密':'貴金屬'))
+      t.classList.add('active');
+  });
+  renderHotStocks(market);
+}
+
+function renderHotStocks(market){
+  const container = document.getElementById('hotStocks');
+  if(!container || typeof STOCK_DB === 'undefined') return;
+  const stocks = STOCK_DB.filter(s => s.market === market).slice(0, 20);
+  container.innerHTML = stocks.map(s =>
+    `<button class="hstock" onclick="quickAdd('${s.s}')" title="${s.full}">${s.n}</button>`
+  ).join('');
+}
+
+function quickAdd(symbol){
+  const dbEntry = STOCK_DB.find(s => s.s === symbol);
+  if(!dbEntry) return;
+  // 檢查有沒有重複
+  if(stocks.find(s => s.symbol === symbol)){
+    alert(`${dbEntry.full} 已經在清單裡了！`);
+    return;
+  }
+  const strat = document.getElementById('addStrat').value || (dbEntry.rec && dbEntry.rec[0]) || 'diadx';
+  const tf = MARKET_TF[dbEntry.market] || defaultTf(symbol);
+  const id = nextId++;
+  const stock = {id, symbol, name: dbEntry.full, strat, period: '2y', tf,
+    indicators: {ema:true, kd:true, rsi:true, vol:true}};
+  stocks.push(stock); save();
+  renderCard(stock);
+  loadCard(id);
+  updateNavBar();
+  // 捲動到新卡片
+  setTimeout(() => scrollToCard(id), 300);
 }
 
 // ── 搜尋補全 ──────────────────────────────────────────
