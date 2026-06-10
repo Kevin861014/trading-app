@@ -202,7 +202,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <span style="font-size:11px;color:var(--text2);">台股1D · 加密4H</span>
     </div>
   </div>
-  <div class="nav-bar" id="navBar"></div>
+  <!-- 左側抽屜遮罩 -->
+  <div class="nav-overlay" id="navOverlay" onclick="closeNav()"></div>
+  <!-- 左側抽屜導覽列 -->
+  <div class="nav-drawer" id="navDrawer">
+    <div class="nav-drawer-header">
+      <span class="nav-drawer-title">📋 我的股票</span>
+      <button class="nav-drawer-close" onclick="closeNav()">✕</button>
+    </div>
+    <div class="nav-drawer-body" id="navDrawerBody"></div>
+  </div>
   <div class="add-bar">
     <div class="search-wrap">
       <input id="addInput" placeholder="搜尋股票：台積電 / AAPL / BTC / 或直接輸入代碼" onkeydown="onSearchKey(event)" oninput="onSearchInput()" autocomplete="off">
@@ -1142,22 +1151,86 @@ function updateNavBar(){
 let navOpen = localStorage.getItem('navOpen') !== '0';
 
 function toggleNav(){
-  navOpen = !navOpen;
-  localStorage.setItem('navOpen', navOpen ? '1' : '0');
-  applyNavState();
+  const drawer = document.getElementById('navDrawer');
+  const overlay = document.getElementById('navOverlay');
+  if(!drawer) return;
+  if(drawer.classList.contains('open')){
+    closeNav();
+  } else {
+    openNav();
+  }
+}
+
+function openNav(){
+  const drawer = document.getElementById('navDrawer');
+  const overlay = document.getElementById('navOverlay');
+  if(!drawer) return;
+  drawer.classList.add('open');
+  overlay.classList.add('open');
+  updateNavBar(); // 每次開啟更新內容
+}
+
+function closeNav(){
+  const drawer = document.getElementById('navDrawer');
+  const overlay = document.getElementById('navOverlay');
+  if(!drawer) return;
+  drawer.classList.remove('open');
+  overlay.classList.remove('open');
 }
 
 function applyNavState(){
-  const bar = document.getElementById('navBar');
-  const btn = document.getElementById('navToggleBtn');
-  if(!bar) return;
-  if(navOpen){
-    bar.classList.remove('collapsed');
-    if(btn) btn.style.color = 'var(--blue)';
-  } else {
-    bar.classList.add('collapsed');
-    if(btn) btn.style.color = '';
+  updateNavBar();
+}
+
+function updateNavBar(){
+  const body = document.getElementById('navDrawerBody');
+  if(!body) return;
+
+  // 依市場分組
+  const groups = [
+    { label: '📈 台股', market: 'tw' },
+    { label: '🇺🇸 美股', market: 'us' },
+    { label: '₿ 加密貨幣', market: 'crypto' },
+    { label: '🥇 貴金屬', market: 'metal' },
+    { label: '📦 其他', market: 'other' },
+  ];
+
+  function getMarket(symbol){
+    const s = symbol.toUpperCase();
+    if(s.endsWith('.TW')) return 'tw';
+    if(['BTC','ETH','BNB','SOL','XRP','DOGE','ADA','LINK','LTC','TRX','PAXG','DOT'].some(c=>s.includes(c))) return 'crypto';
+    if(s.endsWith('-USD') || s.includes('/USDT')) return 'crypto';
+    if(['GC=F','SI=F','GLD','SLV'].includes(s)) return 'metal';
+    if(['AAPL','MSFT','NVDA','GOOGL','AMZN','META','TSLA','AMD','AVGO','JPM','SPY','QQQ'].includes(s)) return 'us';
+    return 'other';
   }
+
+  let html = '';
+  groups.forEach(g => {
+    const groupStocks = stocks.filter(s => getMarket(s.symbol) === g.market);
+    if(!groupStocks.length) return;
+    html += `<div class="nav-group-label">${g.label}</div>`;
+    groupStocks.forEach(s => {
+      const sig = navSignals[s.id];
+      let dotClass = 'hold', sigText = '等待訊號', itemClass = '';
+      if(sig){
+        if(sig.state === 'buy'){ dotClass='buy'; sigText='▲ 買進訊號'; itemClass='active-signal'; }
+        else if(sig.state === 'hold'){ dotClass='buy'; sigText='持有中'; itemClass='active-signal'; }
+        else if(sig.state === 'sell'){ dotClass='sell'; sigText='▼ 賣出訊號'; itemClass='sell-signal'; }
+        else if(sig.state === 'expired'){ dotClass='expired'; sigText='訊號已過期'; }
+        else if(sig.state === 'bearish'){ dotClass='sell'; sigText='空頭觀望'; }
+      }
+      html += `<div class="nav-item ${itemClass}" onclick="scrollToCard(${s.id});closeNav();">
+        <div class="nav-dot ${dotClass}"></div>
+        <div class="nav-item-info">
+          <div class="nav-item-name">${s.name||s.symbol}</div>
+          <div class="nav-item-sig" style="color:${dotClass==='buy'?'#26a69a':dotClass==='sell'?'#ef5350':dotClass==='expired'?'#f5a623':'#555a6e'}">${sigText}</div>
+        </div>
+      </div>`;
+    });
+  });
+
+  body.innerHTML = html || '<div style="padding:16px;color:var(--text3);font-size:12px;">還沒有股票，先新增吧！</div>';
 }
 
 function scrollToCard(id){
