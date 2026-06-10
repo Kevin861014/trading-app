@@ -406,23 +406,40 @@ def best_strategy():
                 payoff = stats.get('payoff', 0)
                 wr = stats['win'] / 100
                 pf = round(payoff * wr / max(1 - wr, 0.001), 2) if payoff > 0 and wr > 0 else 0
-                # 篩選條件：PF > 1 且交易筆數 >= 3
-                if pf > 1 and stats.get('trades', 0) >= 3:
+                total = round(stats['total'], 2)
+                trades = stats.get('trades', 0)
+
+                # 依市場設定最低筆數門檻
+                sym_upper = symbol.upper()
+                if sym_upper.endswith('.TW'):
+                    min_trades = 5   # 台股日線
+                elif any(sym_upper.endswith(x) for x in ['-USD','/USDT']) or                      any(c in sym_upper for c in ['BTC','ETH','BNB','SOL','XRP','PAXG']):
+                    min_trades = 10  # 加密
+                else:
+                    min_trades = 5   # 美股日線
+
+                # 篩選條件：PF > 1 且筆數達標
+                if pf > 1 and trades >= min_trades:
+                    # 綜合分數 = 總報酬 × PF × log(筆數)
+                    # 三個指標合一，筆數用 log 避免筆數多的策略壓過一切
+                    import math
+                    score = round(total * pf * math.log(max(trades, 2)), 2)
                     results.append({
                         'strat': strat_key,
                         'name': strat_info['name'],
                         'pf': pf,
-                        'total': round(stats['total'], 2),
+                        'total': total,
                         'cagr': round(stats['cagr'], 2),
                         'mdd': round(stats['mdd'], 2),
                         'win': round(stats['win'], 1),
-                        'trades': stats['trades'],
+                        'trades': trades,
+                        'score': score,
                     })
             except Exception:
                 continue
 
-        # 按 PF 排序，取前 8 名
-        results.sort(key=lambda x: x['pf'], reverse=True)
+        # 按綜合分數排序（報酬 × PF × log(筆數)），取前 8 名
+        results.sort(key=lambda x: x['score'], reverse=True)
         top = results[:8]
 
         tested_count = len([k for k in _sim.STRATS if k not in skip and k in allowed])

@@ -1221,12 +1221,16 @@ async function runBestStrategy(id, e){
           <div class="result-name">${r.name}</div>
           <div class="result-stats">
             <span>報酬 <b style="color:${r.total>=0?'#26a69a':'#ef5350'}">${r.total>=0?'+':''}${r.total}%</b></span>
+            <span>PF <b style="color:#26a69a">${r.pf}</b></span>
             <span>回撤 <b style="color:#ef5350">${r.mdd}%</b></span>
             <span>勝率 ${r.win}%</span>
             <span>${r.trades}筆</span>
           </div>
         </div>
-        <div class="result-pf">${r.pf>=999?'∞':r.pf}</div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:16px;font-weight:700;color:#26a69a;">${r.pf>=999?'∞':r.pf}</div>
+          <div style="font-size:10px;color:var(--text3);">綜合 ${r.score||''}</div>
+        </div>
         <button class="btn-apply" onclick="event.stopPropagation();applyBestStrategy(${id},'${r.strat}','${r.name}')">套用</button>
       </div>`).join('');
 
