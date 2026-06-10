@@ -272,22 +272,18 @@ def analyze():
                 current_pos = False
                 last_sell_date = dates[i]
 
-        # 訊號有效期判斷（日線：3天，4H：6根=1天）
+        # 訊號有效期判斷
         signal_expired = False
         signal_days_ago = None
         if current_pos and last_buy_date:
             from datetime import datetime as dt2
             try:
-                fmt = '%Y-%m-%d %H:%M' if ' ' in last_buy_date else '%Y-%m-%d'
-                buy_dt = dt2.strptime(last_buy_date, fmt)
-                now_dt = dt2.now()
-                days_diff = (now_dt - buy_dt).days
+                buy_dt = dt2.strptime(last_buy_date, '%Y-%m-%d')
+                days_diff = (dt2.now() - buy_dt).days
                 signal_days_ago = days_diff
-                # 日線超過3天、或4H超過1天視為過期
                 expire_days = 1 if yf_tf == '1h' else 3
                 if days_diff > expire_days:
                     signal_expired = True
-                # 價格漲超過3%也視為過期
                 if last_buy_price and prices[-1] > last_buy_price * 1.03:
                     signal_expired = True
             except:

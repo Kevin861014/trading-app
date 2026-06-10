@@ -748,7 +748,8 @@ def _simulate(T,O,H,L,C, el, xl, A, atr_stop, atr_trail, atr_tp, risk_pct, max_l
     """長多模擬。風控可用 ATR 倍(atr_*)或『百分比價格』(pct_*,如 pct_trail=0.025=回檔2.5%鎖利)。
        pct_* > 0 時優先採用百分比式(動態鎖利);否則用 ATR 式。"""
     N=len(C); eq=start; pos=0; entry=0.0; qty=0.0; stop=None; tp=None; peak=None
-    dates=[]; equity=[]; trades=[]
+    entry_date=None; entry_idx=None
+    dates=[]; equity=[]; trades=[]; trade_log=[]
     cost=lambda px: px*(COMMISSION+SLIPPAGE)
     use_pct = (pct_stop>0 or pct_trail>0 or pct_tp>0)
     for i in range(N-1):
@@ -763,20 +764,28 @@ def _simulate(T,O,H,L,C, el, xl, A, atr_stop, atr_trail, atr_tp, risk_pct, max_l
                 peak=max(peak if peak is not None else -1e18, H[i])
                 ns=peak-atr_trail*av
                 stop=ns if stop is None else max(stop,ns)
-            exit_px=None
-            if stop is not None and L[i]<=stop: exit_px=min(stop,O[i])
-            elif tp is not None and H[i]>=tp: exit_px=tp
+            exit_px=None; exit_i=None
+            if stop is not None and L[i]<=stop: exit_px=min(stop,O[i]); exit_i=i
+            elif tp is not None and H[i]>=tp: exit_px=tp; exit_i=i
             if exit_px is not None:
                 pnl=qty*(exit_px-entry)-qty*cost(exit_px)-qty*cost(entry); eq+=pnl; trades.append(pnl)
-                pos=0; qty=0.0; stop=tp=peak=None
+                exit_date=datetime.datetime.utcfromtimestamp(T[exit_i]/1000)
+                trade_log.append({'entry_px':round(entry,2),'exit_px':round(exit_px,2),
+                    'entry_date':entry_date,'exit_date':exit_date,
+                    'ret':round((exit_px-entry)/entry*100,2)})
+                pos=0; qty=0.0; stop=tp=peak=None; entry_date=None
         if pos>0 and xl[i]:
             pnl=qty*(o2-entry)-qty*cost(o2)-qty*cost(entry); eq+=pnl; trades.append(pnl)
-            pos=0; qty=0.0; stop=tp=peak=None
+            exit_date=datetime.datetime.utcfromtimestamp(T[i+1]/1000)
+            trade_log.append({'entry_px':round(entry,2),'exit_px':round(o2,2),
+                'entry_date':entry_date,'exit_date':exit_date,
+                'ret':round((o2-entry)/entry*100,2)})
+            pos=0; qty=0.0; stop=tp=peak=None; entry_date=None
         if pos==0 and el[i]:
             av=A[i]
             ok = (av is not None and av>0) if not use_pct else True
             if ok:
-                entry=o2
+                entry=o2; entry_date=datetime.datetime.utcfromtimestamp(T[i+1]/1000); entry_idx=i+1
                 stop_dist = (pct_stop*entry) if (use_pct and pct_stop>0) else (atr_stop*av if (av and atr_stop>0) else 0)
                 qty=min((eq*risk_pct)/stop_dist, (eq*max_lev)/entry) if (risk_pct>0 and stop_dist>0) else (eq)/entry
                 pos=1; peak=H[i]
@@ -784,12 +793,15 @@ def _simulate(T,O,H,L,C, el, xl, A, atr_stop, atr_trail, atr_tp, risk_pct, max_l
                     stop=entry*(1.0-pct_stop) if pct_stop>0 else None
                     tp=entry*(1.0+pct_tp) if pct_tp>0 else None
                 else:
-                    # 停損/停利基準用『訊號棒收盤 C[i]』(與 live_bot 進場時一致:price=最後收盤)
                     stop=C[i]-atr_stop*av if atr_stop>0 else None
                     tp=C[i]+atr_tp*av if atr_tp>0 else None
         mtm=eq + (qty*(C[i+1]-entry) if pos>0 else 0)
         dates.append(datetime.datetime.utcfromtimestamp(T[i+1]/1000)); equity.append(mtm)
-    return dates, equity, trades
+    # 如果還在場內，記錄未出場的進場資訊
+    if pos>0 and entry_date:
+        trade_log.append({'entry_px':round(entry,2),'exit_px':None,
+            'entry_date':entry_date,'exit_date':None,'ret':None,'open':True})
+    return dates, equity, trades, trade_log
 
 def _simulate_pyramid(T,O,H,L,C, el, A, init_atr, trail_atr, add_atr, max_adds, risk_pct, max_lev, start):
     """順勢滾倉(加碼)回測:el=進場訊號;進場後每 +add_atr×ATR 加一手(最多 max_adds 手,總名目受槓桿上限),
@@ -833,8 +845,9 @@ def run_backtest(ohlcv, strategy="trend", risk_pct=0.015, max_lev=3.0, start=100
         dates,equity,trades=_simulate_pyramid(T,O,H,L,C, el, A,
                                               pp["init_atr"], pp["trail_atr"], pp["add_atr"], pp["max_adds"],
                                               risk_pct, max_lev, start)
+        trade_log=[]  # pyramid 策略暫不支援明細
     else:
-        dates,equity,trades=_simulate(T,O,H,L,C, el,xl, A,
+        dates,equity,trades,trade_log=_simulate(T,O,H,L,C, el,xl, A,
                                       s["atr_stop"], s["atr_trail"], s["atr_tp"],
                                       risk_pct, max_lev, start,
                                       s.get("pct_stop",0.0), s.get("pct_trail",0.0), s.get("pct_tp",0.0))
@@ -854,7 +867,7 @@ def run_backtest(ohlcv, strategy="trend", risk_pct=0.015, max_lev=3.0, start=100
     payoff=(sum(w)/len(w))/(-sum(l)/len(l)) if w and l else 0
     stats={"cagr":cagr,"mdd":mdd*100,"sharpe":sharpe,"win":win,"trades":len(trades),
            "payoff":payoff,"total":(equity[-1]/base-1)*100 if equity else 0,"years":yrs,
-           "strategy":strategy}
+           "strategy":strategy,"trade_log":trade_log}
     return dates, equity, stats
 
 # ============================ 抓資料 ============================
