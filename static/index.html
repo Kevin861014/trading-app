@@ -926,7 +926,7 @@ function renderCard(stock){
     <div class="metrics">
       <div class="metric" data-tip="這段期間內策略的總獲利（扣除手續費）。單看報酬不夠，要搭配 PF 和交易筆數一起判斷，三個都好才算真正可信。"><div class="metric-label">總報酬 ⓘ</div><div class="metric-val neutral" data-m="ret">—</div></div>
       <div class="metric" data-tip="把總報酬換算成「每年賺多少」的基準。方便和其他投資比較，例如定存、0050 等。"><div class="metric-label">年化 ⓘ</div><div class="metric-val neutral" data-m="cagr">—</div></div>
-      <div class="metric" data-tip="獲利因子：每虧 1 塊能賺回多少塊。PF>1.5 才值得用，越高越好。「找最佳策略」的綜合分數以 PF 為主角，公式 = PF × log(筆數) × 報酬加成，PF 高且筆數夠的策略才會排名靠前。"><div class="metric-label">PF ⓘ</div><div class="metric-val neutral" data-m="pf">—</div></div>
+      <div class="metric" data-tip="獲利因子：每虧 1 塊能賺回多少塊。PF>1.5 才值得用，越高越好。「找最佳策略」的綜合分數 = PF × log(筆數) × 報酬加成 ÷ (1+回撤)，高 PF 加低回撤才會排名靠前。同時會做 OOS 樣本外驗證，兩段都通過才納入排名。"><div class="metric-label">PF ⓘ</div><div class="metric-val neutral" data-m="pf">—</div></div>
       <div class="metric" data-tip="最大回撤：這段時間資金從最高點最多跌了多少。越低越穩，建議不超過 30%。回撤大代表過程中會很煎熬，即使最終賺錢也很難抱住。"><div class="metric-label">回撤 ⓘ</div><div class="metric-val neutral" data-m="dd">—</div></div>
       <div class="metric" data-tip="勝率：幾成的交易是賺錢的。順勢策略通常只有 25~40%，但賺的比虧的多，整體還是正的。"><div class="metric-label">勝率 ⓘ</div><div class="metric-val neutral" data-m="wr">—</div></div>
       <div class="metric" data-tip="總交易筆數。台股／美股日線至少 5 筆，加密 4H 至少 10 筆，才有統計參考價值。筆數越多越可信。「找最佳策略」的排名公式 = PF × log(筆數) × 報酬加成，筆數少的策略分數會被壓低。"><div class="metric-label">交易 ⓘ</div><div class="metric-val neutral" data-m="tc">—</div></div>
@@ -1178,7 +1178,7 @@ async function runBestStrategy(id, e){
   document.getElementById('analysisBg').classList.add('open');
   document.getElementById('analysisTitle').textContent = `🔍 ${stock.name||stock.symbol} — 最佳策略分析`;
   const tfNote = (stock.tf==='4h'||stock.tf==='1h') ? '（4H策略建議選 2 年以內）' : '';
-  document.getElementById('analysisSub').textContent = `正在測試所有策略，依「PF × 筆數 × 報酬加成」綜合評分排名前 8 名... ${tfNote}`;
+  document.getElementById('analysisSub').textContent = `正在測試（含樣本外 OOS 驗證），只保留 IS+OOS 都通過的策略... ${tfNote}`;
   document.getElementById('analysisProgress').style.display = 'block';
   document.getElementById('analysisResults').innerHTML = '';
   document.getElementById('progressBar').style.width = '0%';
@@ -1204,7 +1204,8 @@ async function runBestStrategy(id, e){
     }
 
     document.getElementById('progressBar').style.width = '100%';
-    document.getElementById('progressText').textContent = `✅ 測試完成！共測試 ${data.total_tested} 種策略`;
+    const oosNote = data.hasOos ? '（含 OOS 樣本外驗證，僅保留兩段都通過的策略）' : '';
+    document.getElementById('progressText').textContent = `✅ 測試完成！共測試 ${data.total_tested} 種策略 ${oosNote}`;
 
     const medals = ['🥇','🥈','🥉','4','5','6','7','8'];
     const results = data.results;
@@ -1226,6 +1227,7 @@ async function runBestStrategy(id, e){
             <span>勝率 ${r.win}%</span>
             <span>${r.trades}筆</span>
           </div>
+          ${r.oosPf!=null?`<div style="font-size:10px;color:#8b90a0;margin-top:3px;">OOS驗證 PF <span style="color:${r.oosPf>=1.5?'#26a69a':r.oosPf>=1?'#f5a623':'#ef5350'}">${r.oosPf}</span> 報酬 <span style="color:${r.oosTotal>=0?'#26a69a':'#ef5350'}">${r.oosTotal>=0?'+':''}${r.oosTotal}%</span></div>`:''}
         </div>
         <div style="text-align:right;flex-shrink:0;">
           <div style="font-size:16px;font-weight:700;color:#26a69a;">${r.pf>=999?'∞':r.pf}</div>

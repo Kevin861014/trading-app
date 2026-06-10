@@ -369,6 +369,13 @@ def best_strategy():
 
         results = []
 
+        # ── OOS 驗證切割點（前70% IS 選策略，後30% OOS 驗證）──
+        split_idx = int(len(ohlcv) * 0.7)
+        ohlcv_is  = ohlcv[:split_idx]   # In-Sample（用來選策略）
+        ohlcv_oos = ohlcv[split_idx:]    # Out-of-Sample（用來驗證）
+        # OOS 資料不夠就不做驗證（至少需要 60 根）
+        do_oos = len(ohlcv_oos) >= 60 and len(ohlcv_is) >= 220
+
         # 根據市場選擇適合的策略，避免跑不適合的策略浪費時間
         tw_strats  = {'diadx','volbreak','sixline','pullback','supertrend','donchian',
                       'ema_cross','bbreak','lrs','ichimoku','cci','vortex','macd','kama','heikin','crsi','tsmom','rolltrend'}
@@ -398,14 +405,37 @@ def best_strategy():
                 continue
             try:
                 _sim.COMMISSION, _sim.SLIPPAGE = market_cost(('yf', symbol), strat_key)
-                result = run_backtest(ohlcv, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf)
-                if not result:
+
+                # 用 IS 資料選策略
+                result_is = run_backtest(ohlcv_is, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf)
+                if not result_is:
                     continue
-                _, _, stats = result
-                # 計算真實 PF（用 payoff 和勝率推算）
-                payoff = stats.get('payoff', 0)
-                wr = stats['win'] / 100
-                pf = round(payoff * wr / max(1 - wr, 0.001), 2) if payoff > 0 and wr > 0 else 0
+                _, _, stats_is = result_is
+
+                payoff_is = stats_is.get('payoff', 0)
+                wr_is = stats_is['win'] / 100
+                pf_is = round(payoff_is * wr_is / max(1 - wr_is, 0.001), 2) if payoff_is > 0 and wr_is > 0 else 0
+
+                # OOS 驗證
+                oos_pf = None
+                oos_total = None
+                if do_oos:
+                    result_oos = run_backtest(ohlcv_oos, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf)
+                    if result_oos:
+                        _, _, stats_oos = result_oos
+                        payoff_oos = stats_oos.get('payoff', 0)
+                        wr_oos = stats_oos['win'] / 100
+                        oos_pf = round(payoff_oos * wr_oos / max(1 - wr_oos, 0.001), 2) if payoff_oos > 0 and wr_oos > 0 else 0
+                        oos_total = round(stats_oos['total'], 2)
+                        # OOS 必須也要正期望（PF > 1），否則跳過
+                        if oos_pf <= 1:
+                            continue
+
+                # 用 IS 數據計算分數（但 OOS 要通過才保留）
+                stats = stats_is
+                payoff = payoff_is
+                wr = wr_is
+                pf = pf_is
                 total = round(stats['total'], 2)
                 trades = stats.get('trades', 0)
 
@@ -418,29 +448,32 @@ def best_strategy():
                 else:
                     min_trades = 5   # 美股日線
 
-                # 篩選條件：PF > 1 且筆數達標
-                if pf > 1 and trades >= min_trades:
+                # 篩選條件：PF > 1 且筆數達標 且 MDD < 50%
+                mdd = round(stats['mdd'], 2)
+                if pf > 1 and trades >= min_trades and mdd < 50:
                     import math
-                    # 報酬加成：有賺就加分，但不讓超高報酬壓過所有人
+                    # 綜合分數 = PF × log(筆數) × 報酬加成 / (1 + MDD/100)
+                    # PF 和筆數是主角，報酬是加分項，MDD 是懲罰項
                     if total >= 20:
                         ret_bonus = 1.5
                     elif total >= 10:
                         ret_bonus = 1.2
                     else:
                         ret_bonus = 1.0
-                    # 綜合分數 = PF × log(筆數) × 報酬加成
-                    # PF 和筆數是主角，報酬是加分項
-                    score = round(pf * math.log(max(trades, 2)) * ret_bonus, 2)
+                    mdd_penalty = 1 + mdd / 100  # MDD 越大，分數越低
+                    score = round(pf * math.log(max(trades, 2)) * ret_bonus / mdd_penalty, 2)
                     results.append({
                         'strat': strat_key,
                         'name': strat_info['name'],
                         'pf': pf,
                         'total': total,
                         'cagr': round(stats['cagr'], 2),
-                        'mdd': round(stats['mdd'], 2),
+                        'mdd': mdd,
                         'win': round(stats['win'], 1),
                         'trades': trades,
                         'score': score,
+                        'oosPf': oos_pf,
+                        'oosTotal': oos_total,
                     })
             except Exception:
                 continue
