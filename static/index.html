@@ -1244,11 +1244,7 @@ fetch('/api/config').then(r=>r.json()).then(data=>{
 async function runDeepAnalysis(id, e){
   e.stopPropagation();
   if(isRender){
-    alert('❌ 深度分析僅支援本機執行
-
-Render 免費版有 30 秒請求限制，深度分析需要跑 3年+5年兩輪，時間太長會超時。
-
-建議：在自己電腦上執行 python app.py 後使用此功能。');
+    alert('❌ 深度分析僅支援本機執行\n\nRender 免費版有 30 秒請求限制，深度分析需要跑 3年+5年兩輪，時間太長會超時。\n\n建議：在自己電腦上執行 python app.py 後使用此功能。');
     return;
   }
 
