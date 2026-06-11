@@ -1187,8 +1187,12 @@ function applyNavState(){ updateNavDrawer(); }
 function updateNavBar(){ updateNavDrawer(); }
 
 function scrollToCard(id){
-  const card=document.getElementById(`card-${id}`);
-  if(card) card.scrollIntoView({behavior:'smooth',block:'start'});
+  const card = document.getElementById(`card-${id}`);
+  if(!card) return;
+  const stickyTop = document.querySelector('.sticky-top');
+  const offset = stickyTop ? stickyTop.offsetHeight + 8 : 60;
+  const top = card.getBoundingClientRect().top + window.scrollY - offset;
+  window.scrollTo({top, behavior:'smooth'});
 }
 
 // ── 匯出股票清單 ──────────────────────────────────────────
