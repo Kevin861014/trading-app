@@ -503,9 +503,15 @@ function destroyCard(id){
 }
 
 // ── 設定變更 ──────────────────────────────────────────
-function changeStrat(id,val){const s=stocks.find(s=>s.id===id);if(s){s.strat=val;save();}reloadCard(id);}
+function updateCardSub(id){
+  const s=stocks.find(s=>s.id===id); if(!s) return;
+  const card=document.getElementById(`card-${id}`); if(!card) return;
+  const sub=card.querySelector('.card-sub'); if(!sub) return;
+  sub.textContent=`${s.symbol} · ${getStratName(s.strat)} · ${TF_LABELS[s.tf]||'1d'}`;
+}
+function changeStrat(id,val){const s=stocks.find(s=>s.id===id);if(s){s.strat=val;save();updateCardSub(id);}reloadCard(id);}
 function changePeriod(id,val){const s=stocks.find(s=>s.id===id);if(s){s.period=val;save();}reloadCard(id);}
-function changeTf(id,val){const s=stocks.find(s=>s.id===id);if(s){s.tf=val;save();}reloadCard(id);}
+function changeTf(id,val){const s=stocks.find(s=>s.id===id);if(s){s.tf=val;save();updateCardSub(id);}reloadCard(id);}
 
 function toggleIndicator(id,ind){
   const s=stocks.find(s=>s.id===id);

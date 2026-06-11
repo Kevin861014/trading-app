@@ -26,7 +26,7 @@ if not IS_RENDER:
         print(f'⚠️  ccxt 連線失敗（{_e}），使用 yfinance')
 
 PERIOD_DAYS = {
-    '7d': 7, '1mo': 30, '1y': 365, '2y': 730, '3y': 1095, '5y': 1825
+    '7d': 7, '1mo': 30, '3mo': 90, '6mo': 180, '1y': 365, '2y': 730, '3y': 1095, '5y': 1825
 }
 
 STRAT_LIST = [
