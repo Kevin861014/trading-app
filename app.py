@@ -168,6 +168,23 @@ def fetch_data(symbol, start_date, interval='1d'):
             time.sleep(2)
     return []
 
+def calc_pf(trade_log):
+    """從 trade_log 直接計算真實 PF（總獲利 / 總虧損），跟阿軒 sim.py 一致"""
+    wins  = [t['ret'] for t in trade_log if t.get('ret') is not None and t['ret'] > 0]
+    losses= [t['ret'] for t in trade_log if t.get('ret') is not None and t['ret'] < 0]
+    if not losses:
+        return round(sum(wins), 2) if wins else 0.0
+    pf = sum(wins) / abs(sum(losses))
+    return round(min(pf, 999), 2)
+
+def calc_oos_pf(trade_log, split_date):
+    """計算 OOS 段（split_date 之後）的 PF"""
+    oos = [t for t in trade_log
+           if t.get('exit_date') and
+           t['exit_date'].strftime('%Y-%m-%d') >= split_date]
+    return calc_pf(oos)
+
+
 def get_real_trades(ohlcv, el_full, xl_full, strat_info=None):
     """
     模擬 sim.py 的進出場邏輯，包含停損判斷，確保交易筆數與 run_backtest 一致。
@@ -366,9 +383,8 @@ def analyze():
         if current_pos and last_buy_price and prices:
             float_pnl = round((prices[-1] - last_buy_price) / last_buy_price * 100, 2)
 
-        payoff = stats.get('payoff', 0)
-        wr = stats['win'] / 100
-        pf = round(payoff * wr / max(1 - wr, 0.001), 2) if payoff > 0 else 0
+        # 用 trade_log 直接算真實 PF，跟阿軒一致
+        pf = calc_pf([t for t in trade_log if not t.get('open')])
 
         volumes = [round(r[5], 0) if r[5] > 0 else None for r in disp]
 
@@ -493,9 +509,8 @@ def best_strategy():
                     continue
                 _, _, stats_is = result_is
 
-                payoff_is = stats_is.get('payoff', 0)
-                wr_is = stats_is['win'] / 100
-                pf_is = round(payoff_is * wr_is / max(1 - wr_is, 0.001), 2) if payoff_is > 0 and wr_is > 0 else 0
+                # 從 trade_log 直接算真實 PF
+                pf_is = calc_pf([t for t in stats_is.get('trade_log',[]) if not t.get('open')])
 
                 # OOS 驗證
                 oos_pf = None
@@ -504,18 +519,13 @@ def best_strategy():
                     result_oos = run_backtest(ohlcv_oos, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf)
                     if result_oos:
                         _, _, stats_oos = result_oos
-                        payoff_oos = stats_oos.get('payoff', 0)
-                        wr_oos = stats_oos['win'] / 100
-                        oos_pf = round(payoff_oos * wr_oos / max(1 - wr_oos, 0.001), 2) if payoff_oos > 0 and wr_oos > 0 else 0
+                        oos_pf = calc_pf([t for t in stats_oos.get('trade_log',[]) if not t.get('open')])
                         oos_total = round(stats_oos['total'], 2)
-                        # OOS 必須也要正期望（PF > 1），否則跳過
                         if oos_pf <= 1:
                             continue
 
-                # 用 IS 數據計算分數（但 OOS 要通過才保留）
+                # 用 IS 數據計算分數
                 stats = stats_is
-                payoff = payoff_is
-                wr = wr_is
                 pf = pf_is
                 total = round(stats['total'], 2)
                 trades = stats.get('trades', 0)
@@ -631,9 +641,7 @@ def deep_analysis():
                     if not result_is:
                         continue
                     _, _, stats_is = result_is
-                    payoff = stats_is.get('payoff', 0)
-                    wr = stats_is['win'] / 100
-                    pf = round(payoff * wr / max(1 - wr, 0.001), 2) if payoff > 0 and wr > 0 else 0
+                    pf = calc_pf([t for t in stats_is.get('trade_log',[]) if not t.get('open')])
                     total = round(stats_is['total'], 2)
                     trades = stats_is.get('trades', 0)
                     mdd = round(stats_is['mdd'], 2)
@@ -647,9 +655,7 @@ def deep_analysis():
                         if not result_oos:
                             continue
                         _, _, stats_oos = result_oos
-                        payoff_oos = stats_oos.get('payoff', 0)
-                        wr_oos = stats_oos['win'] / 100
-                        oos_pf = round(payoff_oos * wr_oos / max(1 - wr_oos, 0.001), 2) if payoff_oos > 0 and wr_oos > 0 else 0
+                        oos_pf = calc_pf([t for t in stats_oos.get('trade_log',[]) if not t.get('open')])
                         if oos_pf <= 1:
                             continue
                         oos_total = round(stats_oos['total'], 2)
