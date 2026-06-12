@@ -384,7 +384,7 @@ def analyze():
             float_pnl = round((prices[-1] - last_buy_price) / last_buy_price * 100, 2)
 
         # 用 trade_log 直接算真實 PF，跟阿軒一致
-        pf = calc_pf([t for t in trade_log if not t.get('open')])
+        pf = calc_pf([t for t in stats.get('trade_log', []) if not t.get('open')])
 
         volumes = [round(r[5], 0) if r[5] > 0 else None for r in disp]
 
