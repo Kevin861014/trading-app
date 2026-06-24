@@ -439,6 +439,7 @@ def best_strategy():
     symbol    = request.args.get('symbol', '2330.TW')
     period    = request.args.get('period', '2y')
     timeframe = request.args.get('timeframe', '1d')
+    use_oos   = request.args.get('use_oos', '1') == '1'
     yf_tf = {'1d':'1d', '4h':'1h', '1h':'1h'}.get(timeframe, '1d')
 
     days = PERIOD_DAYS.get(period, 730)
@@ -467,11 +468,16 @@ def best_strategy():
         results = []
 
         # ── OOS 驗證切割點（前70% IS 選策略，後30% OOS 驗證）──
-        split_idx = int(len(ohlcv) * 0.7)
-        ohlcv_is  = ohlcv[:split_idx]   # In-Sample（用來選策略）
-        ohlcv_oos = ohlcv[split_idx:]    # Out-of-Sample（用來驗證）
-        # OOS 資料不夠就不做驗證（至少需要 60 根）
-        do_oos = len(ohlcv_oos) >= 60 and len(ohlcv_is) >= 220
+        if use_oos:
+            split_idx = int(len(ohlcv) * 0.7)
+            ohlcv_is  = ohlcv[:split_idx]
+            ohlcv_oos = ohlcv[split_idx:]
+            do_oos = len(ohlcv_oos) >= 60 and len(ohlcv_is) >= 220
+        else:
+            # 快速模式：直接用全部資料
+            ohlcv_is  = ohlcv
+            ohlcv_oos = []
+            do_oos = False
 
         # 根據市場選擇適合的策略，避免跑不適合的策略浪費時間
         tw_strats  = {'diadx','volbreak','sixline','pullback','supertrend','donchian',
@@ -512,10 +518,10 @@ def best_strategy():
                 # 從 trade_log 直接算真實 PF
                 pf_is = calc_pf([t for t in stats_is.get('trade_log',[]) if not t.get('open')])
 
-                # OOS 驗證
+                # OOS 驗證（只有 use_oos=True 才做）
                 oos_pf = None
                 oos_total = None
-                if do_oos:
+                if use_oos and do_oos:
                     result_oos = run_backtest(ohlcv_oos, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf)
                     if result_oos:
                         _, _, stats_oos = result_oos
@@ -523,6 +529,7 @@ def best_strategy():
                         oos_total = round(stats_oos['total'], 2)
                         if oos_pf <= 1:
                             continue
+
 
                 # 用 IS 數據計算分數
                 stats = stats_is
@@ -534,7 +541,7 @@ def best_strategy():
                 sym_upper = symbol.upper()
                 if sym_upper.endswith('.TW'):
                     min_trades = 5   # 台股日線
-                elif any(sym_upper.endswith(x) for x in ['-USD','/USDT']) or                      any(c in sym_upper for c in ['BTC','ETH','BNB','SOL','XRP','PAXG']):
+                elif any(sym_upper.endswith(x) for x in ['-USD','/USDT']) or any(c in sym_upper for c in ['BTC','ETH','BNB','SOL','XRP','PAXG']):
                     min_trades = 10  # 加密
                 else:
                     min_trades = 5   # 美股日線
@@ -589,18 +596,19 @@ def deep_analysis():
 
     symbol    = request.args.get('symbol', '2330.TW')
     timeframe = request.args.get('timeframe', '1d')
+    use_oos   = request.args.get('use_oos', '1') == '1'
     yf_tf = {'1d':'1d', '4h':'1h', '1h':'1h'}.get(timeframe, '1d')
 
     try:
         import sim as _sim
         import math
 
-        def run_for_period(period_key, ohlcv_data, symbol, yf_tf):
+        def run_for_period(period_key, ohlcv_data, symbol, yf_tf, do_oos_check=True):
             """跑指定資料的最佳策略，回傳通過的策略 dict"""
             sym_upper = symbol.upper()
             if sym_upper.endswith('.TW'):
                 min_trades = 8
-            elif any(sym_upper.endswith(x) for x in ['-USD','/USDT']) or                  any(c in sym_upper for c in ['BTC','ETH','BNB','SOL','XRP','PAXG']):
+            elif any(sym_upper.endswith(x) for x in ['-USD','/USDT']) or any(c in sym_upper for c in ['BTC','ETH','BNB','SOL','XRP','PAXG']):
                 min_trades = 15
             else:
                 min_trades = 8
@@ -617,7 +625,7 @@ def deep_analysis():
 
             if sym_upper.endswith('.TW'):
                 allowed = tw_strats
-            elif any(sym_upper.endswith(x) for x in ['-USD','/USDT']) or                  any(c in sym_upper for c in ['BTC','ETH','BNB','SOL','XRP','PAXG']):
+            elif any(sym_upper.endswith(x) for x in ['-USD','/USDT']) or any(c in sym_upper for c in ['BTC','ETH','BNB','SOL','XRP','PAXG']):
                 allowed = crypto_strats
             elif sym_upper in {'GC=F','SI=F','PL=F','PA=F','GLD','SLV'}:
                 allowed = metal_strats
@@ -649,8 +657,9 @@ def deep_analysis():
                     if pf <= 1 or trades < min_trades or mdd >= 50:
                         continue
 
-                    # OOS 驗證
-                    if do_oos:
+                    # OOS 驗證（可選）
+                    oos_pf = None; oos_total = None
+                    if do_oos and do_oos_check:
                         result_oos = run_backtest(ohlcv_oos, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf)
                         if not result_oos:
                             continue
@@ -659,9 +668,6 @@ def deep_analysis():
                         if oos_pf <= 1:
                             continue
                         oos_total = round(stats_oos['total'], 2)
-                    else:
-                        oos_pf = None
-                        oos_total = None
 
                     ret_bonus = 1.5 if total >= 20 else (1.2 if total >= 10 else 1.0)
                     mdd_penalty = 1 + mdd / 100
@@ -687,25 +693,123 @@ def deep_analysis():
         start_5y = (datetime.datetime.now() - datetime.timedelta(days=5*365+700)).strftime('%Y-%m-%d')
         start_3y = (datetime.datetime.now() - datetime.timedelta(days=3*365+700)).strftime('%Y-%m-%d')
 
-        if yf_tf == '1h':
-            # 4H 資料限制，只跑 2 年
-            return jsonify({'error': '加密貨幣 4H 資料限制 730 天，建議使用一般分析模式'}), 400
-
-        ohlcv_5y = fetch_data(symbol, start_5y, interval=yf_tf)
-        if not ohlcv_5y or len(ohlcv_5y) < 220:
-            return jsonify({'error': '5年資料不足'}), 400
-
-        # 切出 3 年的部分
-        cutoff_3y = (datetime.datetime.now() - datetime.timedelta(days=3*365)).timestamp() * 1000
-        ohlcv_3y = [r for r in ohlcv_5y if r[0] >= cutoff_3y]
-        if len(ohlcv_3y) < 220:
-            return jsonify({'error': '3年資料不足'}), 400
-
         _sim.COMMISSION, _sim.SLIPPAGE = market_cost(('yf', symbol), 'trend')
 
-        # 跑兩次
-        passed_3y = run_for_period('3y', ohlcv_3y, symbol, yf_tf)
-        passed_5y = run_for_period('5y', ohlcv_5y, symbol, yf_tf)
+        if yf_tf == '1h':
+            # ── 加密貨幣 4H/1H ──
+            import math
+            start_2y = (datetime.datetime.now() - datetime.timedelta(days=730+400)).strftime('%Y-%m-%d')
+            ohlcv_2y = fetch_data(symbol, start_2y, interval=yf_tf)
+            if not ohlcv_2y or len(ohlcv_2y) < 220:
+                return jsonify({'error': '資料不足，請確認幣種代碼是否正確'}), 400
+
+            sym_upper = symbol.upper()
+            allowed = {'sixline','ttm','keltner','donchian','smc','hma','rsi50',
+                       'vwap','obv','force','cmf','bbreak','lrs','cci','vortex','diadx',
+                       'tsmom','ema_cross','supertrend'}
+            skip = {'rsi2dip','ibsdip','zdip'}
+
+            # 時間切割點
+            cutoff_6mo = (datetime.datetime.now() - datetime.timedelta(days=180)).timestamp() * 1000
+            cutoff_2y  = (datetime.datetime.now() - datetime.timedelta(days=730)).timestamp() * 1000
+
+            def get_window_trades(trade_log, cutoff_ms):
+                """取某個時間窗口內的交易"""
+                return [t for t in trade_log
+                        if not t.get('open') and t.get('exit_date') and
+                        t['exit_date'].timestamp()*1000 >= cutoff_ms]
+
+            def eval_window(trades):
+                """評估一段時間內的交易績效"""
+                if len(trades) < 10:
+                    return None
+                pf = calc_pf(trades)
+                if pf <= 1:
+                    return None
+                total = round(sum(t['ret'] for t in trades if t.get('ret')), 2)
+                wins = [t for t in trades if t.get('ret') and t['ret'] > 0]
+                win_rate = round(len(wins)/len(trades)*100, 1)
+                return {'pf': pf, 'total': total, 'win': win_rate, 'trades': len(trades)}
+
+            crypto_results = []
+            for strat_key, strat_info in _sim.STRATS.items():
+                if strat_key in skip or strat_key not in allowed:
+                    continue
+                try:
+                    result = run_backtest(ohlcv_2y, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf)
+                    if not result:
+                        continue
+                    _, _, stats = result
+                    trade_log_all = stats.get('trade_log', [])
+                    mdd = round(stats['mdd'], 2)
+                    if mdd >= 50:
+                        continue
+
+                    # 評估兩個窗口
+                    trades_6mo = get_window_trades(trade_log_all, cutoff_6mo)
+                    trades_2y  = get_window_trades(trade_log_all, cutoff_2y)
+
+                    r6mo = eval_window(trades_6mo)
+                    r2y  = eval_window(trades_2y)
+
+                    if not r6mo and not r2y:
+                        continue
+
+                    # 可信度
+                    if r6mo and r2y:
+                        trust = 2  # ⭐⭐ 兩段都通過
+                        base = r6mo  # 顯示6個月的數字
+                    elif r6mo:
+                        trust = 1  # ⭐ 只有近期
+                        base = r6mo
+                    else:
+                        trust = 1  # ⭐ 只有長期
+                        base = r2y
+
+                    ret_bonus = 1.5 if base['total'] >= 20 else (1.2 if base['total'] >= 10 else 1.0)
+                    score = round(base['pf'] * math.log(max(base['trades'], 2)) * ret_bonus / (1 + mdd/100), 2)
+
+                    crypto_results.append({
+                        'strat': strat_key, 'name': strat_info['name'],
+                        'pf': base['pf'], 'total': base['total'],
+                        'cagr': round(stats['cagr'],2),
+                        'mdd': mdd, 'win': base['win'],
+                        'trades': base['trades'], 'score': score,
+                        'oosPf': r2y['pf'] if r2y else None,
+                        'oosTotal': r2y['total'] if r2y else None,
+                        'trust': trust,
+                        'in3y': bool(r6mo),   # 近6個月
+                        'in5y': bool(r2y),    # 近2年
+                    })
+                except Exception:
+                    continue
+
+            if not use_oos:
+                # 快速模式：只按報酬排序，不看可信度
+                crypto_results.sort(key=lambda x: x['total'], reverse=True)
+            else:
+                crypto_results.sort(key=lambda x: (x['trust'], x['total']), reverse=True)
+            return jsonify({'results': crypto_results[:8], 'hasOos': use_oos,
+                           'isDeep': True, 'isCrypto': True})
+
+        else:
+            # ── 台股/美股日線 ──
+            ohlcv_5y = fetch_data(symbol, start_5y, interval=yf_tf)
+            if not ohlcv_5y or len(ohlcv_5y) < 220:
+                return jsonify({'error': '5年資料不足'}), 400
+
+            if not use_oos:
+                # 快速模式：直接用全部 5 年資料，不切 IS/OOS，按報酬排序
+                passed_3y = run_for_period('full', ohlcv_5y, symbol, yf_tf, do_oos_check=False)
+                passed_5y = passed_3y  # 同一份資料，合併結果
+            else:
+                cutoff_3y = (datetime.datetime.now() - datetime.timedelta(days=3*365)).timestamp() * 1000
+                ohlcv_3y = [r for r in ohlcv_5y if r[0] >= cutoff_3y]
+                if len(ohlcv_3y) < 220:
+                    return jsonify({'error': '3年資料不足'}), 400
+
+                passed_3y = run_for_period('3y', ohlcv_3y, symbol, yf_tf, do_oos_check=True)
+                passed_5y = run_for_period('5y', ohlcv_5y, symbol, yf_tf, do_oos_check=True)
 
         # 合併結果，標記可信度
         all_strats = set(passed_3y.keys()) | set(passed_5y.keys())
@@ -714,23 +818,30 @@ def deep_analysis():
             in_3y = strat_key in passed_3y
             in_5y = strat_key in passed_5y
 
-            if in_3y and in_5y:
-                trust = 2  # ⭐⭐ 兩段都通過
-                base = passed_5y[strat_key]  # 用5年的數據
-            elif in_5y:
-                trust = 1  # ⭐ 只有5年
-                base = passed_5y[strat_key]
+            if not use_oos:
+                # 快速模式：直接用結果，不標記可信度
+                base = passed_3y.get(strat_key) or passed_5y.get(strat_key)
+                results.append({**base, 'trust': 1, 'in3y': True, 'in5y': True})
             else:
-                trust = 1  # ⭐ 只有3年
-                base = passed_3y[strat_key]
+                if in_3y and in_5y:
+                    trust = 2
+                    base = passed_5y[strat_key]
+                elif in_5y:
+                    trust = 1
+                    base = passed_5y[strat_key]
+                else:
+                    trust = 1
+                    base = passed_3y[strat_key]
+                results.append({**base, 'trust': trust, 'in3y': in_3y, 'in5y': in_5y})
 
-            results.append({**base, 'trust': trust, 'in3y': in_3y, 'in5y': in_5y})
-
-        # 先按可信度，再按分數排序
-        results.sort(key=lambda x: (x['trust'], x['score']), reverse=True)
+        if not use_oos:
+            # 快速模式按報酬排序
+            results.sort(key=lambda x: x['total'], reverse=True)
+        else:
+            results.sort(key=lambda x: (x['trust'], x['score']), reverse=True)
         top = results[:8]
 
-        return jsonify({'results': top, 'hasOos': True, 'isDeep': True})
+        return jsonify({'results': top, 'hasOos': use_oos, 'isDeep': True})
 
     except Exception as e:
         import traceback
