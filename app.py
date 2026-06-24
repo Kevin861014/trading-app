@@ -342,6 +342,18 @@ def analyze():
                         'ret': ret
                     })
                 buy_px = None
+        # ── 顯示期間的統計數字（與圖表三角形一致）──
+        if strategy != 'rolltrend':
+            _all_disp = [t for t in trades_list if t.get('ret') is not None]
+            _disp_wins = sum(1 for t in _all_disp if t['ret'] > 0)
+            _disp_pf   = calc_pf([{'ret': t['ret']} for t in _all_disp])
+            _disp_count = len(_all_disp)
+            _disp_wr   = round(_disp_wins / len(_all_disp) * 100, 1) if _all_disp else 0
+        else:
+            _disp_pf   = calc_pf([t for t in stats.get('trade_log', []) if not t.get('open')])
+            _disp_count = stats['trades']
+            _disp_wr   = round(stats['win'], 1)
+
         trades_list = trades_list[-10:][::-1]
 
         # ── 策略目前持倉狀態 ──
@@ -383,9 +395,6 @@ def analyze():
         if current_pos and last_buy_price and prices:
             float_pnl = round((prices[-1] - last_buy_price) / last_buy_price * 100, 2)
 
-        # 用 trade_log 直接算真實 PF，跟阿軒一致
-        pf = calc_pf([t for t in stats.get('trade_log', []) if not t.get('open')])
-
         volumes = [round(r[5], 0) if r[5] > 0 else None for r in disp]
 
         return jsonify({
@@ -412,10 +421,10 @@ def analyze():
             'metrics': {
                 'totalReturn': round(stats['total'],2),
                 'cagr': round(stats['cagr'],2),
-                'pf': pf,
+                'pf': _disp_pf,
                 'maxDD': round(stats['mdd'],2),
-                'wr': round(stats['win'],1),
-                'tradeCount': stats['trades'],
+                'wr': _disp_wr,
+                'tradeCount': _disp_count,
                 'trades': trades_list,
             }
         })
@@ -515,27 +524,22 @@ def best_strategy():
                     continue
                 _, _, stats_is = result_is
 
-                # 從 trade_log 直接算真實 PF
-                pf_is = calc_pf([t for t in stats_is.get('trade_log',[]) if not t.get('open')])
+                # 用顯示期間的交易計算 PF / 筆數 / 勝率（與套用後圖表一致）
+                import datetime as _dt
+                _disp_start = datetime.datetime.now() - datetime.timedelta(days=days + 30)
+                _disp_tlog = [
+                    t for t in stats_is.get('trade_log', [])
+                    if not t.get('open') and t.get('exit_date') and t['exit_date'] >= _disp_start
+                ]
+                pf_is = calc_pf(_disp_tlog)
+                _disp_wins_is = sum(1 for t in _disp_tlog if t.get('ret', 0) > 0)
+                _disp_wr_is = round(_disp_wins_is / len(_disp_tlog) * 100, 1) if _disp_tlog else 0
 
-                # OOS 驗證（只有 use_oos=True 才做）
-                oos_pf = None
-                oos_total = None
-                if use_oos and do_oos:
-                    result_oos = run_backtest(ohlcv_oos, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf)
-                    if result_oos:
-                        _, _, stats_oos = result_oos
-                        oos_pf = calc_pf([t for t in stats_oos.get('trade_log',[]) if not t.get('open')])
-                        oos_total = round(stats_oos['total'], 2)
-                        if oos_pf <= 1:
-                            continue
-
-
-                # 用 IS 數據計算分數
+                # 用全量數據計算分數（統計樣本更多，排名更準）
                 stats = stats_is
                 pf = pf_is
                 total = round(stats['total'], 2)
-                trades = stats.get('trades', 0)
+                trades = len(_disp_tlog)
 
                 # 依市場設定最低筆數門檻
                 sym_upper = symbol.upper()
@@ -567,11 +571,11 @@ def best_strategy():
                         'total': total,
                         'cagr': round(stats['cagr'], 2),
                         'mdd': mdd,
-                        'win': round(stats['win'], 1),
+                        'win': _disp_wr_is,
                         'trades': trades,
                         'score': score,
-                        'oosPf': oos_pf,
-                        'oosTotal': oos_total,
+                        'oosPf': None,
+                        'oosTotal': None,
                     })
             except Exception:
                 continue

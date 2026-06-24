@@ -967,10 +967,8 @@ function renderCard(stock){
         <div class="card-sub">${stock.symbol} · ${getStratName(stock.strat)} · ${TF_LABELS[stock.tf]||'1d'}</div>
       </div>
       <div class="card-actions">
-        <button class="btn-analyze" onclick="runBestStrategy(${stock.id},event,true)" title="含OOS驗證（嚴格）">🔍 含OOS</button>
-        <button class="btn-analyze" onclick="runBestStrategy(${stock.id},event,false)" title="快速分析，不做OOS（阿軒邏輯）" style="background:rgba(245,166,35,0.1);border-color:rgba(245,166,35,0.4);color:#f5a623;">🔍 快速</button>
-        <button class="btn-analyze" id="deep-btn-${stock.id}" onclick="runDeepAnalysis(${stock.id},event,true)" title="深度分析含OOS（本機）" style="background:rgba(156,39,176,0.1);border-color:rgba(156,39,176,0.4);color:#9c27b0;">🔬 含OOS</button>
-        <button class="btn-analyze" id="deep-fast-btn-${stock.id}" onclick="runDeepAnalysis(${stock.id},event,false)" title="深度分析不做OOS（本機・阿軒邏輯）" style="background:rgba(156,39,176,0.05);border-color:rgba(156,39,176,0.2);color:#9c27b0;">🔬 快速</button>
+        <button class="btn-analyze" onclick="runBestStrategy(${stock.id},event)" title="找最佳策略（全量回測）">🔍 最佳策略</button>
+        <button class="btn-analyze" id="deep-btn-${stock.id}" onclick="runDeepAnalysis(${stock.id},event)" title="深度分析：3年+5年交叉驗證（本機）" style="background:rgba(156,39,176,0.1);border-color:rgba(156,39,176,0.4);color:#9c27b0;">🔬 深度分析</button>
         <button class="btn-icon" onclick="openModal(${stock.id})" title="放大">⛶</button>
         <button class="btn-icon" onclick="reloadCard(${stock.id})" title="重新載入">↺</button>
         <button class="btn-icon del" onclick="deleteStock(${stock.id},event)" title="刪除">✕</button>
@@ -1279,10 +1277,10 @@ fetch('/api/config').then(r=>r.json()).then(data=>{
       srcEl.textContent = '台股1D · 加密4H（yfinance）';
     }
   }
-  // 如果是 Render，深度分析按鈕顯示提示
+  // 如果是 Render，深度分析按鈕顯示提示（只有本機才能跑）
   if(isRender){
     document.querySelectorAll('[id^="deep-btn-"]').forEach(btn=>{
-      btn.title = '深度分析僅支援本機執行';
+      btn.title = '深度分析僅支援本機執行（Render 請用 🔍 最佳策略）';
       btn.style.opacity = '0.4';
       btn.style.cursor = 'not-allowed';
     });
@@ -1290,7 +1288,7 @@ fetch('/api/config').then(r=>r.json()).then(data=>{
 }).catch(()=>{});
 
 // ── 深度分析 ──────────────────────────────────────────
-async function runDeepAnalysis(id, e, useOos=true){
+async function runDeepAnalysis(id, e){
   e.stopPropagation();
   if(isRender){
     alert('❌ 深度分析僅支援本機執行\n\nRender 免費版有 30 秒請求限制，深度分析需要跑 3年+5年兩輪，時間太長會超時。\n\n建議：在自己電腦上執行 python app.py 後使用此功能。');
@@ -1303,15 +1301,10 @@ async function runDeepAnalysis(id, e, useOos=true){
 
   document.getElementById('analysisBg').classList.add('open');
   const isCryptoDeep = ['4h','1h'].includes(stock.tf||'1d');
-  const oosLabelDeep = useOos ? '含OOS' : '快速・阿軒邏輯';
-  const deepTitle = isCryptoDeep
-    ? `🔬 ${stock.name||stock.symbol} — 深度分析（加密・${oosLabelDeep}）`
-    : `🔬 ${stock.name||stock.symbol} — 深度分析（${useOos?'3年+5年交叉驗證':'快速・阿軒邏輯'}）`;
-  const deepSubNote = isCryptoDeep
-    ? (useOos ? '6個月+2年交叉驗證，兩段都通過最可信...' : '近6個月，不做OOS，按報酬排序（阿軒邏輯）...')
-    : (useOos ? '自動跑 3年和5年資料，找兩段都通過的策略...' : '快速模式：不做 OOS，按報酬排序...');
-  document.getElementById('analysisTitle').textContent = deepTitle;
-  document.getElementById('analysisSub').textContent = deepSubNote;
+  document.getElementById('analysisTitle').textContent = `🔬 ${stock.name||stock.symbol} — 深度分析`;
+  document.getElementById('analysisSub').textContent = isCryptoDeep
+    ? '加密貨幣：6個月 + 2年 交叉驗證，兩段都通過才列入...'
+    : '台股/美股：3年 + 5年 交叉驗證，兩段都通過才列入...';
   document.getElementById('analysisProgress').style.display = 'block';
   document.getElementById('analysisResults').innerHTML = '';
   document.getElementById('progressBar').style.width = '0%';
@@ -1325,7 +1318,7 @@ async function runDeepAnalysis(id, e, useOos=true){
   }, 1000);
 
   try{
-    const r = await fetch(`/api/deep_analysis?symbol=${stock.symbol}&timeframe=${stock.tf||'1d'}&use_oos=${useOos?'1':'0'}`);
+    const r = await fetch(`/api/deep_analysis?symbol=${stock.symbol}&timeframe=${stock.tf||'1d'}&use_oos=0`);
     const data = await r.json();
     clearInterval(progInterval);
 
@@ -1336,16 +1329,15 @@ async function runDeepAnalysis(id, e, useOos=true){
     }
 
     document.getElementById('progressBar').style.width = '100%';
-    const modeLabel = isCryptoDeep
-      ? (data.isCrypto ? '加密模式：6個月+2年交叉驗證' : '加密快速模式')
-      : '3年+5年交叉驗證';
-    document.getElementById('progressText').textContent = `✅ 深度分析完成！${modeLabel}`;
+    document.getElementById('progressText').textContent = isCryptoDeep
+      ? '✅ 深度分析完成！加密：6個月+2年交叉驗證'
+      : '✅ 深度分析完成！3年+5年交叉驗證';
 
     const medals = ['🥇','🥈','🥉','4','5','6','7','8'];
     const results = data.results;
 
     if(!results.length){
-      document.getElementById('analysisResults').innerHTML = '<div style="color:var(--text2);padding:12px;text-align:center;">此股票在3年和5年資料中，沒有策略同時通過兩段驗證<br>建議直接使用「🔍 找最佳策略」</div>';
+      document.getElementById('analysisResults').innerHTML = '<div style="color:var(--text2);padding:12px;text-align:center;">沒有策略在兩段期間都通過篩選<br>建議改用「🔍 最佳策略」</div>';
       return;
     }
 
@@ -1353,8 +1345,8 @@ async function runDeepAnalysis(id, e, useOos=true){
       const trustBadge = r.trust === 2
         ? `<span style="color:#26a69a;font-weight:700;">${isCryptoDeep?'⭐⭐ 前後段都通過':'⭐⭐ 3年+5年都通過'}</span>`
         : r.in5y
-          ? '<span style="color:#f5a623;">⭐ 僅5年通過</span>'
-          : '<span style="color:#8b90a0;">⭐ 僅3年通過</span>';
+          ? '<span style="color:#f5a623;">⭐ 僅長期通過</span>'
+          : '<span style="color:#8b90a0;">⭐ 僅近期通過</span>';
       return `<div class="result-row ${i===0?'rank-1':''}" onclick="applyBestStrategy(${id},'${r.strat}','${r.name}')">
         <div class="result-rank">${medals[i]||i+1}</div>
         <div class="result-info">
@@ -1367,7 +1359,6 @@ async function runDeepAnalysis(id, e, useOos=true){
             <span>勝率 ${r.win}%</span>
             <span>${r.trades}筆</span>
           </div>
-          ${r.oosPf!=null?`<div style="font-size:10px;color:#8b90a0;margin-top:3px;">OOS PF <span style="color:${r.oosPf>=1.5?'#26a69a':r.oosPf>=1?'#f5a623':'#ef5350'}">${r.oosPf}</span></div>`:''}
         </div>
         <div style="text-align:right;flex-shrink:0;">
           <div style="font-size:16px;font-weight:700;color:#26a69a;">${r.pf}</div>
@@ -1386,27 +1377,20 @@ async function runDeepAnalysis(id, e, useOos=true){
 // ── 最佳策略分析 ──────────────────────────────────────────
 let analysisStockId = null;
 
-async function runBestStrategy(id, e, useOos=true){
+async function runBestStrategy(id, e){
   e.stopPropagation();
   const stock = stocks.find(s=>s.id===id);
   if(!stock) return;
   analysisStockId = id;
 
-  // 開啟彈窗
   document.getElementById('analysisBg').classList.add('open');
-  const oosLabel = useOos ? '含OOS' : '快速';
-  document.getElementById('analysisTitle').textContent = `🔍 ${stock.name||stock.symbol} — 最佳策略分析（${oosLabel}）`;
-  const isCrypto = ['4h','1h'].includes(stock.tf||'1d');
-  const deepNote = useOos
-    ? (isCrypto ? '加密貨幣：近6個月 × OOS驗證，按報酬排序' : '台股/美股：3年 vs 5年 交叉驗證')
-    : '快速模式：完整資料，不做OOS，按報酬排序（阿軒邏輯）';
-  document.getElementById('analysisSub').textContent = deepNote + '...';
+  document.getElementById('analysisTitle').textContent = `🔍 ${stock.name||stock.symbol} — 最佳策略分析`;
+  document.getElementById('analysisSub').textContent = `完整資料回測，筆數和圖表一致，按 PF × 筆數 綜合評分...`;
   document.getElementById('analysisProgress').style.display = 'block';
   document.getElementById('analysisResults').innerHTML = '';
   document.getElementById('progressBar').style.width = '0%';
   document.getElementById('progressText').textContent = '連線中...';
 
-  // 模擬進度條（實際是一個長請求）
   let prog = 0;
   const progInterval = setInterval(()=>{
     prog = Math.min(prog + (100 - prog) * 0.04, 92);
@@ -1415,27 +1399,24 @@ async function runBestStrategy(id, e, useOos=true){
   }, 800);
 
   try{
-    const r = await fetch(`/api/best_strategy?symbol=${stock.symbol}&period=${stock.period||'2y'}&timeframe=${stock.tf||'1d'}&use_oos=${useOos?'1':'0'}`);
+    const r = await fetch(`/api/best_strategy?symbol=${stock.symbol}&period=${stock.period||'2y'}&timeframe=${stock.tf||'1d'}&use_oos=0`);
     const data = await r.json();
     clearInterval(progInterval);
 
     if(data.error){
-      document.getElementById('analysisResults').innerHTML = `<div style="color:var(--red);padding:12px;"">❌ ${data.error}</div>`;
+      document.getElementById('analysisResults').innerHTML = `<div style="color:var(--red);padding:12px;">❌ ${data.error}</div>`;
       document.getElementById('analysisProgress').style.display = 'none';
       return;
     }
 
     document.getElementById('progressBar').style.width = '100%';
-    const modeNote = data.isCrypto
-      ? '加密模式：近6個月 + OOS驗證，按報酬排序'
-      : '台美股模式：3年+5年交叉驗證';
-    document.getElementById('progressText').textContent = `✅ 深度分析完成！${modeNote}`;
+    document.getElementById('progressText').textContent = `✅ 分析完成！共測試 ${data.total_tested} 個策略`;
 
     const medals = ['🥇','🥈','🥉','4','5','6','7','8'];
     const results = data.results;
 
     if(!results.length){
-      document.getElementById('analysisResults').innerHTML = '<div style="color:var(--text2);padding:12px;text-align:center;">此股票在目前設定下，沒有策略通過篩選條件（PF>1 且至少3筆）<br>建議換更長的時間範圍</div>';
+      document.getElementById('analysisResults').innerHTML = '<div style="color:var(--text2);padding:12px;text-align:center;">此股票在目前設定下，沒有策略通過篩選條件（PF>1 且筆數達標）<br>建議換更長的時間範圍</div>';
       return;
     }
 
@@ -1446,12 +1427,11 @@ async function runBestStrategy(id, e, useOos=true){
           <div class="result-name">${r.name}</div>
           <div class="result-stats">
             <span>報酬 <b style="color:${r.total>=0?'#26a69a':'#ef5350'}">${r.total>=0?'+':''}${r.total}%</b></span>
-            <span>PF <b style="color:#26a69a">${r.pf}</b></span>
+            <span>PF <b style="color:#26a69a">${r.pf>=999?'∞':r.pf}</b></span>
             <span>回撤 <b style="color:#ef5350">${r.mdd}%</b></span>
             <span>勝率 ${r.win}%</span>
             <span>${r.trades}筆</span>
           </div>
-          ${r.oosPf!=null?`<div style="font-size:10px;color:#8b90a0;margin-top:3px;">OOS驗證 PF <span style="color:${r.oosPf>=1.5?'#26a69a':r.oosPf>=1?'#f5a623':'#ef5350'}">${r.oosPf}</span> 報酬 <span style="color:${r.oosTotal>=0?'#26a69a':'#ef5350'}">${r.oosTotal>=0?'+':''}${r.oosTotal}%</span></div>`:''}
         </div>
         <div style="text-align:right;flex-shrink:0;">
           <div style="font-size:16px;font-weight:700;color:#26a69a;">${r.pf>=999?'∞':r.pf}</div>
@@ -1462,7 +1442,6 @@ async function runBestStrategy(id, e, useOos=true){
 
   } catch(e){
     clearInterval(progInterval);
-    console.error('runBestStrategy error:', e);
     document.getElementById('analysisResults').innerHTML = `<div style="color:var(--red);padding:12px;">連線失敗：${e.message}</div>`;
   }
 }
