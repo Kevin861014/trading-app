@@ -31,6 +31,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .card-top{padding:12px 14px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
 .card-name{font-size:15px;font-weight:600;margin-bottom:2px;}
 .card-sub{font-size:11px;color:var(--text2);}
+.char-badge{display:none;font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:4px;vertical-align:middle;}
+.char-badge.show{display:inline-block;}
+.char-up{background:rgba(38,166,154,0.15);color:#26a69a;}
+.char-down{background:rgba(239,83,80,0.15);color:#ef5350;}
+.char-range{background:rgba(245,166,35,0.15);color:#f5a623;}
+.char-na{background:rgba(139,144,160,0.15);color:#8b90a0;}
 .card-actions{display:flex;align-items:center;gap:5px;flex-shrink:0;}
 .btn-icon{font-size:12px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;padding:5px 8px;line-height:1;}
 .btn-icon:hover{color:var(--text);border-color:rgba(255,255,255,0.2);}
@@ -566,9 +572,26 @@ async function loadCard(id){
     drawTrades(card,data.metrics.trades);
     card.querySelector('.card-status').innerHTML=`<span style="color:var(--text3);">${new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})} 更新</span>`;
     updateNavBar();
+    loadCharacter(id);
   }catch(e){
     card.querySelector('.card-status').innerHTML=`<span style="color:var(--red);">⚠ 連線失敗</span>`;
   }
+}
+
+// 市場性格偵測（ADX）：在卡片標題列顯示趨勢/盤整徽章
+async function loadCharacter(id){
+  const stock=stocks.find(s=>s.id===id);
+  if(!stock) return;
+  const el=document.getElementById(`char-${id}`);
+  if(!el) return;
+  try{
+    const r=await fetch(`/api/market_character?symbol=${stock.symbol}&timeframe=${stock.tf||'1d'}`);
+    const d=await r.json();
+    const icon={up:'🔼',down:'🔽',range:'↔️',na:'⚪'}[d.code]||'⚪';
+    const cls={up:'char-up',down:'char-down',range:'char-range',na:'char-na'}[d.code]||'char-na';
+    el.className=`char-badge show ${cls}`;
+    el.textContent=`${icon} ${d.label}${d.adx!=null?` ADX${d.adx}`:''}`;
+  }catch(e){ /* 靜默失敗，不影響卡片 */ }
 }
 
 function updateSignalBanner(card,data){
@@ -964,7 +987,7 @@ function renderCard(stock){
     <div class="card-top">
       <div>
         <div class="card-name">${stock.name||stock.symbol}</div>
-        <div class="card-sub">${stock.symbol} · ${getStratName(stock.strat)} · ${TF_LABELS[stock.tf]||'1d'}</div>
+        <div class="card-sub">${stock.symbol} · ${getStratName(stock.strat)} · ${TF_LABELS[stock.tf]||'1d'} <span id="char-${stock.id}" class="char-badge" data-tip="市場性格偵測（ADX）：判斷這支標的現在是在走趨勢還是盤整，幫你挑對應類型的策略。🔼上升/🔽下降趨勢→順勢策略；↔️盤整→均值回歸策略。"></span></div>
       </div>
       <div class="card-actions">
         <button class="btn-analyze" onclick="runBestStrategy(${stock.id},event)" title="找最佳策略（全量回測）">🔍 最佳策略</button>
@@ -1415,16 +1438,33 @@ async function runBestStrategy(id, e){
     const medals = ['🥇','🥈','🥉','4','5','6','7','8'];
     const results = data.results;
 
+    // 市場性格：標頭顯示 + 標記適配策略
+    const ch = data.character;
+    const catLabel = {trend:'順勢',range:'均值回歸',breakout:'突破'};
+    const catCls   = {trend:'char-up',range:'char-range',breakout:'char-na'};
+    // 趨勢行情建議順勢/突破；盤整建議均值回歸
+    const fitCats = ch && (ch.code==='up'||ch.code==='down') ? ['trend','breakout']
+                  : ch && ch.code==='range' ? ['range'] : [];
+    if(ch && ch.code && ch.code!=='na'){
+      const icon={up:'🔼',down:'🔽',range:'↔️'}[ch.code]||'';
+      const tip = fitCats.length ? `→ 建議用 <b>${fitCats.map(c=>catLabel[c]).join(' / ')}</b> 類策略（已標 ✓）` : '';
+      document.getElementById('analysisSub').innerHTML =
+        `目前市場性格：<b>${icon} ${ch.label}</b>（ADX ${ch.adx}）${tip}`;
+    }
+
     if(!results.length){
       document.getElementById('analysisResults').innerHTML = '<div style="color:var(--text2);padding:12px;text-align:center;">此股票在目前設定下，沒有策略通過篩選條件（PF>1 且筆數達標）<br>建議換更長的時間範圍</div>';
       return;
     }
 
-    document.getElementById('analysisResults').innerHTML = results.map((r,i)=>`
-      <div class="result-row ${i===0?'rank-1':''}">
+    document.getElementById('analysisResults').innerHTML = results.map((r,i)=>{
+      const fit = r.cat && fitCats.includes(r.cat);
+      const catBadge = r.cat ? `<span class="char-badge show ${catCls[r.cat]}" style="margin-left:0;">${fit?'✓ ':''}${catLabel[r.cat]||''}</span>` : '';
+      return `
+      <div class="result-row ${i===0?'rank-1':''}" ${fit?'style="border-left:3px solid #26a69a;"':''}>
         <div class="result-rank">${medals[i]||i+1}</div>
         <div class="result-info">
-          <div class="result-name">${r.name}</div>
+          <div class="result-name">${r.name} ${catBadge}</div>
           <div class="result-stats">
             <span>報酬 <b style="color:${r.total>=0?'#26a69a':'#ef5350'}">${r.total>=0?'+':''}${r.total}%</b></span>
             <span>PF <b style="color:#26a69a">${r.pf>=999?'∞':r.pf}</b></span>
@@ -1438,7 +1478,7 @@ async function runBestStrategy(id, e){
           <div style="font-size:10px;color:var(--text3);">綜合 ${r.score||''}</div>
         </div>
         <button class="btn-apply" onclick="applyBestStrategy(${id},'${r.strat}','${r.name}')">套用</button>
-      </div>`).join('');
+      </div>`;}).join('');
 
   } catch(e){
     clearInterval(progInterval);

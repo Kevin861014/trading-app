@@ -177,6 +177,87 @@ def calc_pf(trade_log):
     pf = sum(wins) / abs(sum(losses))
     return round(min(pf, 999), 2)
 
+def calc_adx(ohlcv, period=14):
+    """
+    計算 ADX（趨勢強度）與方向。
+    回傳 dict: {adx, plus_di, minus_di} 或 None（資料不足）。
+    純 Python 實作，不依賴 numpy/pandas。ohlcv 格式 [ts,o,h,l,c,v]。
+    """
+    n = len(ohlcv)
+    if n < period * 2 + 1:
+        return None
+    H = [r[2] for r in ohlcv]
+    L = [r[3] for r in ohlcv]
+    C = [r[4] for r in ohlcv]
+
+    tr_list, plus_dm, minus_dm = [], [], []
+    for i in range(1, n):
+        up_move   = H[i] - H[i-1]
+        down_move = L[i-1] - L[i]
+        plus_dm.append(up_move if (up_move > down_move and up_move > 0) else 0.0)
+        minus_dm.append(down_move if (down_move > up_move and down_move > 0) else 0.0)
+        tr = max(H[i] - L[i], abs(H[i] - C[i-1]), abs(L[i] - C[i-1]))
+        tr_list.append(tr)
+
+    # Wilder 平滑
+    def wilder(arr, p):
+        if len(arr) < p:
+            return []
+        out = [sum(arr[:p])]
+        for i in range(p, len(arr)):
+            out.append(out[-1] - out[-1] / p + arr[i])
+        return out
+
+    atr = wilder(tr_list, period)
+    pdm = wilder(plus_dm, period)
+    mdm = wilder(minus_dm, period)
+    if not atr or len(atr) < 1:
+        return None
+
+    dx_list = []
+    for i in range(len(atr)):
+        if atr[i] == 0:
+            continue
+        pdi = 100 * pdm[i] / atr[i]
+        mdi = 100 * mdm[i] / atr[i]
+        denom = pdi + mdi
+        if denom == 0:
+            dx_list.append(0.0)
+        else:
+            dx_list.append(100 * abs(pdi - mdi) / denom)
+
+    if len(dx_list) < period:
+        adx = sum(dx_list) / len(dx_list) if dx_list else 0.0
+    else:
+        adx = sum(dx_list[-period:]) / period
+
+    last_pdi = 100 * pdm[-1] / atr[-1] if atr[-1] else 0.0
+    last_mdi = 100 * mdm[-1] / atr[-1] if atr[-1] else 0.0
+    return {'adx': round(adx, 1), 'plus_di': round(last_pdi, 1), 'minus_di': round(last_mdi, 1)}
+
+
+def market_character(ohlcv, period=14):
+    """
+    判斷市場性格：結合 ADX（趨勢強度）與 +DI/-DI（方向）。
+    回傳 {adx, label, dir, code}。
+      code: 'up'(上升趨勢) / 'down'(下降趨勢) / 'range'(盤整) / 'na'(資料不足)
+    """
+    a = calc_adx(ohlcv, period)
+    if a is None:
+        return {'adx': None, 'label': '資料不足', 'dir': '', 'code': 'na'}
+    adx = a['adx']
+    up = a['plus_di'] >= a['minus_di']
+    if adx >= 25:
+        if up:
+            return {'adx': adx, 'label': '上升趨勢', 'dir': 'up', 'code': 'up'}
+        return {'adx': adx, 'label': '下降趨勢', 'dir': 'down', 'code': 'down'}
+    elif adx < 20:
+        return {'adx': adx, 'label': '盤整', 'dir': '', 'code': 'range'}
+    else:
+        # 20~25 過渡帶：方向不明
+        return {'adx': adx, 'label': '趨勢轉換中', 'dir': 'up' if up else 'down', 'code': 'range'}
+
+
 def calc_oos_pf(trade_log, split_date):
     """計算 OOS 段（split_date 之後）的 PF"""
     oos = [t for t in trade_log
@@ -442,6 +523,39 @@ def get_config():
     })
 
 
+@app.route('/api/market_character')
+def api_market_character():
+    """偵測標的當前市場性格（趨勢 / 盤整），給卡片顯示徽章用。"""
+    symbol    = request.args.get('symbol', '2330.TW')
+    timeframe = request.args.get('timeframe', '1d')
+    yf_tf = {'1d':'1d', '4h':'1h', '1h':'1h'}.get(timeframe, '1d')
+    # 只需近期資料算 ADX，抓約 120 根足夠
+    start_date = (datetime.datetime.now() - datetime.timedelta(days=120)).strftime('%Y-%m-%d')
+    try:
+        ohlcv = fetch_data(symbol, start_date, interval=yf_tf)
+        if not ohlcv or len(ohlcv) < 30:
+            return jsonify({'adx': None, 'label': '資料不足', 'dir': '', 'code': 'na'})
+        return jsonify(market_character(ohlcv))
+    except Exception as e:
+        return jsonify({'adx': None, 'label': '偵測失敗', 'dir': '', 'code': 'na', 'error': str(e)})
+
+
+# 策略分類：順勢 / 均值回歸 / 突破，給市場性格篩選用
+STRAT_CATEGORY = {
+    # 順勢（趨勢行情適用）
+    'supertrend':'trend','donchian':'trend','ema_cross':'trend','sixline':'trend',
+    'ichimoku':'trend','psar':'trend','kama':'trend','heikin':'trend','tsmom':'trend',
+    'macd':'trend','lrs':'trend','vortex':'trend','diadx':'trend','hma':'trend',
+    'keltner':'trend','rolltrend':'trend',
+    # 均值回歸（盤整行情適用）
+    'crsi':'range','cci':'range','rsi50':'range','rsi':'range','vwap':'range',
+    'pullback':'range','pullbk':'range','obv':'range','cmf':'range','force':'range',
+    # 突破（兩者皆可，偏趨勢啟動）
+    'bbreak':'breakout','volbreak':'breakout','vbreakr':'breakout','ttm':'breakout',
+    'smc':'breakout',
+}
+
+
 @app.route('/api/best_strategy')
 def best_strategy():
     """跑所有策略，回傳最佳前5名"""
@@ -574,6 +688,7 @@ def best_strategy():
                         'win': _disp_wr_is,
                         'trades': trades,
                         'score': score,
+                        'cat': STRAT_CATEGORY.get(strat_key, ''),
                         'oosPf': None,
                         'oosTotal': None,
                     })
@@ -585,7 +700,8 @@ def best_strategy():
         top = results[:8]
 
         tested_count = len([k for k in _sim.STRATS if k not in skip and k in allowed])
-        return jsonify({'results': top, 'total_tested': tested_count})
+        mc = market_character(ohlcv) if ohlcv else {'code':'na','label':'資料不足','adx':None}
+        return jsonify({'results': top, 'total_tested': tested_count, 'character': mc})
 
     except Exception as e:
         import traceback
