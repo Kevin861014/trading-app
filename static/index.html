@@ -1347,7 +1347,7 @@ async function runDeepAnalysis(id, e){
         : r.in5y
           ? '<span style="color:#f5a623;">⭐ 僅長期通過</span>'
           : '<span style="color:#8b90a0;">⭐ 僅近期通過</span>';
-      return `<div class="result-row ${i===0?'rank-1':''}" onclick="applyBestStrategy(${id},'${r.strat}','${r.name}')">
+      return `<div class="result-row ${i===0?'rank-1':''}">
         <div class="result-rank">${medals[i]||i+1}</div>
         <div class="result-info">
           <div class="result-name">${r.name}</div>
@@ -1364,7 +1364,7 @@ async function runDeepAnalysis(id, e){
           <div style="font-size:16px;font-weight:700;color:#26a69a;">${r.pf}</div>
           <div style="font-size:10px;color:var(--text3);">綜合 ${r.score}</div>
         </div>
-        <button class="btn-apply" onclick="event.stopPropagation();applyBestStrategy(${id},'${r.strat}','${r.name}')">套用</button>
+        <button class="btn-apply" onclick="applyBestStrategy(${id},'${r.strat}','${r.name}')">套用</button>
       </div>`;
     }).join('');
 
@@ -1421,7 +1421,7 @@ async function runBestStrategy(id, e){
     }
 
     document.getElementById('analysisResults').innerHTML = results.map((r,i)=>`
-      <div class="result-row ${i===0?'rank-1':''}" onclick="applyBestStrategy(${id},'${r.strat}','${r.name}')">
+      <div class="result-row ${i===0?'rank-1':''}">
         <div class="result-rank">${medals[i]||i+1}</div>
         <div class="result-info">
           <div class="result-name">${r.name}</div>
@@ -1437,7 +1437,7 @@ async function runBestStrategy(id, e){
           <div style="font-size:16px;font-weight:700;color:#26a69a;">${r.pf>=999?'∞':r.pf}</div>
           <div style="font-size:10px;color:var(--text3);">綜合 ${r.score||''}</div>
         </div>
-        <button class="btn-apply" onclick="event.stopPropagation();applyBestStrategy(${id},'${r.strat}','${r.name}')">套用</button>
+        <button class="btn-apply" onclick="applyBestStrategy(${id},'${r.strat}','${r.name}')">套用</button>
       </div>`).join('');
 
   } catch(e){
