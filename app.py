@@ -371,7 +371,12 @@ def analyze():
 
         real_buy, real_sell = get_real_trades(ohlcv, el_full, xl_full, strat_info=s)
 
-        display_n = min(days * (6 if yf_tf=='1h' else 1) + 30, len(ohlcv))
+        # 顯示窗口以「時間」切（最近 days 天），不用根數推算——
+        # 因為 4H/1H 都被轉成 1H 資料抓取，舊的 days×6 會把窗口算成只剩 ~1/4 時間，
+        # 導致卡片與「最佳策略」涵蓋的期間不同、筆數/報酬對不上。
+        _disp_cut_ms = (datetime.datetime.now() - datetime.timedelta(days=days)).timestamp() * 1000
+        display_n = sum(1 for r in ohlcv if r[0] >= _disp_cut_ms)
+        display_n = max(min(display_n, len(ohlcv)), 30)
         disp = ohlcv[-display_n:]
         offset = len(ohlcv) - display_n
 
@@ -662,7 +667,7 @@ def best_strategy():
 
                 # 用顯示期間的交易計算 PF / 筆數 / 勝率（與套用後圖表一致）
                 import datetime as _dt
-                _disp_start = datetime.datetime.now() - datetime.timedelta(days=days + 30)
+                _disp_start = datetime.datetime.now() - datetime.timedelta(days=days)
                 _disp_tlog = [
                     t for t in stats_is.get('trade_log', [])
                     if not t.get('open') and t.get('exit_date') and t['exit_date'] >= _disp_start
