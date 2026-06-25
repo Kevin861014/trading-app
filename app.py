@@ -478,6 +478,28 @@ def analyze():
 
         volumes = [round(r[5], 0) if r[5] > 0 else None for r in disp]
 
+        # ── 顯示窗口的總報酬／回撤／年化（與圖表一致、可重現，不含暖機段）──
+        # equity[k] 對應 ohlcv 第 k+1 根；顯示窗口為 ohlcv[offset:]，故取 equity[offset-1:]
+        _eq_off = max(offset - 1, 0)
+        _disp_eq = equity[_eq_off:] if len(equity) > _eq_off + 1 else equity
+        if _disp_eq and _disp_eq[0] > 0:
+            _disp_total = round((_disp_eq[-1] / _disp_eq[0] - 1) * 100, 2)
+            _peak = _disp_eq[0]; _mdd = 0.0
+            for _v in _disp_eq:
+                if _v > _peak: _peak = _v
+                if _peak > 0:
+                    _dd = (_peak - _v) / _peak * 100
+                    if _dd > _mdd: _mdd = _dd
+            _disp_mdd = round(_mdd, 2)
+            # 年化：用顯示窗口的實際時間跨度
+            _yrs = max((disp[-1][0] - disp[0][0]) / (1000 * 86400 * 365.25), 1e-6)
+            _disp_cagr = round(((_disp_eq[-1] / _disp_eq[0]) ** (1 / _yrs) - 1) * 100, 2) \
+                         if _disp_eq[-1] > 0 else round(stats['cagr'], 2)
+        else:
+            _disp_total = round(stats['total'], 2)
+            _disp_mdd = round(stats['mdd'], 2)
+            _disp_cagr = round(stats['cagr'], 2)
+
         return jsonify({
             'dates': dates,
             'opens':  [round(p,2) for p in opens],
@@ -500,10 +522,10 @@ def analyze():
                 'signalDaysAgo': signal_days_ago,
             },
             'metrics': {
-                'totalReturn': round(stats['total'],2),
-                'cagr': round(stats['cagr'],2),
+                'totalReturn': _disp_total,
+                'cagr': _disp_cagr,
                 'pf': _disp_pf,
-                'maxDD': round(stats['mdd'],2),
+                'maxDD': _disp_mdd,
                 'wr': _disp_wr,
                 'tradeCount': _disp_count,
                 'trades': trades_list,
