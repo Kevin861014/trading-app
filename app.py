@@ -674,8 +674,16 @@ def best_strategy():
                 # 用全量數據計算分數（統計樣本更多，排名更準）
                 stats = stats_is
                 pf = pf_is
-                total = round(stats['total'], 2)
                 trades = len(_disp_tlog)
+                # 總報酬／回撤：與卡片、深度分析同口徑（每筆報酬加總、無槓桿、無複利）
+                _rets_bs = [t['ret'] for t in _disp_tlog if t.get('ret') is not None]
+                total = round(sum(_rets_bs), 2)
+                _cum = 0.0; _pk = 0.0; _md = 0.0
+                for _r in _rets_bs:
+                    _cum += _r
+                    if _cum > _pk: _pk = _cum
+                    if _pk - _cum > _md: _md = _pk - _cum
+                _add_mdd = round(_md, 2)
 
                 # 依市場設定最低筆數門檻
                 sym_upper = symbol.upper()
@@ -687,7 +695,7 @@ def best_strategy():
                     min_trades = 5   # 美股日線
 
                 # 篩選條件：PF > 1 且筆數達標 且 MDD < 50%
-                mdd = round(stats['mdd'], 2)
+                mdd = _add_mdd
                 if pf > 1 and trades >= min_trades and mdd < 50:
                     import math
                     # 綜合分數 = PF × log(筆數) × 報酬加成 / (1 + MDD/100)
@@ -705,7 +713,7 @@ def best_strategy():
                         'name': strat_info['name'],
                         'pf': pf,
                         'total': total,
-                        'cagr': round(stats['cagr'], 2),
+                        'cagr': round(total / max(days / 365.25, 1e-6), 2),
                         'mdd': mdd,
                         'win': _disp_wr_is,
                         'trades': trades,
