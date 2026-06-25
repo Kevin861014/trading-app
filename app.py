@@ -399,39 +399,34 @@ def analyze():
             else:
                 diff.append(0)
 
-        # 交易紀錄：賣出日期必須在顯示期間內，買進可以在之前
-        # rolltrend 使用加碼引擎，訊號結構不同，略過交易紀錄
+        # 交易紀錄：直接用 run_backtest() 的 trade_log（next-bar open 進出場），
+        # 與 best_strategy 使用同一個價格基礎，確保 PF/總報酬一致。
+        _disp_cut_dt = datetime.datetime.now() - datetime.timedelta(days=days)
         if strategy == 'rolltrend':
             trades_list = [{'buyPrice': None, 'sellPrice': None, 'buyDate': None, 'sellDate': None,
                            'ret': None, 'note': '此策略使用加碼引擎，交易紀錄請參考回測數據'}]
+            _all_disp = []
         else:
-            trades_list = []
-        buy_px = None; buy_date = None
-        full_prices = [r[4] for r in ohlcv]
-        full_dates = [datetime.datetime.utcfromtimestamp(r[0]/1000).strftime(
-            '%Y-%m-%d %H:%M' if yf_tf=='1h' else '%Y-%m-%d') for r in ohlcv]
-        # 顯示期間的起始日期
-        display_start = dates[0] if dates else ''
-        for i in range(len(full_prices)):
-            if real_buy[i]:
-                buy_px = full_prices[i]; buy_date = full_dates[i]
-            elif real_sell[i] and buy_px:
-                sell_date = full_dates[i]
-                # 只顯示賣出日期在顯示期間內的交易
-                if sell_date >= display_start:
-                    ret = round((full_prices[i] - buy_px) / buy_px * 100, 2)
-                    trades_list.append({
-                        'buyPrice': round(buy_px,2),
-                        'sellPrice': round(full_prices[i],2),
-                        'buyDate': buy_date,
-                        'sellDate': sell_date,
-                        'ret': ret
-                    })
-                buy_px = None
+            _tlog_disp = [
+                t for t in stats.get('trade_log', [])
+                if not t.get('open') and t.get('exit_date') and t['exit_date'] >= _disp_cut_dt
+            ]
+            _all_disp = _tlog_disp
+            fmt = '%Y-%m-%d %H:%M' if yf_tf == '1h' else '%Y-%m-%d'
+            trades_list = [
+                {
+                    'buyPrice': round(t['entry_px'], 2) if t.get('entry_px') else None,
+                    'sellPrice': round(t['exit_px'], 2) if t.get('exit_px') else None,
+                    'buyDate': t['entry_date'].strftime(fmt) if t.get('entry_date') else None,
+                    'sellDate': t['exit_date'].strftime(fmt) if t.get('exit_date') else None,
+                    'ret': round(t['ret'], 2) if t.get('ret') is not None else None,
+                }
+                for t in _tlog_disp
+            ]
+
         # ── 顯示期間的統計數字（與圖表三角形一致）──
         if strategy != 'rolltrend':
-            _all_disp = [t for t in trades_list if t.get('ret') is not None]
-            _disp_wins = sum(1 for t in _all_disp if t['ret'] > 0)
+            _disp_wins = sum(1 for t in _all_disp if t.get('ret', 0) > 0)
             _disp_pf   = calc_pf([{'ret': t['ret']} for t in _all_disp])
             _disp_count = len(_all_disp)
             _disp_wr   = round(_disp_wins / len(_all_disp) * 100, 1) if _all_disp else 0
@@ -440,7 +435,7 @@ def analyze():
             _disp_count = stats['trades']
             _disp_wr   = round(stats['win'], 1)
 
-        trades_list = trades_list[-10:][::-1]
+        trades_list = trades_list[-10:][::-1]  # 最新10筆，倒序顯示
 
         # ── 策略目前持倉狀態 ──
         current_pos = False
