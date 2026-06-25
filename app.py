@@ -398,7 +398,7 @@ def analyze():
     try:
         import sim as _sim
         spec = ('yf', symbol)
-        _sim.COMMISSION, _sim.SLIPPAGE = market_cost(spec, strategy)
+        _com, _slp = market_cost(spec, strategy)
 
         ohlcv = fetch_data(symbol, start_date, interval=yf_tf)
 
@@ -410,7 +410,8 @@ def analyze():
         if len(ohlcv) < 220:
             return jsonify({'error': f'資料不足以跑回測（{len(ohlcv)} 根），請選擇更長的時間範圍或改用日線'}), 400
 
-        result = run_backtest(ohlcv, strategy=strategy, risk_pct=0.015, timeframe=yf_tf)
+        result = run_backtest(ohlcv, strategy=strategy, risk_pct=0.015, timeframe=yf_tf,
+                              commission=_com, slippage=_slp)
         if not result:
             return jsonify({'error': '回測失敗，請選擇更長的時間範圍'}), 400
 
@@ -688,10 +689,11 @@ def best_strategy():
             if strat_key in skip or strat_key not in allowed:
                 continue
             try:
-                _sim.COMMISSION, _sim.SLIPPAGE = market_cost(('yf', symbol), strat_key)
+                _com, _slp = market_cost(('yf', symbol), strat_key)
 
                 # 用 IS 資料選策略
-                result_is = run_backtest(ohlcv_is, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf)
+                result_is = run_backtest(ohlcv_is, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf,
+                                         commission=_com, slippage=_slp)
                 if not result_is:
                     continue
                 dates_is, equity_is, stats_is = result_is
@@ -823,8 +825,9 @@ def deep_analysis():
                 if strat_key in skip or strat_key not in allowed:
                     continue
                 try:
-                    _sim.COMMISSION, _sim.SLIPPAGE = market_cost(('yf', symbol), strat_key)
-                    result_is = run_backtest(ohlcv_is, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf)
+                    _com, _slp = market_cost(('yf', symbol), strat_key)
+                    result_is = run_backtest(ohlcv_is, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf,
+                                             commission=_com, slippage=_slp)
                     if not result_is:
                         continue
                     _, _, stats_is = result_is
@@ -842,7 +845,8 @@ def deep_analysis():
                     # OOS 驗證（可選）
                     oos_pf = None; oos_total = None
                     if do_oos and do_oos_check:
-                        result_oos = run_backtest(ohlcv_oos, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf)
+                        result_oos = run_backtest(ohlcv_oos, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf,
+                                                  commission=_com, slippage=_slp)
                         if not result_oos:
                             continue
                         _, _, stats_oos = result_oos
@@ -875,8 +879,6 @@ def deep_analysis():
         # 抓 5 年資料（包含 3 年）
         start_5y = (datetime.datetime.now() - datetime.timedelta(days=5*365+700)).strftime('%Y-%m-%d')
         start_3y = (datetime.datetime.now() - datetime.timedelta(days=3*365+700)).strftime('%Y-%m-%d')
-
-        _sim.COMMISSION, _sim.SLIPPAGE = market_cost(('yf', symbol), 'trend')
 
         if yf_tf == '1h':
             # ── 加密貨幣 4H/1H ──
@@ -921,7 +923,9 @@ def deep_analysis():
                 if strat_key in skip or strat_key not in allowed:
                     continue
                 try:
-                    result = run_backtest(ohlcv_2y, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf)
+                    _com, _slp = market_cost(('yf', symbol), strat_key)
+                    result = run_backtest(ohlcv_2y, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf,
+                                          commission=_com, slippage=_slp)
                     if not result:
                         continue
                     dates_c, equity_c, stats = result
@@ -1097,7 +1101,7 @@ def signal():
     try:
         import sim as _sim
         spec = ('yf', symbol)
-        _sim.COMMISSION, _sim.SLIPPAGE = market_cost(spec, strategy)
+        _com, _slp = market_cost(spec, strategy)
 
         ohlcv = fetch_data(symbol, start_date, interval=yf_tf)
         if not ohlcv or len(ohlcv) < 50:

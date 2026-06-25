@@ -744,13 +744,16 @@ TF_DAYS = {"5m":45, "15m":120, "30m":250, "1h":540, "2h":720, "4h":900, "1d":150
 
 # ============================ 模擬器(long-only)============================
 def _simulate(T,O,H,L,C, el, xl, A, atr_stop, atr_trail, atr_tp, risk_pct, max_lev, start,
-              pct_stop=0.0, pct_trail=0.0, pct_tp=0.0):
+              pct_stop=0.0, pct_trail=0.0, pct_tp=0.0, commission=None, slippage=None):
     """長多模擬。風控可用 ATR 倍(atr_*)或『百分比價格』(pct_*,如 pct_trail=0.025=回檔2.5%鎖利)。
-       pct_* > 0 時優先採用百分比式(動態鎖利);否則用 ATR 式。"""
+       pct_* > 0 時優先採用百分比式(動態鎖利);否則用 ATR 式。
+       commission/slippage 為 None 時退回模組全域值（保留 CLI 相容）。"""
     N=len(C); eq=start; pos=0; entry=0.0; qty=0.0; stop=None; tp=None; peak=None
     entry_date=None; entry_idx=None
     dates=[]; equity=[]; trades=[]; trade_log=[]
-    cost=lambda px: px*(COMMISSION+SLIPPAGE)
+    _com = COMMISSION if commission is None else commission
+    _slp = SLIPPAGE if slippage is None else slippage
+    cost=lambda px: px*(_com+_slp)
     use_pct = (pct_stop>0 or pct_trail>0 or pct_tp>0)
     for i in range(N-1):
         o2=O[i+1]
@@ -803,11 +806,14 @@ def _simulate(T,O,H,L,C, el, xl, A, atr_stop, atr_trail, atr_tp, risk_pct, max_l
             'entry_date':entry_date,'exit_date':None,'ret':None,'open':True})
     return dates, equity, trades, trade_log
 
-def _simulate_pyramid(T,O,H,L,C, el, A, init_atr, trail_atr, add_atr, max_adds, risk_pct, max_lev, start):
+def _simulate_pyramid(T,O,H,L,C, el, A, init_atr, trail_atr, add_atr, max_adds, risk_pct, max_lev, start,
+                      commission=None, slippage=None):
     """順勢滾倉(加碼)回測。回傳 (dates,equity,trades,trade_log)。
     trade_log 每筆包含完整進出場資訊及加碼明細 add_log。"""
     N=len(C); eq=start; pos=False; entries=[]; peak=0.0; stop=None; last_add=0.0; adds=0
-    cost=lambda px: px*(COMMISSION+SLIPPAGE)
+    _com = COMMISSION if commission is None else commission
+    _slp = SLIPPAGE if slippage is None else slippage
+    cost=lambda px: px*(_com+_slp)
     dates=[]; equity=[]; trades=[]; trade_log=[]
     entry_date=None; add_log=[]  # 本次進場的加碼紀錄
     tq=lambda: sum(q for _,q in entries)
@@ -858,8 +864,9 @@ def _simulate_pyramid(T,O,H,L,C, el, A, init_atr, trail_atr, add_atr, max_adds, 
     return dates, equity, trades, trade_log
 
 def run_backtest(ohlcv, strategy="trend", risk_pct=0.015, max_lev=3.0, start=10000.0,
-                 timeframe=None, atr_len=14):
-    """ohlcv=[[ts_ms,o,h,l,c,v],...]。回傳 (dates,equity,stats) 或 None。"""
+                 timeframe=None, atr_len=14, commission=None, slippage=None):
+    """ohlcv=[[ts_ms,o,h,l,c,v],...]。回傳 (dates,equity,stats) 或 None。
+    commission/slippage 直接傳入，避免改全域變數造成多請求並發競爭。"""
     if len(ohlcv) < 220: return None     # 需足夠暖機(六條線含 EMA200)
     T=[r[0] for r in ohlcv]; O=[r[1] for r in ohlcv]; H=[r[2] for r in ohlcv]; L=[r[3] for r in ohlcv]; C=[r[4] for r in ohlcv]
     V=[(r[5] if len(r)>5 else 0.0) for r in ohlcv]
@@ -870,12 +877,14 @@ def run_backtest(ohlcv, strategy="trend", risk_pct=0.015, max_lev=3.0, start=100
         pp=s["pyramid"]
         dates,equity,trades,trade_log=_simulate_pyramid(T,O,H,L,C, el, A,
                                               pp["init_atr"], pp["trail_atr"], pp["add_atr"], pp["max_adds"],
-                                              risk_pct, max_lev, start)
+                                              risk_pct, max_lev, start,
+                                              commission=commission, slippage=slippage)
     else:
         dates,equity,trades,trade_log=_simulate(T,O,H,L,C, el,xl, A,
                                       s["atr_stop"], s["atr_trail"], s["atr_tp"],
                                       risk_pct, max_lev, start,
-                                      s.get("pct_stop",0.0), s.get("pct_trail",0.0), s.get("pct_tp",0.0))
+                                      s.get("pct_stop",0.0), s.get("pct_trail",0.0), s.get("pct_tp",0.0),
+                                      commission=commission, slippage=slippage)
     if not equity: return None
     base=equity[0]; peak=base; mdd=0.0
     for v in equity:
