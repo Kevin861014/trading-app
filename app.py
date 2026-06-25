@@ -478,23 +478,23 @@ def analyze():
 
         volumes = [round(r[5], 0) if r[5] > 0 else None for r in disp]
 
-        # ── 顯示窗口的總報酬／回撤／年化（與圖表一致、可重現，不含暖機段）──
-        # equity[k] 對應 ohlcv 第 k+1 根；顯示窗口為 ohlcv[offset:]，故取 equity[offset-1:]
-        _eq_off = max(offset - 1, 0)
-        _disp_eq = equity[_eq_off:] if len(equity) > _eq_off + 1 else equity
-        if _disp_eq and _disp_eq[0] > 0:
-            _disp_total = round((_disp_eq[-1] / _disp_eq[0] - 1) * 100, 2)
-            _peak = _disp_eq[0]; _mdd = 0.0
-            for _v in _disp_eq:
-                if _v > _peak: _peak = _v
-                if _peak > 0:
-                    _dd = (_peak - _v) / _peak * 100
-                    if _dd > _mdd: _mdd = _dd
+        # ── 顯示窗口的總報酬／回撤／年化 ──
+        # 用「每筆交易報酬直接加總」（與深度分析同一口徑：無槓桿、無複利）。
+        # 純加總是確定性的：重抓資料、邊界飄動都不會讓數字翻盤，且兩個畫面對得上。
+        if strategy != 'rolltrend' and _all_disp:
+            _rets = [t['ret'] for t in _all_disp]
+            _disp_total = round(sum(_rets), 2)
+            # 回撤：以「累積報酬曲線」（加總、非複利）的最大回落估計
+            _cum = 0.0; _peak = 0.0; _mdd = 0.0
+            for _r in _rets:
+                _cum += _r
+                if _cum > _peak: _peak = _cum
+                _dd = _peak - _cum
+                if _dd > _mdd: _mdd = _dd
             _disp_mdd = round(_mdd, 2)
-            # 年化：用顯示窗口的實際時間跨度
+            # 年化：用顯示窗口的實際時間跨度換算
             _yrs = max((disp[-1][0] - disp[0][0]) / (1000 * 86400 * 365.25), 1e-6)
-            _disp_cagr = round(((_disp_eq[-1] / _disp_eq[0]) ** (1 / _yrs) - 1) * 100, 2) \
-                         if _disp_eq[-1] > 0 else round(stats['cagr'], 2)
+            _disp_cagr = round(_disp_total / _yrs, 2)
         else:
             _disp_total = round(stats['total'], 2)
             _disp_mdd = round(stats['mdd'], 2)
