@@ -200,6 +200,36 @@ def compound_metrics(rets, years=None):
         cagr = total
     return total, mdd, cagr
 
+def equity_window_metrics(dates, equity, cutoff_dt=None, years=None):
+    """照搬機器人邏輯：從 run_backtest 的權益曲線取一段期間，算總報酬/回撤/年化。
+    dates、equity 同長度（run_backtest 回傳，含 1.5% 風險部位 + 3倍槓桿 + 複利）。
+    cutoff_dt：只取此日期之後的曲線；None 代表整段。
+    總報酬是 seg[-1]/seg[0] 的比率，期間之前累積的本金會自動約掉，只算這段期間的漲跌。"""
+    if not equity or not dates or len(equity) < 2:
+        return 0.0, 0.0, 0.0
+    if cutoff_dt is not None:
+        idx = next((i for i, d in enumerate(dates) if d >= cutoff_dt), 0)
+    else:
+        idx = 0
+    seg = equity[idx:]
+    if len(seg) < 2 or seg[0] <= 0:
+        return 0.0, 0.0, 0.0
+    base = seg[0]
+    peak = base; mdd = 0.0
+    for v in seg:
+        if v > peak:
+            peak = v
+        dd = (peak - v) / peak * 100 if peak > 0 else 0.0
+        if dd > mdd:
+            mdd = dd
+    total = (seg[-1] / base - 1) * 100
+    if years and years > 0:
+        yrs = years
+    else:
+        yrs = max((dates[-1] - dates[idx]).days / 365.25, 1e-9)
+    cagr = ((seg[-1] / base) ** (1.0 / yrs) - 1) * 100 if seg[-1] > 0 else 0.0
+    return round(total, 2), round(mdd, 2), round(cagr, 2)
+
 def calc_adx(ohlcv, period=14):
     """
     計算 ADX（趨勢強度）與方向。
@@ -502,16 +532,9 @@ def analyze():
         volumes = [round(r[5], 0) if r[5] > 0 else None for r in disp]
 
         # ── 顯示窗口的總報酬／回撤／年化 ──
-        # 用「複利／權益曲線」（本金從 1 開始逐筆相乘），代表本金實際變多少。
-        # 與最佳策略、深度分析同一口徑。
-        if strategy != 'rolltrend' and _all_disp:
-            _rets = [t['ret'] for t in _all_disp]
-            _yrs = max((disp[-1][0] - disp[0][0]) / (1000 * 86400 * 365.25), 1e-6)
-            _disp_total, _disp_mdd, _disp_cagr = compound_metrics(_rets, _yrs)
-        else:
-            _disp_total = round(stats['total'], 2)
-            _disp_mdd = round(stats['mdd'], 2)
-            _disp_cagr = round(stats['cagr'], 2)
+        # 照搬機器人邏輯：直接用 run_backtest 的權益曲線（1.5%風險部位+3倍槓桿+複利），
+        # 切到圖表顯示的期間（_disp_cut_dt 之後）。確定性、與圖表期間一致。
+        _disp_total, _disp_mdd, _disp_cagr = equity_window_metrics(dates_dt, equity, _disp_cut_dt)
 
         return jsonify({
             'dates': dates,
@@ -671,7 +694,7 @@ def best_strategy():
                 result_is = run_backtest(ohlcv_is, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf)
                 if not result_is:
                     continue
-                _, _, stats_is = result_is
+                dates_is, equity_is, stats_is = result_is
 
                 # 用顯示期間的交易計算 PF / 筆數 / 勝率（與套用後圖表一致）
                 import datetime as _dt
@@ -688,10 +711,8 @@ def best_strategy():
                 stats = stats_is
                 pf = pf_is
                 trades = len(_disp_tlog)
-                # 總報酬／回撤／年化：與卡片、深度分析同口徑（複利、本金實際變多少）
-                _rets_bs = [t['ret'] for t in _disp_tlog if t.get('ret') is not None]
-                _yrs_bs = max(days / 365.25, 1e-6)
-                total, _add_mdd, _cagr_bs = compound_metrics(_rets_bs, _yrs_bs)
+                # 總報酬／回撤／年化：照搬機器人權益曲線，切到顯示期間（與卡片同口徑）
+                total, _add_mdd, _cagr_bs = equity_window_metrics(dates_is, equity_is, _disp_start)
 
                 # 依市場設定最低筆數門檻
                 sym_upper = symbol.upper()
@@ -809,10 +830,10 @@ def deep_analysis():
                     _, _, stats_is = result_is
                     _tlog_is = [t for t in stats_is.get('trade_log',[]) if not t.get('open')]
                     pf = calc_pf(_tlog_is)
-                    # 總報酬／回撤／年化：複利（本金實際變多少），與卡片、最佳策略同口徑
-                    _rets_is = [t['ret'] for t in _tlog_is if t.get('ret') is not None]
-                    _yrs_is = max((ohlcv_is[-1][0] - ohlcv_is[0][0]) / (1000*86400*365.25), 1e-6) if len(ohlcv_is) > 1 else 1.0
-                    total, mdd, cagr_is = compound_metrics(_rets_is, _yrs_is)
+                    # 總報酬／回撤／年化：照搬機器人權益曲線（整段 IS 期間）
+                    total = round(stats_is['total'], 2)
+                    mdd = round(stats_is['mdd'], 2)
+                    cagr_is = round(stats_is['cagr'], 2)
                     trades = stats_is.get('trades', 0)
 
                     if pf <= 1 or trades < min_trades or mdd >= 50:
@@ -829,7 +850,7 @@ def deep_analysis():
                         oos_pf = calc_pf(_tlog_oos)
                         if oos_pf <= 1:
                             continue
-                        oos_total, _, _ = compound_metrics([t['ret'] for t in _tlog_oos if t.get('ret') is not None])
+                        oos_total = round(stats_oos['total'], 2)
 
                     ret_bonus = 1.5 if total >= 20 else (1.2 if total >= 10 else 1.0)
                     mdd_penalty = 1 + mdd / 100
@@ -874,6 +895,8 @@ def deep_analysis():
             # 時間切割點
             cutoff_6mo = (datetime.datetime.now() - datetime.timedelta(days=180)).timestamp() * 1000
             cutoff_2y  = (datetime.datetime.now() - datetime.timedelta(days=730)).timestamp() * 1000
+            cutoff_6mo_dt = datetime.datetime.now() - datetime.timedelta(days=180)
+            cutoff_2y_dt  = datetime.datetime.now() - datetime.timedelta(days=730)
 
             def get_window_trades(trade_log, cutoff_ms):
                 """取某個時間窗口內的交易"""
@@ -901,7 +924,7 @@ def deep_analysis():
                     result = run_backtest(ohlcv_2y, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf)
                     if not result:
                         continue
-                    _, _, stats = result
+                    dates_c, equity_c, stats = result
                     trade_log_all = stats.get('trade_log', [])
                     mdd = round(stats['mdd'], 2)
                     if mdd >= 50:
@@ -928,23 +951,24 @@ def deep_analysis():
                         trust = 1  # ⭐ 只有長期
                         base = r2y
 
-                    # 顯示用的回撤／年化：用顯示窗口的複利結果（與卡片同口徑）
-                    disp_mdd = base.get('mdd', mdd)
-                    base_yrs = 0.5 if base is r6mo else 2.0
-                    base_eq = 1 + base['total'] / 100.0
-                    disp_cagr = round((base_eq ** (1.0 / base_yrs) - 1) * 100, 2) if base_eq > 0 else base['total']
+                    # 總報酬／回撤／年化：照搬機器人權益曲線，切到對應窗口
+                    base_cut = cutoff_6mo_dt if base is r6mo else cutoff_2y_dt
+                    disp_total, disp_mdd, disp_cagr = equity_window_metrics(dates_c, equity_c, base_cut)
+                    oos_total_2y = None
+                    if r2y:
+                        oos_total_2y, _, _ = equity_window_metrics(dates_c, equity_c, cutoff_2y_dt)
 
-                    ret_bonus = 1.5 if base['total'] >= 20 else (1.2 if base['total'] >= 10 else 1.0)
+                    ret_bonus = 1.5 if disp_total >= 20 else (1.2 if disp_total >= 10 else 1.0)
                     score = round(base['pf'] * math.log(max(base['trades'], 2)) * ret_bonus / (1 + disp_mdd/100), 2)
 
                     crypto_results.append({
                         'strat': strat_key, 'name': strat_info['name'],
-                        'pf': base['pf'], 'total': base['total'],
+                        'pf': base['pf'], 'total': disp_total,
                         'cagr': disp_cagr,
                         'mdd': disp_mdd, 'win': base['win'],
                         'trades': base['trades'], 'score': score,
                         'oosPf': r2y['pf'] if r2y else None,
-                        'oosTotal': r2y['total'] if r2y else None,
+                        'oosTotal': oos_total_2y,
                         'trust': trust,
                         'in3y': bool(r6mo),   # 近6個月
                         'in5y': bool(r2y),    # 近2年
