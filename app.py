@@ -177,6 +177,29 @@ def calc_pf(trade_log):
     pf = sum(wins) / abs(sum(losses))
     return round(min(pf, 999), 2)
 
+def compound_metrics(rets, years=None):
+    """以「複利／權益曲線」計算總報酬、最大回撤、年化。
+    rets 是每筆交易報酬（%）的 list，例如 +10% 傳 10。
+    本金從 1.0 開始逐筆相乘（equity *= 1 + ret/100），代表「本金實際變多少」。
+    回傳 (total%, mdd%, cagr%)。"""
+    equity = 1.0; peak = 1.0; mdd = 0.0
+    for r in rets:
+        if r is None:
+            continue
+        equity *= (1 + r / 100.0)
+        if equity > peak:
+            peak = equity
+        dd = (peak - equity) / peak * 100 if peak > 0 else 0.0
+        if dd > mdd:
+            mdd = dd
+    total = round((equity - 1.0) * 100, 2)
+    mdd = round(mdd, 2)
+    if years and years > 0 and equity > 0:
+        cagr = round((equity ** (1.0 / years) - 1) * 100, 2)
+    else:
+        cagr = total
+    return total, mdd, cagr
+
 def calc_adx(ohlcv, period=14):
     """
     計算 ADX（趨勢強度）與方向。
@@ -479,22 +502,12 @@ def analyze():
         volumes = [round(r[5], 0) if r[5] > 0 else None for r in disp]
 
         # ── 顯示窗口的總報酬／回撤／年化 ──
-        # 用「每筆交易報酬直接加總」（與深度分析同一口徑：無槓桿、無複利）。
-        # 純加總是確定性的：重抓資料、邊界飄動都不會讓數字翻盤，且兩個畫面對得上。
+        # 用「複利／權益曲線」（本金從 1 開始逐筆相乘），代表本金實際變多少。
+        # 與最佳策略、深度分析同一口徑。
         if strategy != 'rolltrend' and _all_disp:
             _rets = [t['ret'] for t in _all_disp]
-            _disp_total = round(sum(_rets), 2)
-            # 回撤：以「累積報酬曲線」（加總、非複利）的最大回落估計
-            _cum = 0.0; _peak = 0.0; _mdd = 0.0
-            for _r in _rets:
-                _cum += _r
-                if _cum > _peak: _peak = _cum
-                _dd = _peak - _cum
-                if _dd > _mdd: _mdd = _dd
-            _disp_mdd = round(_mdd, 2)
-            # 年化：用顯示窗口的實際時間跨度換算
             _yrs = max((disp[-1][0] - disp[0][0]) / (1000 * 86400 * 365.25), 1e-6)
-            _disp_cagr = round(_disp_total / _yrs, 2)
+            _disp_total, _disp_mdd, _disp_cagr = compound_metrics(_rets, _yrs)
         else:
             _disp_total = round(stats['total'], 2)
             _disp_mdd = round(stats['mdd'], 2)
@@ -675,15 +688,10 @@ def best_strategy():
                 stats = stats_is
                 pf = pf_is
                 trades = len(_disp_tlog)
-                # 總報酬／回撤：與卡片、深度分析同口徑（每筆報酬加總、無槓桿、無複利）
+                # 總報酬／回撤／年化：與卡片、深度分析同口徑（複利、本金實際變多少）
                 _rets_bs = [t['ret'] for t in _disp_tlog if t.get('ret') is not None]
-                total = round(sum(_rets_bs), 2)
-                _cum = 0.0; _pk = 0.0; _md = 0.0
-                for _r in _rets_bs:
-                    _cum += _r
-                    if _cum > _pk: _pk = _cum
-                    if _pk - _cum > _md: _md = _pk - _cum
-                _add_mdd = round(_md, 2)
+                _yrs_bs = max(days / 365.25, 1e-6)
+                total, _add_mdd, _cagr_bs = compound_metrics(_rets_bs, _yrs_bs)
 
                 # 依市場設定最低筆數門檻
                 sym_upper = symbol.upper()
@@ -713,7 +721,7 @@ def best_strategy():
                         'name': strat_info['name'],
                         'pf': pf,
                         'total': total,
-                        'cagr': round(total / max(days / 365.25, 1e-6), 2),
+                        'cagr': _cagr_bs,
                         'mdd': mdd,
                         'win': _disp_wr_is,
                         'trades': trades,
@@ -799,10 +807,13 @@ def deep_analysis():
                     if not result_is:
                         continue
                     _, _, stats_is = result_is
-                    pf = calc_pf([t for t in stats_is.get('trade_log',[]) if not t.get('open')])
-                    total = round(stats_is['total'], 2)
+                    _tlog_is = [t for t in stats_is.get('trade_log',[]) if not t.get('open')]
+                    pf = calc_pf(_tlog_is)
+                    # 總報酬／回撤／年化：複利（本金實際變多少），與卡片、最佳策略同口徑
+                    _rets_is = [t['ret'] for t in _tlog_is if t.get('ret') is not None]
+                    _yrs_is = max((ohlcv_is[-1][0] - ohlcv_is[0][0]) / (1000*86400*365.25), 1e-6) if len(ohlcv_is) > 1 else 1.0
+                    total, mdd, cagr_is = compound_metrics(_rets_is, _yrs_is)
                     trades = stats_is.get('trades', 0)
-                    mdd = round(stats_is['mdd'], 2)
 
                     if pf <= 1 or trades < min_trades or mdd >= 50:
                         continue
@@ -814,10 +825,11 @@ def deep_analysis():
                         if not result_oos:
                             continue
                         _, _, stats_oos = result_oos
-                        oos_pf = calc_pf([t for t in stats_oos.get('trade_log',[]) if not t.get('open')])
+                        _tlog_oos = [t for t in stats_oos.get('trade_log',[]) if not t.get('open')]
+                        oos_pf = calc_pf(_tlog_oos)
                         if oos_pf <= 1:
                             continue
-                        oos_total = round(stats_oos['total'], 2)
+                        oos_total, _, _ = compound_metrics([t['ret'] for t in _tlog_oos if t.get('ret') is not None])
 
                     ret_bonus = 1.5 if total >= 20 else (1.2 if total >= 10 else 1.0)
                     mdd_penalty = 1 + mdd / 100
@@ -827,7 +839,7 @@ def deep_analysis():
                         'strat': strat_key,
                         'name': strat_info['name'],
                         'pf': pf, 'total': total,
-                        'cagr': round(stats_is['cagr'], 2),
+                        'cagr': cagr_is,
                         'mdd': mdd,
                         'win': round(stats_is['win'], 1),
                         'trades': trades,
@@ -870,16 +882,16 @@ def deep_analysis():
                         t['exit_date'].timestamp()*1000 >= cutoff_ms]
 
             def eval_window(trades):
-                """評估一段時間內的交易績效"""
+                """評估一段時間內的交易績效（總報酬用複利）"""
                 if len(trades) < 10:
                     return None
                 pf = calc_pf(trades)
                 if pf <= 1:
                     return None
-                total = round(sum(t['ret'] for t in trades if t.get('ret')), 2)
+                total, w_mdd, _ = compound_metrics([t['ret'] for t in trades if t.get('ret') is not None])
                 wins = [t for t in trades if t.get('ret') and t['ret'] > 0]
                 win_rate = round(len(wins)/len(trades)*100, 1)
-                return {'pf': pf, 'total': total, 'win': win_rate, 'trades': len(trades)}
+                return {'pf': pf, 'total': total, 'win': win_rate, 'trades': len(trades), 'mdd': w_mdd}
 
             crypto_results = []
             for strat_key, strat_info in _sim.STRATS.items():
@@ -916,14 +928,20 @@ def deep_analysis():
                         trust = 1  # ⭐ 只有長期
                         base = r2y
 
+                    # 顯示用的回撤／年化：用顯示窗口的複利結果（與卡片同口徑）
+                    disp_mdd = base.get('mdd', mdd)
+                    base_yrs = 0.5 if base is r6mo else 2.0
+                    base_eq = 1 + base['total'] / 100.0
+                    disp_cagr = round((base_eq ** (1.0 / base_yrs) - 1) * 100, 2) if base_eq > 0 else base['total']
+
                     ret_bonus = 1.5 if base['total'] >= 20 else (1.2 if base['total'] >= 10 else 1.0)
-                    score = round(base['pf'] * math.log(max(base['trades'], 2)) * ret_bonus / (1 + mdd/100), 2)
+                    score = round(base['pf'] * math.log(max(base['trades'], 2)) * ret_bonus / (1 + disp_mdd/100), 2)
 
                     crypto_results.append({
                         'strat': strat_key, 'name': strat_info['name'],
                         'pf': base['pf'], 'total': base['total'],
-                        'cagr': round(stats['cagr'],2),
-                        'mdd': mdd, 'win': base['win'],
+                        'cagr': disp_cagr,
+                        'mdd': disp_mdd, 'win': base['win'],
                         'trades': base['trades'], 'score': score,
                         'oosPf': r2y['pf'] if r2y else None,
                         'oosTotal': r2y['total'] if r2y else None,
