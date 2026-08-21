@@ -5,6 +5,50 @@ sys.path.insert(0, os.path.dirname(__file__))
 from sim import run_backtest, STRATS, market_cost
 from sim import ema as calc_ema
 
+EXTRA_STRAT_CODES = set()  # 擴充策略代碼（integration/ 研究產出，主要在幣安加密貨幣上驗證過）
+
+def _register_extra_strats():
+    """載入 integration/ 底下研究產出的擴充策略，合併進 STRATS。
+    跟機器人 app.py 的 _register_extra_strats() 保持同一份清單，讓網頁的策略庫跟機器人同步。"""
+    integ = os.path.join(os.path.dirname(__file__), "integration")
+    if integ not in sys.path:
+        sys.path.insert(0, integ)
+    try:
+        from extra_strats import EXTRA_STRATS as V1
+        from extra_strats_v3 import EXTRA_STRATS_V3
+        from extra_strats_v4 import EXTRA_STRATS_V4
+        from extra_strats_v5 import EXTRA_STRATS_V5
+        from extra_strats_v6 import EXTRA_STRATS_V6
+        from extra_strats_v7 import EXTRA_STRATS_V7
+        from extra_strats_v8 import EXTRA_STRATS_V8
+        from extra_strats_v9 import EXTRA_STRATS_V9
+        from extra_strats_loop import EXTRA_STRATS_LOOP
+    except Exception as e:
+        print(f'⚠️  擴充策略載入失敗（{e}），僅使用基礎策略庫')
+        return
+    def wrap(fn):
+        def build(O, H, L, C, V, tf):
+            out = fn(O, H, L, C, V, tf)
+            if isinstance(out, tuple) and len(out) == 4:
+                return out[0], out[1]
+            return out
+        return build
+    for pool in (V1, EXTRA_STRATS_V3, EXTRA_STRATS_V4, EXTRA_STRATS_V5, EXTRA_STRATS_V6,
+                 EXTRA_STRATS_V7, EXTRA_STRATS_V8, EXTRA_STRATS_V9, EXTRA_STRATS_LOOP):
+        for code, meta in pool.items():
+            if not meta.get("build") or code in STRATS:
+                continue
+            STRATS[code] = dict(
+                name=meta.get("name", code),
+                build=wrap(meta["build"]),
+                atr_stop=0.0, atr_trail=0.0, atr_tp=0.0,
+                pct_stop=0.025, pct_tp=0.075,
+            )
+            EXTRA_STRAT_CODES.add(code)
+    print(f'✅ 擴充策略載入完成，新增 {len(EXTRA_STRAT_CODES)} 個策略（策略庫共 {len(STRATS)} 個）')
+
+_register_extra_strats()
+
 app = Flask(__name__)
 CORS(app)
 
@@ -70,6 +114,11 @@ STRAT_LIST = [
     {"v": "crsi",       "l": "Connors RSI 逆勢（勝率67%）"},
     {"v": "rsi",        "l": "RSI 均值回歸（逆勢）"},
 ]
+
+# ── 擴充策略（integration/ 研究產出，跟機器人同步）──
+_listed = {s["v"] for s in STRAT_LIST}
+STRAT_LIST += [{"v": code, "l": meta.get("name", code)}
+               for code, meta in STRATS.items() if code not in _listed]
 
 _cache = {}
 _cache_time = {}
@@ -667,7 +716,7 @@ def best_strategy():
         us_strats  = {'tsmom','vbreakr','bbreak','lrs','sixline','ema_cross','pullbk',
                       'rolltrend','crsi','macd','supertrend','ichimoku','cci','vortex','donchian'}
         crypto_strats = {'sixline','ttm','keltner','donchian','smc','hma','rsi50',
-                         'vwap','obv','force','cmf','bbreak','lrs','cci','vortex','diadx'}
+                         'vwap','obv','force','cmf','bbreak','lrs','cci','vortex','diadx'} | EXTRA_STRAT_CODES
         metal_strats  = {'volbreak','supertrend','kama','heikin','ema_cross','pullback',
                          'macd','psar','rsi50','sixline','donchian'}
 
@@ -800,7 +849,7 @@ def deep_analysis():
             us_strats  = {'tsmom','vbreakr','bbreak','lrs','sixline','ema_cross','pullbk',
                           'rolltrend','crsi','macd','supertrend','ichimoku','cci','vortex','donchian'}
             crypto_strats = {'sixline','ttm','keltner','donchian','smc','hma','rsi50',
-                             'vwap','obv','force','cmf','bbreak','lrs','cci','vortex','diadx'}
+                             'vwap','obv','force','cmf','bbreak','lrs','cci','vortex','diadx'} | EXTRA_STRAT_CODES
             metal_strats  = {'volbreak','supertrend','kama','heikin','ema_cross','pullback',
                              'macd','psar','rsi50','sixline','donchian'}
 
