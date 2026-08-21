@@ -90,6 +90,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .hotbar-stocks{display:flex;gap:6px;flex-wrap:wrap;flex:1;}
 .hstock{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;white-space:nowrap;transition:all 0.15s;}
 .hstock:hover{background:var(--bg3);color:var(--text);border-color:rgba(255,255,255,0.2);}
+/* 市場分頁（篩選自己追蹤的卡片） */
+.market-tabs{display:flex;gap:6px;padding:8px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.mtab{font-size:13px;font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all 0.15s;}
+.mtab .mtab-count{font-weight:400;opacity:0.7;margin-left:2px;}
+.mtab.active{background:var(--accent,#26a69a);color:#fff;border-color:var(--accent,#26a69a);}
+.mtab:hover:not(.active){background:var(--bg3);color:var(--text);}
 /* 最佳策略彈窗 */
 .analysis-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:2000;align-items:center;justify-content:center;padding:16px;}
 .analysis-modal-bg.open{display:flex;}
@@ -245,6 +251,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <select id="addStrat"></select>
     <button class="btn-add" onclick="addStock()">＋ 加入</button>
   </div>
+  <div class="market-tabs" id="marketTabs"></div>
   <div class="hotbar" id="hotBar">
   <div class="hotbar-tabs">
     <button class="htab active" onclick="switchHot('tw')">📈 台股</button>
@@ -490,6 +497,13 @@ async function addStock(){
   renderCard(stock);
   loadCard(id);
   updateNavBar();
+  // 新加的股票如果跟目前分頁市場不同，自動切過去，不然會加了卻看不到
+  const newMarket = getMarket(finalSymbol);
+  if(activeMarketTab!=='all' && activeMarketTab!==newMarket){
+    switchMarketTab(newMarket);
+  } else {
+    applyMarketFilter();
+  }
 }
 
 function deleteStock(id,e){
@@ -499,6 +513,7 @@ function deleteStock(id,e){
   destroyCard(id);
   document.getElementById(`card-${id}`)?.remove();
   updateNavBar();
+  renderMarketTabs();
 }
 
 function destroyCard(id){
@@ -1001,7 +1016,7 @@ function renderCard(stock){
     <div class="metrics">
       <div class="metric" data-tip="這段期間內策略的總獲利（扣除手續費）。單看報酬不夠，要搭配 PF 和交易筆數一起判斷，三個都好才算真正可信。"><div class="metric-label">總報酬 ⓘ</div><div class="metric-val neutral" data-m="ret">—</div></div>
       <div class="metric" data-tip="把總報酬換算成「每年賺多少」的基準。方便和其他投資比較，例如定存、0050 等。"><div class="metric-label">年化 ⓘ</div><div class="metric-val neutral" data-m="cagr">—</div></div>
-      <div class="metric" data-tip="獲利因子：每虧 1 塊能賺回多少塊。PF>1.5 才值得用，越高越好。「找最佳策略」的綜合分數 = PF × log(筆數) × 報酬加成 ÷ (1+回撤)，高 PF 加低回撤才會排名靠前。同時會做 OOS 樣本外驗證，兩段都通過才納入排名。"><div class="metric-label">PF ⓘ</div><div class="metric-val neutral" data-m="pf">—</div></div>
+      <div class="metric" data-tip="獲利因子：每虧 1 塊能賺回多少塊。PF>1.5 才值得用，越高越好。「找最佳策略」的綜合分數 = PF × log(筆數) × 報酬加成 ÷ (1+回撤)，高 PF 加低回撤才會排名靠前。排名前 8 名會額外用後 30% 的資料補跑一次 OOS 驗證僅供參考——沒過不會被刷掉，自己判斷要不要信。"><div class="metric-label">PF ⓘ</div><div class="metric-val neutral" data-m="pf">—</div></div>
       <div class="metric" data-tip="最大回撤：這段時間資金從最高點最多跌了多少。越低越穩，建議不超過 30%。回撤大代表過程中會很煎熬，即使最終賺錢也很難抱住。"><div class="metric-label">回撤 ⓘ</div><div class="metric-val neutral" data-m="dd">—</div></div>
       <div class="metric" data-tip="勝率：幾成的交易是賺錢的。順勢策略通常只有 25~40%，但賺的比虧的多，整體還是正的。"><div class="metric-label">勝率 ⓘ</div><div class="metric-val neutral" data-m="wr">—</div></div>
       <div class="metric" data-tip="總交易筆數。台股／美股日線至少 5 筆，加密 4H 至少 10 筆，才有統計參考價值。筆數越多越可信。「找最佳策略」的排名公式 = PF × log(筆數) × 報酬加成，筆數少的策略分數會被壓低。"><div class="metric-label">交易 ⓘ</div><div class="metric-val neutral" data-m="tc">—</div></div>
@@ -1263,6 +1278,7 @@ function importStocks(event){
       save();
       stocks.forEach(s => renderCard(s));
       applyNavState();
+      applyMarketFilter();
       loadAllSignals();
       stocks.slice(0, PRELOAD_COUNT).forEach(s => loadCard(s.id));
       setupLazyLoad(stocks.slice(PRELOAD_COUNT));
@@ -1284,6 +1300,44 @@ function getMarket(symbol){
 }
 
 const MARKET_GROUP_LABEL = {tw:'📈 台股', us:'🇺🇸 美股', crypto:'₿ 加密', metal:'🥇 貴金屬'};
+
+// ── 市場分頁：把自己追蹤的卡片依市場分開顯示 ──────────────────────
+let activeMarketTab = localStorage.getItem('activeMarketTab') || 'all';
+
+function renderMarketTabs(){
+  const bar = document.getElementById('marketTabs');
+  if(!bar) return;
+  const counts = {all: stocks.length, tw:0, us:0, crypto:0, metal:0};
+  stocks.forEach(s => { const m = getMarket(s.symbol); counts[m] = (counts[m]||0)+1; });
+  const order = ['all','crypto','tw','us','metal'];
+  const label = {all:'📋 全部', ...MARKET_GROUP_LABEL};
+  bar.innerHTML = order
+    .filter(m => m==='all' || counts[m]>0)
+    .map(m => `<button class="mtab ${activeMarketTab===m?'active':''}" onclick="switchMarketTab('${m}')">${label[m]}<span class="mtab-count">${counts[m]||0}</span></button>`)
+    .join('');
+}
+
+function applyMarketFilter(){
+  // 分頁若失效（該市場已無卡片）就退回「全部」，避免畫面空白
+  if(activeMarketTab!=='all' && !stocks.some(s=>getMarket(s.symbol)===activeMarketTab)){
+    activeMarketTab='all';
+    localStorage.setItem('activeMarketTab','all');
+  }
+  stocks.forEach(s => {
+    const card = document.getElementById(`card-${s.id}`);
+    if(!card) return;
+    const show = activeMarketTab==='all' || getMarket(s.symbol)===activeMarketTab;
+    card.style.display = show ? '' : 'none';
+  });
+  renderMarketTabs();
+}
+
+function switchMarketTab(m){
+  activeMarketTab = m;
+  localStorage.setItem('activeMarketTab', m);
+  applyMarketFilter();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
 
 // ── 環境判斷 ──────────────────────────────────────────
 let isRender = true; // 預設保守，載入後更新
@@ -1341,7 +1395,7 @@ async function runDeepAnalysis(id, e){
   }, 1000);
 
   try{
-    const r = await fetch(`/api/deep_analysis?symbol=${stock.symbol}&timeframe=${stock.tf||'1d'}&use_oos=0`);
+    const r = await fetch(`/api/deep_analysis?symbol=${stock.symbol}&timeframe=${stock.tf||'1d'}&use_oos=1`);
     const data = await r.json();
     clearInterval(progInterval);
 
@@ -1408,7 +1462,7 @@ async function runBestStrategy(id, e){
 
   document.getElementById('analysisBg').classList.add('open');
   document.getElementById('analysisTitle').textContent = `🔍 ${stock.name||stock.symbol} — 最佳策略分析`;
-  document.getElementById('analysisSub').textContent = `完整資料回測，筆數和圖表一致，按 PF × 筆數 綜合評分...`;
+  document.getElementById('analysisSub').textContent = `完整資料回測，筆數和圖表一致，按 PF × 筆數 綜合評分，前 8 名補跑 OOS 驗證...`;
   document.getElementById('analysisProgress').style.display = 'block';
   document.getElementById('analysisResults').innerHTML = '';
   document.getElementById('progressBar').style.width = '0%';
@@ -1422,7 +1476,7 @@ async function runBestStrategy(id, e){
   }, 800);
 
   try{
-    const r = await fetch(`/api/best_strategy?symbol=${stock.symbol}&period=${stock.period||'2y'}&timeframe=${stock.tf||'1d'}&use_oos=0`);
+    const r = await fetch(`/api/best_strategy?symbol=${stock.symbol}&period=${stock.period||'2y'}&timeframe=${stock.tf||'1d'}&use_oos=1`);
     const data = await r.json();
     clearInterval(progInterval);
 
@@ -1460,6 +1514,14 @@ async function runBestStrategy(id, e){
     document.getElementById('analysisResults').innerHTML = results.map((r,i)=>{
       const fit = r.cat && fitCats.includes(r.cat);
       const catBadge = r.cat ? `<span class="char-badge show ${catCls[r.cat]}" style="margin-left:0;">${fit?'✓ ':''}${catLabel[r.cat]||''}</span>` : '';
+      let oosLine;
+      if(r.oosPf==null){
+        oosLine = `<span style="color:var(--text3);">OOS 樣本不足，無法驗證</span>`;
+      } else {
+        const oosColor = r.oosPass ? '#26a69a' : '#ef5350';
+        const oosMark  = r.oosPass ? '✓ 另一段資料也撐得住' : '✗ 另一段資料撐不住，小心過度擬合';
+        oosLine = `<span style="color:${oosColor};">OOS PF <b>${r.oosPf>=999?'∞':r.oosPf}</b>（${r.oosTrades}筆）${oosMark}</span>`;
+      }
       return `
       <div class="result-row ${i===0?'rank-1':''}" ${fit?'style="border-left:3px solid #26a69a;"':''}>
         <div class="result-rank">${medals[i]||i+1}</div>
@@ -1472,6 +1534,7 @@ async function runBestStrategy(id, e){
             <span>勝率 ${r.win}%</span>
             <span>${r.trades}筆</span>
           </div>
+          <div class="result-stats" style="margin-top:2px;font-size:11px;">${oosLine}</div>
         </div>
         <div style="text-align:right;flex-shrink:0;">
           <div style="font-size:16px;font-weight:700;color:#26a69a;">${r.pf>=999?'∞':r.pf}</div>
@@ -1530,6 +1593,7 @@ async function init(){
   await loadStrategies();
   stocks.forEach(s=>renderCard(s));
   applyNavState();
+  applyMarketFilter();
 
   // 1. 背景靜默載入所有股票輕量訊號 → 更新導覽列
   loadAllSignals();

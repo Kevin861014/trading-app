@@ -698,17 +698,14 @@ def best_strategy():
 
         results = []
 
-        # ── OOS 驗證切割點（前70% IS 選策略，後30% OOS 驗證）──
-        if use_oos:
-            split_idx = int(len(ohlcv) * 0.7)
-            ohlcv_is  = ohlcv[:split_idx]
-            ohlcv_oos = ohlcv[split_idx:]
-            do_oos = len(ohlcv_oos) >= 60 and len(ohlcv_is) >= 220
-        else:
-            # 快速模式：直接用全部資料
-            ohlcv_is  = ohlcv
-            ohlcv_oos = []
-            do_oos = False
+        # 排名照舊用全量資料（跟套用後圖表同一份，筆數/PF 才會一致）。
+        ohlcv_is = ohlcv
+
+        # ── OOS 驗證切割點（後30%）：只拿來給「排名結果」補跑驗證，不影響排名本身、
+        # 也不會因為沒過而被刷掉——只是分數旁邊多一欄「OOS PF」讓人自己判斷可不可信。
+        _oos_split = int(len(ohlcv) * 0.7)
+        ohlcv_oos = ohlcv[_oos_split:]
+        do_oos = use_oos and len(ohlcv_oos) >= 60 and len(ohlcv) >= 220
 
         # 根據市場選擇適合的策略，避免跑不適合的策略浪費時間
         tw_strats  = {'diadx','volbreak','sixline','pullback','supertrend','donchian',
@@ -801,6 +798,8 @@ def best_strategy():
                         'cat': STRAT_CATEGORY.get(strat_key, ''),
                         'oosPf': None,
                         'oosTotal': None,
+                        'oosTrades': None,
+                        'oosPass': None,
                     })
             except Exception:
                 continue
@@ -808,6 +807,26 @@ def best_strategy():
         # 按綜合分數排序（報酬 × PF × log(筆數)），取前 8 名
         results.sort(key=lambda x: x['score'], reverse=True)
         top = results[:8]
+
+        # ── 只對前 8 名補跑 OOS（後 30% 資料），當附註資訊；不夠格不刷掉，只是標記 ──
+        if do_oos:
+            for r in top:
+                try:
+                    _com, _slp = market_cost(('yf', symbol), r['strat'])
+                    result_oos = run_backtest(ohlcv_oos, strategy=r['strat'], risk_pct=0.015, timeframe=yf_tf,
+                                              commission=_com, slippage=_slp)
+                    if not result_oos:
+                        continue
+                    _, _, stats_oos = result_oos
+                    _tlog_oos = [t for t in stats_oos.get('trade_log', []) if not t.get('open')]
+                    if len(_tlog_oos) < 5:   # OOS 樣本太少，數字不可信，寧可留白
+                        continue
+                    r['oosPf'] = calc_pf(_tlog_oos)
+                    r['oosTotal'] = round(stats_oos['total'], 2)
+                    r['oosTrades'] = len(_tlog_oos)
+                    r['oosPass'] = r['oosPf'] > 1
+                except Exception:
+                    continue
 
         tested_count = len([k for k in _sim.STRATS if k not in skip and k in allowed])
         mc = market_character(ohlcv) if ohlcv else {'code':'na','label':'資料不足','adx':None}
@@ -940,7 +959,7 @@ def deep_analysis():
             sym_upper = symbol.upper()
             allowed = {'sixline','ttm','keltner','donchian','smc','hma','rsi50',
                        'vwap','obv','force','cmf','bbreak','lrs','cci','vortex','diadx',
-                       'tsmom','ema_cross','supertrend'}
+                       'tsmom','ema_cross','supertrend'} | EXTRA_STRAT_CODES
             skip = {'rsi2dip','ibsdip','zdip'}
 
             # 時間切割點
