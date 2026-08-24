@@ -662,6 +662,9 @@ STRAT_CATEGORY = {
     'bbreak':'breakout','volbreak':'breakout','vbreakr':'breakout','ttm':'breakout',
     'smc':'breakout',
 }
+# 讓 /api/strategies 也帶上分類，前端才能比對「目前策略類型」跟「當下市場性格」合不合
+for _s in STRAT_LIST:
+    _s['cat'] = STRAT_CATEGORY.get(_s['v'], '')
 
 
 @app.route('/api/best_strategy')

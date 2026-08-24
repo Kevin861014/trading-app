@@ -41,6 +41,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-icon{font-size:12px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;padding:5px 8px;line-height:1;}
 .btn-icon:hover{color:var(--text);border-color:rgba(255,255,255,0.2);}
 .btn-icon.del:hover{color:var(--red);border-color:var(--red);}
+.mismatch-warn{padding:6px 14px;font-size:12px;font-weight:600;color:#f5a623;background:rgba(245,166,35,0.1);border-top:1px solid rgba(245,166,35,0.3);}
 .signal-banner{padding:8px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;}
 .signal-big{font-size:14px;font-weight:700;}
 .signal-big.buy{color:var(--green);}
@@ -528,9 +529,13 @@ function updateCardSub(id){
   const s=stocks.find(s=>s.id===id); if(!s) return;
   const card=document.getElementById(`card-${id}`); if(!card) return;
   const sub=card.querySelector('.card-sub'); if(!sub) return;
-  sub.textContent=`${s.symbol} · ${getStratName(s.strat)} · ${TF_LABELS[s.tf]||'1d'}`;
+  // 注意：不能用 textContent 整個蓋掉，會把裡面的 char-badge <span> 一起砍掉，
+  // 之後 loadCharacter() 就找不到那個 id、市場性格徽章跟策略對不對得上的警示都會停更。
+  const badge = sub.querySelector('.char-badge'); // 先抓住這個元素再清空，清完再放回去
+  sub.textContent=`${s.symbol} · ${getStratName(s.strat)} · ${TF_LABELS[s.tf]||'1d'} `;
+  if(badge) sub.appendChild(badge);
 }
-function changeStrat(id,val){const s=stocks.find(s=>s.id===id);if(s){s.strat=val;save();updateCardSub(id);}reloadCard(id);}
+function changeStrat(id,val){const s=stocks.find(s=>s.id===id);if(s){s.strat=val;save();updateCardSub(id);updateMismatchWarn(id);}reloadCard(id);}
 function changePeriod(id,val){const s=stocks.find(s=>s.id===id);if(s){s.period=val;save();}reloadCard(id);}
 function changeTf(id,val){const s=stocks.find(s=>s.id===id);if(s){s.tf=val;save();updateCardSub(id);}reloadCard(id);}
 
@@ -593,7 +598,28 @@ async function loadCard(id){
   }
 }
 
-// 市場性格偵測（ADX）：在卡片標題列顯示趨勢/盤整徽章
+// 策略類型 vs 市場性格是否吃得上：跟「最佳策略」彈窗同一套判斷（trend/breakout 適合有方向、range 適合盤整）
+function getStratCat(v){ const s=strategies.find(s=>s.v===v); return s?s.cat:''; }
+function checkStratMismatch(marketCode, stratCat){
+  if(!stratCat || !marketCode || marketCode==='na') return null; // 沒分類資訊就不判斷，別亂警告
+  const fitCats = (marketCode==='up'||marketCode==='down') ? ['trend','breakout']
+                : marketCode==='range' ? ['range'] : [];
+  if(fitCats.includes(stratCat)) return null;
+  const catLabel = {trend:'順勢', range:'均值回歸', breakout:'突破'};
+  const marketLabel = {up:'上升趨勢', down:'下降趨勢', range:'盤整'}[marketCode];
+  return `⚠ ${catLabel[stratCat]}策略遇上${marketLabel}，訊號可信度打折，非不能用，但要更小心`;
+}
+
+function updateMismatchWarn(id){
+  const stock=stocks.find(s=>s.id===id);
+  const el=document.getElementById(`mismatch-${id}`);
+  if(!stock || !el) return;
+  const msg = checkStratMismatch(stock._marketCode, getStratCat(stock.strat));
+  if(msg){ el.textContent=msg; el.style.display='block'; }
+  else{ el.style.display='none'; }
+}
+
+// 市場性格偵測（ADX）：在卡片標題列顯示趨勢/盤整徽章，並比對目前策略合不合
 async function loadCharacter(id){
   const stock=stocks.find(s=>s.id===id);
   if(!stock) return;
@@ -606,6 +632,8 @@ async function loadCharacter(id){
     const cls={up:'char-up',down:'char-down',range:'char-range',na:'char-na'}[d.code]||'char-na';
     el.className=`char-badge show ${cls}`;
     el.textContent=`${icon} ${d.label}${d.adx!=null?` ADX${d.adx}`:''}`;
+    stock._marketCode = d.code; // 記住，換策略時不用重打 API 就能重新比對
+    updateMismatchWarn(id);
   }catch(e){ /* 靜默失敗，不影響卡片 */ }
 }
 
@@ -1012,6 +1040,7 @@ function renderCard(stock){
         <button class="btn-icon del" onclick="deleteStock(${stock.id},event)" title="刪除">✕</button>
       </div>
     </div>
+    <div id="mismatch-${stock.id}" class="mismatch-warn" style="display:none;" data-tip="策略分兩種：順勢/突破類適合有方向的行情，均值回歸類適合原地整理的行情。現在的市場性格跟選的策略類型對不上，訊號可信度要打折看，不是不能用，是要更小心。"></div>
     <div class="signal-banner" data-tip="目前策略狀態。▲買進訊號=現在符合進場條件；▼賣出訊號=現在符合出場條件；多頭趨勢=均線向上但尚未觸發訊號，持倉等待；空頭趨勢=不建議進場。"><span class="signal-big hold">— 等待載入</span></div>
     <div class="metrics">
       <div class="metric" data-tip="這段期間內策略的總獲利（扣除手續費）。單看報酬不夠，要搭配 PF 和交易筆數一起判斷，三個都好才算真正可信。"><div class="metric-label">總報酬 ⓘ</div><div class="metric-val neutral" data-m="ret">—</div></div>
