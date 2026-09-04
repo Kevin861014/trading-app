@@ -1154,8 +1154,25 @@ def validate():
         if ok2:
             return jsonify({'valid': True, 'symbol': symbol2, 'name': name2 or symbol2, 'suggestion': symbol2})
 
+    # 加密貨幣常見寫法（CHZ/USDT、CHZUSDT、純代碼 CHZ）→ 換成 yfinance 認得的 XXX-USD 再試一次。
+    # 這裡不用 yfinance 查 CHZ/USDT 本身一定查不到（yfinance 沒有這種代碼格式），
+    # 但其餘功能（fetch_data／is_crypto_symbol）本來就支援 /USDT，只有這支驗證漏掉，要跟資料抓取那邊統一。
+    sym_upper = symbol.upper()
+    base = None
+    if '/USDT' in sym_upper:
+        base = sym_upper.split('/USDT')[0]
+    elif sym_upper.endswith('USDT') and len(sym_upper) > 4:
+        base = sym_upper[:-4]
+    elif '-USD' not in sym_upper and sym_upper.isalpha():
+        base = sym_upper  # 純代碼（例如只打 CHZ）也順便試試看
+    if base:
+        symbol3 = f'{base}-USD'
+        ok3, name3 = try_fetch(symbol3)
+        if ok3:
+            return jsonify({'valid': True, 'symbol': symbol3, 'name': name3 or symbol3, 'suggestion': symbol3})
+
     # 都找不到
-    return jsonify({'valid': False, 'error': f'找不到 {symbol}，請確認代碼是否正確（台股格式：1101.TW，加密：BTC-USD）'})
+    return jsonify({'valid': False, 'error': f'找不到 {symbol}，請確認代碼是否正確（台股格式：1101.TW，加密：BTC-USD 或 BTC/USDT）'})
 
 
 @app.route('/api/signal')
