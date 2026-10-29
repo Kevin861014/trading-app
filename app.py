@@ -131,6 +131,34 @@ def is_crypto_symbol(symbol):
             any(c in s for c in ['BTC','ETH','BNB','SOL','XRP','DOGE','ADA',
                                   'LINK','LTC','TRX','PAXG','DOT','XLM']))
 
+INTRADAY = ('1h', '4h')
+
+def tf_to_data_interval(timeframe):
+    """前端時框 → 實際資料時框。4H 就是 4H（以前被偷換成 1H，造成跟機器人用的 K 棒不一致）。"""
+    return {'1d': '1d', '4h': '4h', '1h': '1h'}.get(timeframe, '1d')
+
+def uses_ccxt(symbol):
+    return bool(CCXT_AVAILABLE and is_crypto_symbol(symbol))
+
+def resample_ohlcv(rows, bucket_ms):
+    """把較細的 K 棒合成較粗的（以 UTC epoch 對齊，跟幣安 4H 的 0/4/8/12/16/20 點一致）。
+    只收『填滿』的區間，最後一根未走完的不收。"""
+    out = []; cur = None; n = 0; per = None
+    if len(rows) >= 2:
+        per = min(rows[i+1][0] - rows[i][0] for i in range(min(len(rows)-1, 50)) if rows[i+1][0] > rows[i][0])
+    need = int(bucket_ms // per) if per else 0
+    for r in rows:
+        b = r[0] - (r[0] % bucket_ms)
+        if cur is None or cur[0] != b:
+            if cur is not None and n >= need: out.append(cur)
+            cur = [b, r[1], r[2], r[3], r[4], (r[5] if len(r) > 5 else 0.0)]; n = 1
+        else:
+            cur[2] = max(cur[2], r[2]); cur[3] = min(cur[3], r[3]); cur[4] = r[4]
+            cur[5] += (r[5] if len(r) > 5 else 0.0); n += 1
+    if cur is not None and n >= need:
+        out.append(cur)
+    return out
+
 def fetch_ccxt_ohlcv(symbol, interval, days):
     """用 ccxt 從幣安抓加密貨幣 K 棒（本機專用）"""
     try:
@@ -160,6 +188,10 @@ def fetch_ccxt_ohlcv(symbol, interval, days):
             all_ohlcv += batch
             if len(batch) < 1000: break
             since = batch[-1][0] + 1
+        # 機器人只用『已收盤』的 K 棒；日內時框把還在走的最後一根拿掉，訊號才會跟機器人一致
+        _ms = {'1h': 3600000, '4h': 14400000}.get(ccxt_tf)
+        if _ms and all_ohlcv and all_ohlcv[-1][0] + _ms > ex.milliseconds():
+            all_ohlcv = all_ohlcv[:-1]
         # 格式：[ts, o, h, l, c, v]
         return [[r[0],r[1],r[2],r[3],r[4],r[5]] for r in all_ohlcv if r[4] > 0]
     except Exception as e:
@@ -183,6 +215,15 @@ def fetch_data(symbol, start_date, interval='1d'):
             _cache[cache_key] = result
             _cache_time[cache_key] = now
             return result
+
+    # 沒有 ccxt（例如 Render）：yfinance 沒有 4H，改抓 1H 再合成真正的 4H
+    if interval == '4h':
+        base = fetch_data(symbol, start_date, '1h')
+        out = resample_ohlcv(base, 4 * 3600 * 1000) if base else []
+        if out:
+            _cache[cache_key] = out
+            _cache_time[cache_key] = now
+        return out
 
     # 其他情況用 yfinance
     import yfinance as yf
@@ -434,12 +475,15 @@ def analyze():
     period    = request.args.get('period', '1y')
     timeframe = request.args.get('timeframe', '1d')
 
-    # yfinance 不支援 4h，用 1h 替代（sim.py 也這樣處理）
-    yf_tf = {'1d':'1d', '4h':'1h', '1h':'1h'}.get(timeframe, '1d')
+    # 4H 用真正的 4H K 棒（本機走 ccxt；沒有 ccxt 時由 1H 合成 4H），不再偷換成 1H
+    yf_tf = tf_to_data_interval(timeframe)
 
     days = PERIOD_DAYS.get(period, 365)
-    if yf_tf == '1h':
-        fetch_days = min(days + 100, 680)  # yfinance 1h 上限約 730 天
+    if yf_tf in INTRADAY:
+        if yf_tf == '4h' and uses_ccxt(symbol):
+            fetch_days = days + 300        # ccxt 真 4H：足夠暖機（約 1800 根）
+        else:
+            fetch_days = min(days + 100, 680)  # yfinance 1h（含由 1h 合成的 4h）上限約 730 天
     else:
         fetch_days = days + 700
     start_date = (datetime.datetime.now() - datetime.timedelta(days=fetch_days)).strftime('%Y-%m-%d')
@@ -487,7 +531,7 @@ def analyze():
         highs  = [r[2] for r in disp]
         lows   = [r[3] for r in disp]
         prices = [r[4] for r in disp]
-        dates  = [datetime.datetime.utcfromtimestamp(r[0]/1000).strftime('%Y-%m-%d %H:%M' if yf_tf=='1h' else '%Y-%m-%d') for r in disp]
+        dates  = [datetime.datetime.utcfromtimestamp(r[0]/1000).strftime('%Y-%m-%d %H:%M' if yf_tf in INTRADAY else '%Y-%m-%d') for r in disp]
 
         ema20 = calc_ema(prices, 20)
         ema50 = calc_ema(prices, 50)
@@ -515,7 +559,7 @@ def analyze():
                 if not t.get('open') and t.get('exit_date') and t['exit_date'] >= _disp_cut_dt
             ]
             _all_disp = _tlog_disp
-            fmt = '%Y-%m-%d %H:%M' if yf_tf == '1h' else '%Y-%m-%d'
+            fmt = '%Y-%m-%d %H:%M' if yf_tf in INTRADAY else '%Y-%m-%d'
             trades_list = [
                 {
                     'buyPrice': round(t['entry_px'], 2) if t.get('entry_px') else None,
@@ -566,7 +610,7 @@ def analyze():
                 buy_dt = dt2.strptime(last_buy_date, '%Y-%m-%d')
                 days_diff = (dt2.now() - buy_dt).days
                 signal_days_ago = days_diff
-                expire_days = 1 if yf_tf == '1h' else 3
+                expire_days = 1 if yf_tf in INTRADAY else 3
                 if days_diff > expire_days:
                     signal_expired = True
                 if last_buy_price and prices[-1] > last_buy_price * 1.03:
@@ -636,7 +680,7 @@ def api_market_character():
     """偵測標的當前市場性格（趨勢 / 盤整），給卡片顯示徽章用。"""
     symbol    = request.args.get('symbol', '2330.TW')
     timeframe = request.args.get('timeframe', '1d')
-    yf_tf = {'1d':'1d', '4h':'1h', '1h':'1h'}.get(timeframe, '1d')
+    yf_tf = tf_to_data_interval(timeframe)
     # 只需近期資料算 ADX，抓約 120 根足夠
     start_date = (datetime.datetime.now() - datetime.timedelta(days=120)).strftime('%Y-%m-%d')
     try:
@@ -674,15 +718,16 @@ def best_strategy():
     period    = request.args.get('period', '2y')
     timeframe = request.args.get('timeframe', '1d')
     use_oos   = request.args.get('use_oos', '1') == '1'
-    yf_tf = {'1d':'1d', '4h':'1h', '1h':'1h'}.get(timeframe, '1d')
+    yf_tf = tf_to_data_interval(timeframe)
 
     days = PERIOD_DAYS.get(period, 730)
-    # yfinance 1H 資料上限約 730 天，4H 策略用 1H 替代，超過會抓不到
-    if yf_tf == '1h' and days > 700:
+    # yfinance 1H 資料上限約 730 天（沒有 ccxt 時 4H 也是由 1H 合成，同樣受限）；本機 ccxt 的真 4H 沒這個限制
+    _limited = (yf_tf == '1h') or (yf_tf == '4h' and not uses_ccxt(symbol))
+    if _limited and days > 700:
         days = 700
-    # 跟一般查詢一樣用 +700 暖機資料，確保筆數一致
-    if yf_tf == '1h':
-        fetch_days = min(days + 100, 680)
+    # 跟一般查詢一樣用暖機資料，確保筆數一致
+    if yf_tf in INTRADAY:
+        fetch_days = min(days + 100, 680) if _limited else days + 300
     else:
         fetch_days = days + 700
     start_date = (datetime.datetime.now() - datetime.timedelta(days=fetch_days)).strftime('%Y-%m-%d')
@@ -849,7 +894,7 @@ def deep_analysis():
     symbol    = request.args.get('symbol', '2330.TW')
     timeframe = request.args.get('timeframe', '1d')
     use_oos   = request.args.get('use_oos', '1') == '1'
-    yf_tf = {'1d':'1d', '4h':'1h', '1h':'1h'}.get(timeframe, '1d')
+    yf_tf = tf_to_data_interval(timeframe)
 
     try:
         import sim as _sim
@@ -951,7 +996,7 @@ def deep_analysis():
         start_5y = (datetime.datetime.now() - datetime.timedelta(days=5*365+700)).strftime('%Y-%m-%d')
         start_3y = (datetime.datetime.now() - datetime.timedelta(days=3*365+700)).strftime('%Y-%m-%d')
 
-        if yf_tf == '1h':
+        if yf_tf in INTRADAY:
             # ── 加密貨幣 4H/1H ──
             import math
             start_2y = (datetime.datetime.now() - datetime.timedelta(days=730+400)).strftime('%Y-%m-%d')
@@ -1181,7 +1226,7 @@ def signal():
     symbol   = request.args.get('symbol', '2330.TW')
     strategy = request.args.get('strategy', 'diadx')
     timeframe = request.args.get('timeframe', '1d')
-    yf_tf = {'1d':'1d', '4h':'1h', '1h':'1h'}.get(timeframe, '1d')
+    yf_tf = tf_to_data_interval(timeframe)
 
     # 輕量版只需要最近 300 天
     start_date = (datetime.datetime.now() - datetime.timedelta(days=300)).strftime('%Y-%m-%d')
@@ -1249,7 +1294,7 @@ def signal():
                 buy_dt = datetime.datetime.strptime(last_buy_date, '%Y-%m-%d')
                 days_diff = (datetime.datetime.now() - buy_dt).days
                 signal_days_ago = days_diff
-                expire_days = 1 if yf_tf == '1h' else 3
+                expire_days = 1 if yf_tf in INTRADAY else 3
                 if days_diff > expire_days:
                     signal_expired = True
                 if last_buy_price and prices[-1] > last_buy_price * 1.03:
