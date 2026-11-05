@@ -46,6 +46,7 @@ def floor_step(q, step):
 def run(M, signals, timeline, T0, T1, P, init_wallet, deposits=(), loop_times=None, entry_guard=None, max_entries_per_cycle=None, restrict_symbols=None, equity_marks=True):
     """timeline = [(start_ts, [combo dict(symbol, timeframe, strategy, weight)...]), ...](設定更換/重啟時間);回傳 dict(trades, equity, ...)。"""
     wallet = float(init_wallet); pos = {}; trades = []; marks = []; funding_rec = collections.defaultdict(float)
+    reject_log = []; funding_log = []                    # D4 追加(只記錄,不影響任何計算):被拒絕的進場與每筆資金費率
     last_bar = {}; rejected = collections.Counter(); notes = collections.Counter()
     cycles = []                                           # (tau, combo_index, key, bar_ts)
     epochs = []                                           # (start, end, combos)
@@ -92,12 +93,12 @@ def run(M, signals, timeline, T0, T1, P, init_wallet, deposits=(), loop_times=No
             if px: e += p['qty'] * (px - p['fill'])
         return e
 
-    def record_trade(p, t, px, why):
+    def record_trade(p, t, px, why, exp_px=None, bar_ts=None):
         nonlocal wallet
         fee = p['qty'] * px * P['taker']; gross = p['qty'] * (px - p['fill'])
         wallet += gross - fee
         trades.append({'key': p['key'], 'sym': p['sym'], 'tf': p['tf'], 'entry_ts': p['t'], 'exit_ts': int(t), 'qty': p['qty'], 'entry_fill': p['fill'], 'exit_fill': px, 'notional': p['qty'] * p['fill'],
-                       'gross': gross, 'fees': p['fee_in'] + fee, 'funding': p['funding'], 'net': gross - p['fee_in'] - fee + p['funding'], 'why': why, 'sig_px': p['sig_px']})
+                       'gross': gross, 'fees': p['fee_in'] + fee, 'funding': p['funding'], 'net': gross - p['fee_in'] - fee + p['funding'], 'why': why, 'sig_px': p['sig_px'], 'exit_exp_px': exp_px, 'exit_bar_ts': bar_ts, 'stop_at_exit': p.get('stop'), 'exch_stop_at_exit': p.get('exch_stop')})
         del pos[p['key']]
 
     def scan_stops(h):                                    # 掃描 [h-1h, h) 這根 1H:交易所保護停損是否被打到
@@ -109,7 +110,7 @@ def run(M, signals, timeline, T0, T1, P, init_wallet, deposits=(), loop_times=No
             o_, h_, l_, c_ = cd
             if l_ <= p['exch_stop']:
                 fill = min(p['exch_stop'], o_) * (1 - P['slip_stop'])
-                record_trade(p, h - HOUR / 2, fill, '交易所保護停損'); notes['exchange_stop_exit'] += 1
+                record_trade(p, h - HOUR / 2, fill, '交易所保護停損', exp_px=p['exch_stop'], bar_ts=h - HOUR); notes['exchange_stop_exit'] += 1
 
     def apply_funding(h):
         for k, p in list(pos.items()):
@@ -119,7 +120,7 @@ def run(M, signals, timeline, T0, T1, P, init_wallet, deposits=(), loop_times=No
             i = bisect.bisect_right(ts, h - HOUR)
             while i < len(ts) and ts[i] <= h:
                 px = M.open_px(p['sym'], ts[i]) or p['fill']; amt = -p['qty'] * px * fr[i][1]
-                wallet_add(amt); p['funding'] += amt; funding_rec[p['key']] += amt; i += 1
+                wallet_add(amt); p['funding'] += amt; funding_rec[p['key']] += amt; funding_log.append({'ts': ts[i], 'key': p['key'], 'rate': fr[i][1], 'amount': amt}); i += 1
 
     def wallet_add(x):
         nonlocal wallet
@@ -151,7 +152,7 @@ def run(M, signals, timeline, T0, T1, P, init_wallet, deposits=(), loop_times=No
                     elif p['tp'] is not None and hi >= p['tp']: out = '停利(收盤判定)'
                     elif xl: out = '訊號出場'
                     if out:
-                        px = (M.open_px(sym, tau) or cl) * (1 - P['slip_exit']); record_trade(p, tau, px, out); continue
+                        px = (M.open_px(sym, tau) or cl) * (1 - P['slip_exit']); record_trade(p, tau, px, out, exp_px=cl, bar_ts=bt); continue
                     p['exch_stop'] = (p['stop'] * 0.995) if p['stop'] else p['entry_sig'] * 0.85
                     p['scan_from'] = h
                 # 進場只看本輪最後一根
@@ -160,7 +161,7 @@ def run(M, signals, timeline, T0, T1, P, init_wallet, deposits=(), loop_times=No
         # 進場(可套用情境的限制)
         order = sorted(cands, key=lambda x: -x[0].get('weight', 1)) if max_entries_per_cycle else cands      # 情境 D:同一輪太多進場時,權重大的優先(穩定排序,同權重依設定順序)
         for (c, k, bt, (cl, atr, hi)) in order:
-            if max_entries_per_cycle is not None and ncycle_entries >= max_entries_per_cycle: rejected['guard_max_entries'] += 1; continue
+            if max_entries_per_cycle is not None and ncycle_entries >= max_entries_per_cycle: rejected['guard_max_entries'] += 1; reject_log.append((int(tau), k, 'guard_max_entries')); continue
             sym, tf, strat = c['symbol'], c['timeframe'], c['strategy']; aStop, aTrail, aTP, pStop, pTrail, pTP = P['exit'][strat]; usePct = (pStop > 0 or pTrail > 0 or pTP > 0)
             alloc = cap * c.get('weight', 1) / sumw; price = cl
             sdist = (pStop * price) if (usePct and pStop > 0) else (aStop * atr if (aStop > 0 and atr) else 0)
@@ -169,16 +170,16 @@ def run(M, signals, timeline, T0, T1, P, init_wallet, deposits=(), loop_times=No
             notional_all = sum(p['qty'] * (M.open_px(p['sym'], tau) or p['fill']) for p in pos.values())
             if (notional_all + qty * price) > cap * P['max_total']: qty = max(0.0, (cap * P['max_total'] - notional_all) / price); notes['total_cap_scaled'] += 1
             if entry_guard is not None and not entry_guard(cap, notional_all, qty * price, pos):
-                rejected['guard_exposure'] += 1; continue
+                rejected['guard_exposure'] += 1; reject_log.append((int(tau), k, 'guard_exposure')); continue
             step, min_cost = M.step_min(sym)
             need = qty * price / P['max_lev_int']
             if need > free * 0.9:
                 afford = (free * 0.9 * P['max_lev_int']) / price
-                if afford < step or afford <= 0: rejected['margin'] += 1; continue
+                if afford < step or afford <= 0: rejected['margin'] += 1; reject_log.append((int(tau), k, 'margin')); continue
                 qty = min(qty, afford)
             qty = floor_step(qty, step)
-            if qty <= 0 or (step and qty < step): rejected['below_step'] += 1; continue
-            if qty * price < min_cost: rejected['below_min_notional'] += 1; continue
+            if qty <= 0 or (step and qty < step): rejected['below_step'] += 1; reject_log.append((int(tau), k, 'below_step')); continue
+            if qty * price < min_cost: rejected['below_min_notional'] += 1; reject_log.append((int(tau), k, 'below_min_notional')); continue
             fill = (M.open_px(sym, tau) or price) * (1 + P['slip_entry']); fee = qty * fill * P['taker']; wallet -= fee
             stop = None if not (pStop > 0 or aStop > 0) else (price * (1 - pStop) if usePct else price - aStop * atr)
             tp = (price * (1 + pTP) if (usePct and pTP > 0) else (price + aTP * atr if aTP > 0 else None))
@@ -212,9 +213,10 @@ def run(M, signals, timeline, T0, T1, P, init_wallet, deposits=(), loop_times=No
         for tau in sorted(group): do_cycle(tau, group[tau])
     # 期末:未平倉
     e_end = wallet; open_pos = []
+    open_detail = [{'key': p['key'], 'sym': p['sym'], 'tf': p['tf'], 'qty': p['qty'], 'fill': p['fill'], 'entry_sig': p['entry_sig'], 'entry_ts': p['t'], 'stop': p['stop'], 'tp': p['tp'], 'exch_stop': p['exch_stop'], 'fee_in': p['fee_in'], 'funding': p['funding']} for p in pos.values()]
     for p in pos.values():
         px = M.close_px(p['sym'], hours[-1] + HOUR) or p['fill']; e_end += p['qty'] * (px - p['fill']); open_pos.append({'key': p['key'], 'unrealized': p['qty'] * (px - p['fill']), 'notional': p['qty'] * px})
-    return {'trades': trades, 'marks': marks, 'wallet_end': wallet, 'equity_end': e_end, 'open': open_pos, 'rejected': dict(rejected), 'notes': dict(notes)}
+    return {'trades': trades, 'marks': marks, 'wallet_end': wallet, 'equity_end': e_end, 'open': open_pos, 'rejected': dict(rejected), 'notes': dict(notes), 'open_detail': open_detail, 'reject_log': reject_log, 'funding_log': funding_log}
 
 
 def default_params(exit_params, **kw):

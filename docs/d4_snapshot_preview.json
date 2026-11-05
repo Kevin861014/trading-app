@@ -1,0 +1,665 @@
+{
+ "config_source": {
+  "combos": 23,
+  "file": "config.portfolio.json.REDACTED.json",
+  "note": "只讀取「組合清單」(交易對/週期/策略/權重);不含也不讀任何金鑰",
+  "sha256": "ae188f1da96296aee2b6bc944dc71e6b5f3df93451a870dcfec8dd88df1744d3"
+ },
+ "created_utc": "2026-11-05 16:09:41",
+ "data_source": {
+  "closed_bars_only": true,
+  "exchange": "Binance USDT-M perpetual (fapi, public endpoints only)",
+  "funding": "/fapi/v1/fundingRate",
+  "funding_lag_ms": 7200000,
+  "klines": "/fapi/v1/klines",
+  "safety_ms": 5000,
+  "warmup_bars": 420
+ },
+ "exit_params": {
+  "abands_break": [
+   0.0,
+   0.0,
+   0.0,
+   0.025,
+   0.0,
+   0.075
+  ],
+  "ao_saucer": [
+   0.0,
+   0.0,
+   0.0,
+   0.025,
+   0.0,
+   0.075
+  ],
+  "cci_pm100": [
+   0.0,
+   0.0,
+   0.0,
+   0.025,
+   0.0,
+   0.075
+  ],
+  "chop_trend": [
+   0.0,
+   0.0,
+   0.0,
+   0.025,
+   0.0,
+   0.075
+  ],
+  "cmf_zero": [
+   0.0,
+   0.0,
+   0.0,
+   0.025,
+   0.0,
+   0.075
+  ],
+  "coppock_zero": [
+   0.0,
+   0.0,
+   0.0,
+   0.025,
+   0.0,
+   0.075
+  ],
+  "donchian100": [
+   0.0,
+   0.0,
+   0.0,
+   0.025,
+   0.0,
+   0.075
+  ],
+  "ema50_200_adx": [
+   0.0,
+   0.0,
+   0.0,
+   0.025,
+   0.0,
+   0.075
+  ],
+  "ema_8_21": [
+   0.0,
+   0.0,
+   0.0,
+   0.025,
+   0.0,
+   0.075
+  ],
+  "fisher_zero": [
+   0.0,
+   0.0,
+   0.0,
+   0.025,
+   0.0,
+   0.075
+  ],
+  "ichimoku_twist": [
+   0.0,
+   0.0,
+   0.0,
+   0.025,
+   0.0,
+   0.075
+  ],
+  "inside_break": [
+   0.0,
+   0.0,
+   0.0,
+   0.025,
+   0.0,
+   0.075
+  ],
+  "klinger_cross": [
+   0.0,
+   0.0,
+   0.0,
+   0.025,
+   0.0,
+   0.075
+  ],
+  "piercing": [
+   0.0,
+   0.0,
+   0.0,
+   0.025,
+   0.0,
+   0.075
+  ],
+  "smc": [
+   3.0,
+   8.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ssl_channel": [
+   0.0,
+   0.0,
+   0.0,
+   0.025,
+   0.0,
+   0.075
+  ],
+  "supertrend": [
+   3.0,
+   5.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "tsi_cross": [
+   0.0,
+   0.0,
+   0.0,
+   0.025,
+   0.0,
+   0.075
+  ],
+  "tsmom": [
+   3.0,
+   8.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ttm": [
+   3.0,
+   8.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "vortex": [
+   3.0,
+   8.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "experiment_id": "d4-v1",
+ "initial_equity": 310.0,
+ "markets": {
+  "1000PEPE/USDT": {
+   "id": "1000PEPEUSDT",
+   "min_amount": 1.0,
+   "min_cost": 5.0,
+   "step": 1.0
+  },
+  "AAVE/USDT": {
+   "id": "AAVEUSDT",
+   "min_amount": 0.1,
+   "min_cost": 5.0,
+   "step": 0.1
+  },
+  "ADA/USDT": {
+   "id": "ADAUSDT",
+   "min_amount": 1.0,
+   "min_cost": 5.0,
+   "step": 1.0
+  },
+  "ALGO/USDT": {
+   "id": "ALGOUSDT",
+   "min_amount": 0.1,
+   "min_cost": 5.0,
+   "step": 0.1
+  },
+  "ATOM/USDT": {
+   "id": "ATOMUSDT",
+   "min_amount": 0.01,
+   "min_cost": 5.0,
+   "step": 0.01
+  },
+  "BNB/USDT": {
+   "id": "BNBUSDT",
+   "min_amount": 0.01,
+   "min_cost": 5.0,
+   "step": 0.01
+  },
+  "BTC/USDT": {
+   "id": "BTCUSDT",
+   "min_amount": 0.001,
+   "min_cost": 50.0,
+   "step": 0.001
+  },
+  "CHZ/USDT": {
+   "id": "CHZUSDT",
+   "min_amount": 1.0,
+   "min_cost": 5.0,
+   "step": 1.0
+  },
+  "DOT/USDT": {
+   "id": "DOTUSDT",
+   "min_amount": 0.1,
+   "min_cost": 5.0,
+   "step": 0.1
+  },
+  "FET/USDT": {
+   "id": "FETUSDT",
+   "min_amount": 1.0,
+   "min_cost": 5.0,
+   "step": 1.0
+  },
+  "INJ/USDT": {
+   "id": "INJUSDT",
+   "min_amount": 0.1,
+   "min_cost": 5.0,
+   "step": 0.1
+  },
+  "JUP/USDT": {
+   "id": "JUPUSDT",
+   "min_amount": 1.0,
+   "min_cost": 5.0,
+   "step": 1.0
+  },
+  "KAVA/USDT": {
+   "id": "KAVAUSDT",
+   "min_amount": 0.1,
+   "min_cost": 5.0,
+   "step": 0.1
+  },
+  "NEAR/USDT": {
+   "id": "NEARUSDT",
+   "min_amount": 1.0,
+   "min_cost": 5.0,
+   "step": 1.0
+  },
+  "PAXG/USDT": {
+   "id": "PAXGUSDT",
+   "min_amount": 0.001,
+   "min_cost": 5.0,
+   "step": 0.001
+  },
+  "PYTH/USDT": {
+   "id": "PYTHUSDT",
+   "min_amount": 1.0,
+   "min_cost": 5.0,
+   "step": 1.0
+  },
+  "RUNE/USDT": {
+   "id": "RUNEUSDT",
+   "min_amount": 1.0,
+   "min_cost": 5.0,
+   "step": 1.0
+  },
+  "SOL/USDT": {
+   "id": "SOLUSDT",
+   "min_amount": 0.01,
+   "min_cost": 5.0,
+   "step": 0.01
+  },
+  "THETA/USDT": {
+   "id": "THETAUSDT",
+   "min_amount": 0.1,
+   "min_cost": 5.0,
+   "step": 0.1
+  },
+  "TRX/USDT": {
+   "id": "TRXUSDT",
+   "min_amount": 1.0,
+   "min_cost": 5.0,
+   "step": 1.0
+  },
+  "VET/USDT": {
+   "id": "VETUSDT",
+   "min_amount": 1.0,
+   "min_cost": 5.0,
+   "step": 1.0
+  },
+  "WLD/USDT": {
+   "id": "WLDUSDT",
+   "min_amount": 1.0,
+   "min_cost": 5.0,
+   "step": 1.0
+  },
+  "XLM/USDT": {
+   "id": "XLMUSDT",
+   "min_amount": 1.0,
+   "min_cost": 5.0,
+   "step": 1.0
+  },
+  "XRP/USDT": {
+   "id": "XRPUSDT",
+   "min_amount": 0.1,
+   "min_cost": 5.0,
+   "step": 0.1
+  }
+ },
+ "params": {
+  "latency_s": 13.8,
+  "max_lev": 3.0,
+  "max_lev_int": 3,
+  "max_total": 3.0,
+  "risk": 0.0403,
+  "slip_entry": 0.0003,
+  "slip_exit": 0.0001,
+  "slip_stop": 0.00042,
+  "sumw_override": 16.0,
+  "taker": 0.0005
+ },
+ "reference_symbol": "BTC/USDT",
+ "rules": {
+  "fills": "SIMULATED(下一根 1H 開盤價 × (1+滑價));與市場實際價的差異另行記錄",
+  "no_live_connection": true,
+  "same_bars_for_A_and_B": true,
+  "warmup_not_counted": "開始時間之前的 K 棒只用於指標暖機,所有績效從 start_ts 起算;開始時全部空手。"
+ },
+ "scenarios": {
+  "A": {
+   "combos": [
+    {
+     "strategy": "tsmom",
+     "symbol": "TRX/USDT",
+     "timeframe": "1h",
+     "weight": 1
+    },
+    {
+     "strategy": "inside_break",
+     "symbol": "PAXG/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "ttm",
+     "symbol": "BNB/USDT",
+     "timeframe": "4h",
+     "weight": 1
+    },
+    {
+     "strategy": "vortex",
+     "symbol": "XRP/USDT",
+     "timeframe": "1h",
+     "weight": 1
+    },
+    {
+     "strategy": "ssl_channel",
+     "symbol": "SOL/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "supertrend",
+     "symbol": "XLM/USDT",
+     "timeframe": "4h",
+     "weight": 1
+    },
+    {
+     "strategy": "ema50_200_adx",
+     "symbol": "CHZ/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "supertrend",
+     "symbol": "INJ/USDT",
+     "timeframe": "4h",
+     "weight": 1.5
+    },
+    {
+     "strategy": "abands_break",
+     "symbol": "DOT/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "donchian100",
+     "symbol": "NEAR/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "smc",
+     "symbol": "ALGO/USDT",
+     "timeframe": "4h",
+     "weight": 1.5
+    },
+    {
+     "strategy": "fisher_zero",
+     "symbol": "PYTH/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "cmf_zero",
+     "symbol": "AAVE/USDT",
+     "timeframe": "4h",
+     "weight": 1
+    },
+    {
+     "strategy": "cci_pm100",
+     "symbol": "VET/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "coppock_zero",
+     "symbol": "WLD/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "cci_pm100",
+     "symbol": "ADA/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "ema_8_21",
+     "symbol": "ATOM/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "tsi_cross",
+     "symbol": "JUP/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "ao_saucer",
+     "symbol": "KAVA/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "klinger_cross",
+     "symbol": "RUNE/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "piercing",
+     "symbol": "1000PEPE/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "chop_trend",
+     "symbol": "THETA/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "ichimoku_twist",
+     "symbol": "FET/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    }
+   ],
+   "label": "A 維持目前全部 23 組",
+   "sumw": 16.0
+  },
+  "B": {
+   "combos": [
+    {
+     "strategy": "inside_break",
+     "symbol": "PAXG/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "ttm",
+     "symbol": "BNB/USDT",
+     "timeframe": "4h",
+     "weight": 1
+    },
+    {
+     "strategy": "ssl_channel",
+     "symbol": "SOL/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "supertrend",
+     "symbol": "XLM/USDT",
+     "timeframe": "4h",
+     "weight": 1
+    },
+    {
+     "strategy": "ema50_200_adx",
+     "symbol": "CHZ/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "supertrend",
+     "symbol": "INJ/USDT",
+     "timeframe": "4h",
+     "weight": 1.5
+    },
+    {
+     "strategy": "abands_break",
+     "symbol": "DOT/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "donchian100",
+     "symbol": "NEAR/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "smc",
+     "symbol": "ALGO/USDT",
+     "timeframe": "4h",
+     "weight": 1.5
+    },
+    {
+     "strategy": "fisher_zero",
+     "symbol": "PYTH/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "cmf_zero",
+     "symbol": "AAVE/USDT",
+     "timeframe": "4h",
+     "weight": 1
+    },
+    {
+     "strategy": "cci_pm100",
+     "symbol": "VET/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "coppock_zero",
+     "symbol": "WLD/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "cci_pm100",
+     "symbol": "ADA/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "ema_8_21",
+     "symbol": "ATOM/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "tsi_cross",
+     "symbol": "JUP/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "ao_saucer",
+     "symbol": "KAVA/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "klinger_cross",
+     "symbol": "RUNE/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "piercing",
+     "symbol": "1000PEPE/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "chop_trend",
+     "symbol": "THETA/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    },
+    {
+     "strategy": "ichimoku_twist",
+     "symbol": "FET/USDT",
+     "timeframe": "4h",
+     "weight": 0.5
+    }
+   ],
+   "excluded": [
+    "TRX/USDT|1h|tsmom",
+    "XRP/USDT|1h|vortex"
+   ],
+   "label": "B 排除 TRX 1H、XRP 1H(其餘 21 組配置/風險參數/資金分配公式不變;Σ權重沿用 A 的 16,與 D3 相同)",
+   "sumw": 16.0
+  }
+ },
+ "start_ts": 1794182400000,
+ "start_utc": "2026-11-09 00:00:00",
+ "symbols": [
+  "1000PEPE/USDT",
+  "AAVE/USDT",
+  "ADA/USDT",
+  "ALGO/USDT",
+  "ATOM/USDT",
+  "BNB/USDT",
+  "CHZ/USDT",
+  "DOT/USDT",
+  "FET/USDT",
+  "INJ/USDT",
+  "JUP/USDT",
+  "KAVA/USDT",
+  "NEAR/USDT",
+  "PAXG/USDT",
+  "PYTH/USDT",
+  "RUNE/USDT",
+  "SOL/USDT",
+  "THETA/USDT",
+  "TRX/USDT",
+  "VET/USDT",
+  "WLD/USDT",
+  "XLM/USDT",
+  "XRP/USDT"
+ ],
+ "version": 1
+}
