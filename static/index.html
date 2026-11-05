@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="/static/css/ui.css">
 <link rel="stylesheet" href="/static/css/research-core.css">
 <link rel="stylesheet" href="/static/css/c1.css">
+<link rel="stylesheet" href="/static/css/c2.css">
 <link rel="stylesheet" href="/static/css/mobile.css">
 <script src="/static/vendor/lightweight-charts/lightweight-charts.standalone.production.js"></script>
 <script src="/static/stocks_data.js"></script>
@@ -156,7 +157,7 @@
 
 <!-- ============ 視圖 5:市場環境 ============ -->
 <section id="view-market" class="view">
-  <div class="view-head"><h2>市場環境</h2><p>多週期技術狀態與資料品質，以及自選清單中每個標的目前的 ADX 市場性格（ADX (Wilder, 14)：+DI/−DI 與 ADX 都用教科書 Wilder 平滑；≥25 趨勢、&lt;20 盤整、20~25 趨勢轉換中）。這些都只是「現在」的環境描述，<b>不會</b>用來擋掉訊號，也不影響策略排名。大盤參考將於後續階段加入。</p></div>
+  <div class="view-head"><h2>市場環境</h2><p>多週期技術狀態與資料品質，以及自選清單中每個標的目前的 ADX 市場性格（ADX (Wilder, 14)：+DI/−DI 與 ADX 都用教科書 Wilder 平滑；≥25 趨勢、&lt;20 盤整、20~25 趨勢轉換中）。這些都只是「現在」的環境描述，<b>不會</b>用來擋掉訊號，也不影響策略排名。大盤環境（BTC／加權指數／S&amp;P 500、Nasdaq）可在下方「市場環境 × 策略歷史績效」中研究。</p></div>
   <div class="panel" id="mtfPanel"><div class="panel-h">多週期技術狀態與資料品質 <span class="rtag na" title="只描述已收盤 K 棒上指標目前的位置，不是價格預測">技術指標描述</span></div><div class="panel-b">
     <div class="ctrl-bar" style="padding:0 0 8px;border:0;">
       <label>標的 <select id="mtfSel"></select></label>
@@ -166,6 +167,20 @@
     <div class="vb-note">比較週線、日線，以及資料來源實際支援的 4H、1H。每個週期各自取資料、各自檢查資料品質；沒有資料或不支援就明說，不會用其他週期代替。最新一根未收盤的 K 棒一律排除。</div>
     <div id="mtfProg" style="margin-top:8px;"></div>
     <div id="mtfBody"><div class="empty-state">選好標的後按「查看多週期」。</div></div>
+  </div></div>
+  <div class="panel" id="regPanel"><div class="panel-h">市場環境 × 策略歷史績效 <span class="rtag hist" title="歷史回測，已扣交易成本">歷史回測</span><span class="rtag na" title="環境分類只用進場當下已收盤的資料">事前分類</span></div><div class="panel-b">
+    <div class="rg-ctrl">
+      <label>市場 <select id="regMkt"><option value="">全部</option><option value="crypto">加密貨幣</option><option value="tw">台股</option><option value="us">美股</option></select></label>
+      <label>標的 <select id="regSel"></select></label>
+      <label>或輸入代號 <input type="text" id="regCustom" placeholder="例如 BTC/USDT、2330.TW、AAPL" size="16"></label>
+      <label>時間週期 <select id="regTf"></select></label>
+      <label>期間 <select id="regPeriod"></select></label>
+      <label>策略 <select id="regStrat"></select></label>
+      <button class="btn-primary" id="regRun" onclick="runRegimeView()">分析環境績效</button>
+    </div>
+    <div class="vb-note">把策略的每一筆歷史交易，歸到「進場決策當下已收盤」的市場環境（上升趨勢／下降趨勢／盤整／趨勢轉換中），看策略在不同環境下的表現。環境分類只使用當時已收盤的資料；績效是事後的歷史統計，<b>不是預測</b>，也不會套用到任何實盤。</div>
+    <div id="regProg" style="margin-top:8px;"></div>
+    <div id="regBody"><div class="empty-state">選好標的、週期與策略後按「分析環境績效」。</div></div>
   </div></div>
   <div class="ctrl-bar"><button class="btn-primary" onclick="loadMarketView(true)">重新整理</button><span id="mkStamp" style="font-size:12px;color:var(--text3);"></span></div>
   <div class="panel"><div class="panel-b" style="padding:0;overflow-x:auto;"><table class="mk-table" id="mkTable"><tbody><tr><td class="empty-state">載入中…</td></tr></tbody></table></div></div>
@@ -238,6 +253,7 @@
 <script src="/static/js/60-views.js"></script>
 <script src="/static/js/65-research-lab.js"></script>
 <script src="/static/js/66-mtf.js"></script>
+<script src="/static/js/67-regime.js"></script>
 <script src="/static/js/70-mobile.js"></script>
 <script src="/static/js/90-main.js"></script>
 </body>

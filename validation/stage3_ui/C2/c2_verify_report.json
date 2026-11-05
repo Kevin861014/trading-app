@@ -1,0 +1,253 @@
+{
+ "checks": [
+  {
+   "symbol": "BTC/USDT",
+   "tf": "4h",
+   "strategy": "sixline",
+   "original_equals_existing_pipeline": true,
+   "classification_prefix_invariant": true,
+   "trade_attribution_same_when_truncated": true,
+   "trades_checked": 110
+  },
+  {
+   "symbol": "SOL/USDT",
+   "tf": "4h",
+   "strategy": "sixline",
+   "original_equals_existing_pipeline": true,
+   "classification_prefix_invariant": true,
+   "trade_attribution_same_when_truncated": true,
+   "trades_checked": 103
+  },
+  {
+   "symbol": "BTC/USDT",
+   "tf": "1d",
+   "strategy": "diadx",
+   "original_equals_existing_pipeline": true,
+   "classification_prefix_invariant": true,
+   "trade_attribution_same_when_truncated": true,
+   "trades_checked": 30
+  },
+  {
+   "symbol": "SOL/USDT",
+   "tf": "1d",
+   "strategy": "diadx",
+   "original_equals_existing_pipeline": true,
+   "classification_prefix_invariant": true,
+   "trade_attribution_same_when_truncated": true,
+   "trades_checked": 27
+  },
+  {
+   "symbol": "2330.TW",
+   "tf": "1d",
+   "strategy": "diadx",
+   "original_equals_existing_pipeline": true,
+   "classification_prefix_invariant": true,
+   "trade_attribution_same_when_truncated": true,
+   "trades_checked": 21
+  },
+  {
+   "symbol": "AAPL",
+   "tf": "1d",
+   "strategy": "tsmom",
+   "original_equals_existing_pipeline": true,
+   "classification_prefix_invariant": true,
+   "trade_attribution_same_when_truncated": true,
+   "trades_checked": 31
+  }
+ ],
+ "cases": [
+  {
+   "symbol": "BTC/USDT",
+   "tf": "4h",
+   "strategy": "sixline",
+   "overall": {
+    "all": {
+     "cagr": -0.69,
+     "mdd": 12.59,
+     "pf": 1.28,
+     "total": -1.36,
+     "trades": 43,
+     "win": 20.9
+    },
+    "is": {
+     "cagr": -2.35,
+     "mdd": 11.1,
+     "pf": 1.14,
+     "total": -3.26,
+     "trades": 30,
+     "win": 16.7
+    },
+    "oos": {
+     "cagr": 3.31,
+     "mdd": 4.34,
+     "pf": 1.66,
+     "total": 1.96,
+     "trades": 13,
+     "win": 30.8
+    }
+   },
+   "candidate": []
+  },
+  {
+   "symbol": "SOL/USDT",
+   "tf": "4h",
+   "strategy": "sixline",
+   "overall": {
+    "all": {
+     "cagr": 7.38,
+     "mdd": 6.12,
+     "pf": 1.32,
+     "total": 15.28,
+     "trades": 32,
+     "win": 31.2
+    },
+    "is": {
+     "cagr": 0.63,
+     "mdd": 6.12,
+     "pf": 0.95,
+     "total": 0.88,
+     "trades": 26,
+     "win": 30.8
+    },
+    "oos": {
+     "cagr": 25.04,
+     "mdd": 5.84,
+     "pf": 3.97,
+     "total": 14.27,
+     "trades": 6,
+     "win": 33.3
+    }
+   },
+   "candidate": []
+  },
+  {
+   "symbol": "BTC/USDT",
+   "tf": "1d",
+   "strategy": "diadx",
+   "overall": {
+    "all": {
+     "cagr": -0.52,
+     "mdd": 1.27,
+     "pf": 0.16,
+     "total": -1.04,
+     "trades": 4,
+     "win": 25.0
+    },
+    "is": {
+     "cagr": -0.54,
+     "mdd": 0.75,
+     "pf": 0.0,
+     "total": -0.75,
+     "trades": 2,
+     "win": 0.0
+    },
+    "oos": {
+     "cagr": -0.49,
+     "mdd": 0.54,
+     "pf": 0.44,
+     "total": -0.29,
+     "trades": 2,
+     "win": 50.0
+    }
+   },
+   "candidate": []
+  },
+  {
+   "symbol": "SOL/USDT",
+   "tf": "1d",
+   "strategy": "diadx",
+   "overall": {
+    "all": {
+     "cagr": -0.04,
+     "mdd": 3.08,
+     "pf": 1.04,
+     "total": -0.08,
+     "trades": 6,
+     "win": 16.7
+    },
+    "is": {
+     "cagr": 0.37,
+     "mdd": 3.08,
+     "pf": 1.27,
+     "total": 0.52,
+     "trades": 5,
+     "win": 20.0
+    },
+    "oos": {
+     "cagr": -1.01,
+     "mdd": 0.6,
+     "pf": 0.0,
+     "total": -0.6,
+     "trades": 1,
+     "win": 0.0
+    }
+   },
+   "candidate": []
+  },
+  {
+   "symbol": "2330.TW",
+   "tf": "1d",
+   "strategy": "diadx",
+   "overall": {
+    "all": {
+     "cagr": -0.93,
+     "mdd": 2.35,
+     "pf": 0.0,
+     "total": -1.84,
+     "trades": 6,
+     "win": 0.0
+    },
+    "is": {
+     "cagr": -1.0,
+     "mdd": 1.9,
+     "pf": 0.0,
+     "total": -1.39,
+     "trades": 5,
+     "win": 0.0
+    },
+    "oos": {
+     "cagr": -0.77,
+     "mdd": 1.55,
+     "pf": 0.0,
+     "total": -0.46,
+     "trades": 1,
+     "win": 0.0
+    }
+   },
+   "candidate": []
+  },
+  {
+   "symbol": "AAPL",
+   "tf": "1d",
+   "strategy": "tsmom",
+   "overall": {
+    "all": {
+     "cagr": 5.24,
+     "mdd": 3.97,
+     "pf": 8.34,
+     "total": 10.71,
+     "trades": 12,
+     "win": 58.3
+    },
+    "is": {
+     "cagr": 3.47,
+     "mdd": 3.97,
+     "pf": 6.1,
+     "total": 4.87,
+     "trades": 5,
+     "win": 40.0
+    },
+    "oos": {
+     "cagr": 9.55,
+     "mdd": 3.28,
+     "pf": 12.89,
+     "total": 5.57,
+     "trades": 7,
+     "win": 71.4
+    }
+   },
+   "candidate": []
+  }
+ ],
+ "mismatches": 0
+}

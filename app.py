@@ -1036,6 +1036,21 @@ def api_mtf():
                     'summary': {'agreement': agree, 'text': agree_txt, 'usableCount': len(usable), 'note': MTF_DISCLAIMER}})
 
 
+@app.route('/api/regime_study')
+@_job_endpoint('regime')
+def api_regime_study():
+    """C2:市場環境 × 策略歷史績效研究(+ 假設只在特定環境進場的歷史對照)。只讀既有資料與既有回測,不改任何策略/引擎;細節見 regime_study.py。"""
+    import sim as _sim_mod, regime_study as _RS
+    try:
+        body, code = _RS.study(request.args, sys.modules[__name__], _sim_mod, _RC_JOB.get())
+        return jsonify(body), code
+    except _rev.JobCancelled:
+        raise
+    except Exception as e:
+        import traceback
+        return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500
+
+
 @app.route('/api/job_events')
 def job_events():
     """讀取某個分析工作『已經發生』的事件(輪詢用,只回傳 seq 大於 after 的新事件)。這個端點本身不做任何運算。"""

@@ -78,6 +78,7 @@ function refreshViewSelects(){
   fillSelect($id('bestPeriod'), PERIODS.map(p => [p, PERIOD_LABELS[p]]), true);
   fillSelect($id('bestTf'), TFS.map(t => [t, TF_LABELS[t]]), true);
   fillSelect($id('labTf'), TFS.map(t => [t, TF_LABELS[t]]), true);
+  if(typeof regFillSelects === 'function') regFillSelects();
 }
 function _stockById(id){ return stocks.find(s => String(s.id) === String(id)); }
 function initViews(){

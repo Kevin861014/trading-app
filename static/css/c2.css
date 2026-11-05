@@ -1,0 +1,42 @@
+/* C2:市場環境 × 策略歷史績效 */
+.rg-ctrl{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-end;padding:0 0 8px;}
+.rg-ctrl label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--text2);}
+.rg-ctrl select,.rg-ctrl input[type=text]{min-height:34px;}
+.rg-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0 4px;}
+.rg-def{margin:6px 0;font-size:12px;color:var(--text2);line-height:1.6;}
+.rg-def summary{cursor:pointer;color:var(--text);font-size:13px;min-height:32px;display:flex;align-items:center;}
+.rg-def table{border-collapse:collapse;margin-top:4px;} .rg-def td{padding:2px 10px 2px 0;vertical-align:top;}
+.rg-share{display:flex;height:16px;border-radius:8px;overflow:hidden;border:1px solid var(--border);margin:4px 0;}
+.rg-share span{display:block;min-width:0;}
+.rg-up{background:#26a69a;} .rg-down{background:#ef5350;} .rg-range{background:#8892a6;} .rg-transition{background:#f5a623;} .rg-na{background:#3a4152;}
+.rg-legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--text2);margin:2px 0 8px;}
+.rg-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px;}
+.rg-seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:6px 0;}
+.rg-seg button{background:transparent;border:0;color:var(--text2);padding:0 14px;min-height:36px;cursor:pointer;font-size:13px;}
+.rg-seg button.on{background:var(--accent,#2a6df4);color:#fff;}
+.rg-tbl td,.rg-tbl th{text-align:right;white-space:nowrap;} .rg-tbl td:first-child,.rg-tbl th:first-child{text-align:left;}
+.rg-tbl tr.rg-all td{font-weight:600;border-bottom:2px solid var(--border);}
+.rg-tbl tr.rg-low td:not(:first-child):not(:nth-child(2)){opacity:.55;}
+.tier{display:inline-block;font-size:11px;padding:0 7px;border-radius:999px;border:1px solid var(--border);margin-left:4px;white-space:nowrap;}
+.tier-insufficient{color:#f5a623;border-color:rgba(245,166,35,.55);} .tier-preliminary{color:#4fd1ff;border-color:rgba(79,209,255,.45);} .tier-evaluable{color:#2dd4bf;border-color:rgba(45,212,191,.45);}
+.rg-sub{font-size:12px;color:var(--text2);margin:4px 0;line-height:1.6;}
+.rg-filter{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-top:12px;background:var(--bg2);}
+.rg-filter h4{font-size:14px;margin-bottom:6px;}
+.rg-checks{display:flex;flex-wrap:wrap;gap:6px 14px;margin:6px 0;}
+.rg-checks label{display:flex;align-items:center;gap:6px;min-height:36px;font-size:14px;}
+.rg-checks input{width:18px;height:18px;}
+.rg-warn{color:#f5a623;font-size:13px;margin:6px 0;line-height:1.6;}
+.rg-oos-box{border:1px dashed var(--border);border-radius:8px;padding:8px 10px;margin-top:8px;}
+@media (max-width:720px){
+  .rg-ctrl label{flex:1 1 140px;font-size:13px;} .rg-ctrl select,.rg-ctrl input[type=text]{min-height:44px;font-size:16px;}
+  .rg-seg button{min-height:44px;} .rg-checks label{min-height:44px;font-size:15px;} .rg-def summary{min-height:44px;font-size:14px;}
+  .rg-legend,.rg-sub,.rg-def{font-size:13px;} .tier{font-size:12px;}
+}
+.rg-filter button#regCmp,.rg-filter button#regOos{min-height:38px;padding:0 14px;}
+.rg-filter .linkbtn{min-height:32px;padding:0 8px;}
+@media (max-width:720px){
+  .rg-filter button#regCmp,.rg-filter button#regOos{min-height:44px;flex:1 1 100%;font-size:15px;}
+  .rg-filter .linkbtn{min-height:44px;padding:0 12px;font-size:14px;}
+}
+.rg-cards .cmp-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:4px 10px;}
+.rg-cards .cmp-card{padding:10px;margin-bottom:8px;}
