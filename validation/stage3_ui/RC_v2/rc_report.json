@@ -1,0 +1,220 @@
+{
+ "shots": [
+  "rc_v1_idle.png",
+  "rc_v1_running.png",
+  "rc_v1_done.png",
+  "rc_v2_idle.png",
+  "rc_v2_replay_backtest.png",
+  "rc_v2_replay_done.png",
+  "rc_v2_replay_analyze_done.png",
+  "rc_v2_replay_error.png",
+  "rc_v2_live_best_mid.png",
+  "rc_v2_live_best_done.png",
+  "rc_v2_live_analyze_done.png",
+  "rc_v2_reduced_motion.png",
+  "rc_v2_phone_idle.png",
+  "rc_v2_phone_running.png",
+  "rc_v2_phone_done.png"
+ ],
+ "perf": [
+  {
+   "scenario": "v2 baseline: decorative animation OFF (page only)",
+   "seconds": 5.0,
+   "main_thread_busy_pct": 0.02,
+   "script_pct": 0.0,
+   "stats": {
+    "loopOn": false,
+    "fps": 11,
+    "frameCost": 0.5909834907947029,
+    "particles": 0,
+    "pulses": 0,
+    "events": 0,
+    "mode": "idle",
+    "lowPower": false,
+    "forced": false,
+    "static": false
+   }
+  },
+  {
+   "scenario": "v2 idle with decorative animation ON (12 fps cap)",
+   "seconds": 7.0,
+   "main_thread_busy_pct": 5.7,
+   "script_pct": 0.87,
+   "stats": {
+    "loopOn": true,
+    "fps": 10,
+    "frameCost": 0.7253752326276112,
+    "particles": 0,
+    "pulses": 0,
+    "events": 0,
+    "mode": "idle",
+    "lowPower": false,
+    "forced": false,
+    "static": false
+   }
+  },
+  {
+   "scenario": "v2 while real events stream (replay of a real 6.5 s ranking; 30 fps cap)",
+   "seconds": 6.0,
+   "main_thread_busy_pct": 15.42,
+   "script_pct": 2.22,
+   "stats": {
+    "loopOn": true,
+    "fps": 20,
+    "frameCost": 0.9717596148587689,
+    "particles": 29,
+    "pulses": 0,
+    "events": 157,
+    "mode": "replay",
+    "lowPower": false,
+    "forced": false,
+    "static": false
+   }
+  },
+  {
+   "scenario": "v2 streaming events with 4x CPU slowdown",
+   "seconds": 6.0,
+   "main_thread_busy_pct": 60.88,
+   "script_pct": 7.8,
+   "stats": {
+    "loopOn": true,
+    "fps": 20,
+    "frameCost": 3.160756959063554,
+    "particles": 27,
+    "pulses": 0,
+    "events": 157,
+    "mode": "replay",
+    "lowPower": false,
+    "forced": false,
+    "static": false
+   }
+  },
+  {
+   "scenario": "v2 tab hidden",
+   "seconds": 4.0,
+   "main_thread_busy_pct": 0.01,
+   "script_pct": 0.0,
+   "stats": {
+    "loopOn": false,
+    "fps": 10,
+    "frameCost": 0.7445007984443698,
+    "particles": 0,
+    "pulses": 0,
+    "events": 180,
+    "mode": "replay",
+    "lowPower": false,
+    "forced": false,
+    "static": false
+   }
+  },
+  {
+   "scenario": "v1 (original) idle",
+   "seconds": 5.0,
+   "main_thread_busy_pct": 0.04,
+   "script_pct": 0.01,
+   "stats": {
+    "frames": 0,
+    "avgDrawMs": 0,
+    "emaMs": 0,
+    "fps": 0,
+    "loopOn": false,
+    "loopStarts": 0,
+    "particles": 0,
+    "lowPower": false,
+    "forcedStatic": false,
+    "mobile": false,
+    "reduced": false,
+    "inView": true,
+    "hidden": false,
+    "ambient": false
+   }
+  },
+  {
+   "scenario": "v1 (original) running simulated pipeline",
+   "seconds": 6.0,
+   "main_thread_busy_pct": 3.99,
+   "script_pct": 0.74,
+   "stats": {
+    "frames": 147,
+    "avgDrawMs": 0.20272109135478533,
+    "emaMs": 0.18944646600859052,
+    "fps": 25,
+    "loopOn": true,
+    "loopStarts": 5,
+    "particles": 5,
+    "lowPower": false,
+    "forcedStatic": false,
+    "mobile": false,
+    "reduced": false,
+    "inView": true,
+    "hidden": false,
+    "ambient": false
+   }
+  }
+ ],
+ "v1_console": [],
+ "replay_state": {
+  "loopOn": true,
+  "fps": 10,
+  "frameCost": 0.8013585359750016,
+  "particles": 0,
+  "pulses": 0,
+  "events": 180,
+  "mode": "replay",
+  "lowPower": false,
+  "forced": false,
+  "static": false
+ },
+ "v2_console_file": [],
+ "live_final": {
+  "mode": "即時分析已結束",
+  "rows": 160,
+  "st": {
+   "loopOn": true,
+   "fps": 20,
+   "frameCost": 0.812466247607413,
+   "particles": 28,
+   "pulses": 3,
+   "events": 180,
+   "mode": "live",
+   "lowPower": false,
+   "forced": false,
+   "static": false
+  }
+ },
+ "live_log_rows_seen": [
+  86,
+  114,
+  123,
+  152,
+  160,
+  160
+ ],
+ "live_result": "共測試 163 個策略,入選 8 名;第 1 名 一目先行帶扭轉(樣本外 19 筆)",
+ "live_analyze_result": "扣成本報酬 10.71% · 淨 PF 6.59 · 最大回撤 3.97% · 13 筆 · 樣本外 7 筆(樣本不足)\n資料:982 根 · 最後已收盤 K 棒 2026-11-04 UTC · 美東時間",
+ "live_console": [],
+ "reduced_stats": {
+  "loopOn": false,
+  "fps": 79,
+  "frameCost": 0.49412657757555006,
+  "particles": 0,
+  "pulses": 3,
+  "events": 180,
+  "mode": "replay",
+  "lowPower": false,
+  "forced": false,
+  "static": true
+ },
+ "phone_stats": {
+  "loopOn": false,
+  "fps": 79,
+  "frameCost": 0.6289275445250175,
+  "particles": 0,
+  "pulses": 3,
+  "events": 180,
+  "mode": "replay",
+  "lowPower": false,
+  "forced": false,
+  "static": true
+ }
+}

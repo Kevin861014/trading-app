@@ -51,6 +51,33 @@ def _register_extra_strats():
 _register_extra_strats()
 
 app = Flask(__name__)
+
+# ── Research Core 事件(只記錄『真的發生的工作』;沒帶 job 代號就是空操作)──────────────
+import contextvars, functools, time as _time
+import research_events as _rev
+JOBS = _rev.JobEvents()
+_RC_JOB = contextvars.ContextVar('rc_job', default=_rev.NULL_JOB)
+
+
+def _job_endpoint(kind):
+    """包住一個分析 API:有帶合法 ?job=代號 才建立事件工作,結束時記錄成功/失敗。不改變回應內容。"""
+    def deco(fn):
+        @functools.wraps(fn)
+        def wrapper(*a, **k):
+            q = request.args
+            job = JOBS.begin(q.get('job'), kind, symbol=q.get('symbol'), timeframe=q.get('timeframe'),
+                             strategy=q.get('strategy'), period=q.get('period'))
+            tok = _RC_JOB.set(job); ok = False
+            try:
+                resp = fn(*a, **k)
+                code = resp[1] if isinstance(resp, tuple) else getattr(resp, 'status_code', 200)
+                ok = code < 400
+                return resp
+            finally:
+                _RC_JOB.reset(tok); job.finish(ok)
+        return wrapper
+    return deco
+
 CORS(app)
 
 import os
@@ -577,6 +604,7 @@ def get_strategies():
     return jsonify(STRAT_LIST)
 
 @app.route('/api/analyze')
+@_job_endpoint('analyze')
 def analyze():
     symbol    = request.args.get('symbol', '2330.TW')
     strategy  = request.args.get('strategy', 'diadx')
@@ -599,23 +627,33 @@ def analyze():
     try:
         import sim as _sim
         _ck = cost_kwargs(symbol, strategy)    # 依代碼所屬市場計成本(加密/台股/美股...),所有 API 同一個入口
+        _job = _RC_JOB.get()
 
+        _job.start('data', symbol=symbol, interval=yf_tf, source='ccxt' if uses_ccxt(symbol) else 'yfinance')
         ohlcv = fetch_data(symbol, start_date, interval=yf_tf)
 
         if not ohlcv or len(ohlcv) < 100:
             cnt = len(ohlcv) if ohlcv else 0
+            _job.error('data', '資料不足', bars=cnt)
             return jsonify({'error': f'資料不足（取得 {cnt} 根）。台股如 2330.TW，美股如 AAPL，加密如 PAXG-USD'}), 400
 
         # 回測需要足夠暖機，不夠就提示
         if len(ohlcv) < 220:
+            _job.error('data', '資料不足以跑回測', bars=len(ohlcv))
             return jsonify({'error': f'資料不足以跑回測（{len(ohlcv)} 根），請選擇更長的時間範圍或改用日線'}), 400
+        _job.done('data', bars=len(ohlcv))
 
+        _job.start('backtest', strategy=strategy)
         result = run_backtest(ohlcv, strategy=strategy, risk_pct=0.015, timeframe=yf_tf,
                               **_ck)
         if not result:
+            _job.error('backtest', '回測失敗')
             return jsonify({'error': '回測失敗，請選擇更長的時間範圍'}), 400
 
         dates_dt, equity, stats = result
+        _job.done('backtest', bars=len(ohlcv), trades=stats.get('trades'))
+
+        _job.start('indicators', strategy=strategy)
 
         O=[r[1] for r in ohlcv]; H=[r[2] for r in ohlcv]
         L=[r[3] for r in ohlcv]; C=[r[4] for r in ohlcv]
@@ -652,6 +690,8 @@ def analyze():
                 diff.append(round((ema20[i] - ema50[i]) / ema50[i] * 100, 3))
             else:
                 diff.append(0)
+
+        _job.done('indicators', bars=len(prices), series=['EMA20', 'EMA50', '策略進出場條件'])
 
         # 交易紀錄：直接用 run_backtest() 的 trade_log（next-bar open 進出場），
         # 與 best_strategy 使用同一個價格基礎，確保 PF/總報酬一致。
@@ -692,6 +732,7 @@ def analyze():
         trades_list = trades_list[-10:][::-1]  # 最新10筆，倒序顯示
 
         # ── 策略目前持倉狀態 ──
+        _job.start('signal')
         current_pos = False
         last_buy_price = None
         last_buy_date = None
@@ -730,6 +771,8 @@ def analyze():
         if current_pos and last_buy_price and prices:
             float_pnl = round((prices[-1] - last_buy_price) / last_buy_price * 100, 2)
 
+        _job.done('signal', inPos=current_pos, expired=signal_expired)
+
         volumes = [round(r[5], 0) if r[5] > 0 else None for r in disp]
 
         # ── 顯示窗口的總報酬／回撤／年化 ──
@@ -738,10 +781,17 @@ def analyze():
         _disp_total, _disp_mdd, _disp_cagr = equity_window_metrics(dates_dt, equity, _disp_cut_dt)
 
         try:
-            _extras = {'dataInfo': build_data_info(symbol, yf_tf, ohlcv),
-                       'validation': build_validation(symbol, strategy, yf_tf, days, ohlcv, dates_dt, equity, stats, _utcnow()),
-                       'backtest': build_backtest_viz(symbol, strategy, ohlcv, dates_dt, equity, stats, _disp_cut_dt, yf_tf, _disp_count)}
+            _di = build_data_info(symbol, yf_tf, ohlcv)
+            _job.start('validation')
+            _val = build_validation(symbol, strategy, yf_tf, days, ohlcv, dates_dt, equity, stats, _utcnow())
+            _job.done('validation', available=bool(_val.get('available')),
+                      oosTrades=(_val.get('oos') or {}).get('trades'), tier=(_val.get('oos') or {}).get('tier'))
+            _job.start('summary')
+            _bt = build_backtest_viz(symbol, strategy, ohlcv, dates_dt, equity, stats, _disp_cut_dt, yf_tf, _disp_count)
+            _job.done('summary', points=len(_bt.get('equity') or []), trades=_disp_count)
+            _extras = {'dataInfo': _di, 'validation': _val, 'backtest': _bt}
         except Exception as _e:
+            _job.error('validation', str(_e))
             _extras = {'extrasError': str(_e)}
         return jsonify({
             **_extras,
@@ -779,6 +829,18 @@ def analyze():
     except Exception as e:
         import traceback
         return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500
+
+@app.route('/api/job_events')
+def job_events():
+    """讀取某個分析工作『已經發生』的事件(輪詢用,只回傳 seq 大於 after 的新事件)。這個端點本身不做任何運算。"""
+    job_id = request.args.get('job', '')
+    try: after = int(request.args.get('after', '0'))
+    except ValueError: after = 0
+    j = JOBS.get(job_id, after) if job_id else None
+    if j is None:
+        return jsonify({'error': 'unknown job', 'events': [], 'status': 'unknown'}), 404
+    return jsonify(j)
+
 
 @app.route('/api/config')
 def get_config():
@@ -935,6 +997,7 @@ def rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=Tru
     """跑 allowed 內所有策略,只用 IS 資料排名,回傳 (前 top_n 名, 切分資訊 或 None, 測試的策略數)。
     use_oos=False(快速模式)或資料不夠切 → 不切分,用全窗口排名,沒有 OOS。"""
     now_dt = now_dt or _utcnow()
+    _job = _RC_JOB.get()
     window_start_dt = now_dt - datetime.timedelta(days=days)
     split = is_oos_split(ohlcv, window_start_dt, now_dt) if use_oos else None
     rank_data = ohlcv[:split['idx_b']] if split else ohlcv          # 排名用的資料:OOS 資料在這裡就已經被截掉
@@ -942,7 +1005,10 @@ def rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=Tru
 
     pool = [k for k in STRATS if k not in SCALPERS and k in allowed]
     cands = []
+    _job.start('backtest', n=len(pool), phase='in_sample')
+    _k = 0
     for strat_key in pool:
+        _t0 = _time.perf_counter()
         try:
             ck = cost_kwargs(symbol, strat_key)
             res = run_backtest(rank_data, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf, **ck)
@@ -960,11 +1026,19 @@ def rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=Tru
                           'score': score, **blk, 'is': dict(blk)})
         except Exception:
             continue
+        finally:
+            _k += 1
+            _job.progress('backtest', i=_k, n=len(pool), strat=strat_key, ms=round((_time.perf_counter() - _t0) * 1000.0, 1), kept=len(cands))
+    _job.done('backtest', tested=len(pool), kept=len(cands))
 
     cands.sort(key=lambda x: x['score'], reverse=True)               # 排序只看 IS 分數
     top = cands[:top_n]
 
+    if split: _job.start('validation', n=len(top), phase='out_of_sample')
+    else: _job.skip('validation', reason='資料太短或選了快速模式,沒有樣本外')
+    _j = 0
     for r in top:
+        _tj = _time.perf_counter()
         r.update({'oos': None, 'full': None, 'oosStatus': 'unavailable', 'oosPf': None, 'oosTotal': None,
                   'oosTrades': None, 'oosPass': None, 'oosInsufficient': None, 'oosIndependent': bool(split),
                   'minOosTrades': OOS_MIN_TRADES, 'oosTier': 'unavailable', 'legacyTechPass': None})
@@ -997,6 +1071,11 @@ def rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=Tru
                 r['oosPass'] = o['pass']
         except Exception:
             continue
+        finally:
+            if split:
+                _j += 1
+                _job.progress('validation', i=_j, n=len(top), strat=r['strat'], ms=round((_time.perf_counter() - _tj) * 1000.0, 1), oosTrades=r.get('oosTrades'))
+    if split: _job.done('validation', n=len(top))
 
     info = None
     if split:
@@ -1010,6 +1089,7 @@ def rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=Tru
 
 
 @app.route('/api/best_strategy')
+@_job_endpoint('best')
 def best_strategy():
     """跑所有策略,只用『樣本內(IS)』資料排名取前 8 名,再對這 8 名做一次獨立的『樣本外(OOS)』驗證。
     回傳每名的 is / oos / full 三組績效(full = IS+OOS 全期間,僅供參考)。"""
@@ -1031,15 +1111,20 @@ def best_strategy():
         fetch_days = days + 700
     start_date = (datetime.datetime.now() - datetime.timedelta(days=fetch_days)).strftime('%Y-%m-%d')
 
+    _job = _RC_JOB.get()
     try:
+        _job.start('data', symbol=symbol, interval=yf_tf, source='ccxt' if uses_ccxt(symbol) else 'yfinance')
         ohlcv = fetch_data(symbol, start_date, interval=yf_tf)
         if not ohlcv or len(ohlcv) < 220:
+            _job.error('data', '資料不足', bars=len(ohlcv) if ohlcv else 0)
             return jsonify({'error': f'資料不足（{len(ohlcv) if ohlcv else 0} 根），4H 策略建議選 2 年以內'}), 400
+        _job.done('data', bars=len(ohlcv))
 
         market = classify_market(symbol)
         top, split, tested = rank_strategies(ohlcv, symbol, yf_tf, strategy_pool(market),
                                              min_trades_for(market), days, use_oos=use_oos)
         mc = market_character(ohlcv) if ohlcv else {'code': 'na', 'label': '資料不足', 'adx': None}
+        for _st in ('indicators', 'signal', 'summary'): _job.skip(_st, reason='排名流程不含此階段')
         return jsonify({'results': top, 'total_tested': tested, 'character': mc,
                         'split': split, 'oosAvailable': bool(split), 'oosRequested': use_oos})
     except Exception as e:
@@ -1048,6 +1133,7 @@ def best_strategy():
 
 
 @app.route('/api/deep_analysis')
+@_job_endpoint('deep')
 def deep_analysis():
     """深度分析:資料比較長(加密 2 年、台股/美股 5 年),門檻比較嚴。
     跟 best_strategy 用同一套 IS/OOS:只用 IS 選與排名,OOS 只標註(trust=2 代表 OOS 通過,但不影響排序)。
@@ -1057,14 +1143,17 @@ def deep_analysis():
     use_oos   = request.args.get('use_oos', '1') == '1'
     yf_tf = tf_to_data_interval(timeframe)
 
+    _job = _RC_JOB.get()
     try:
         market = classify_market(symbol)
         intraday = yf_tf in INTRADAY
+        _job.start('data', symbol=symbol, interval=yf_tf, source='ccxt' if uses_ccxt(symbol) else 'yfinance')
         if intraday:
             days = 730
             start = (datetime.datetime.now() - datetime.timedelta(days=days + 400)).strftime('%Y-%m-%d')
             ohlcv = fetch_data(symbol, start, interval=yf_tf)
             if not ohlcv or len(ohlcv) < 220:
+                _job.error('data', '資料不足', bars=len(ohlcv) if ohlcv else 0)
                 return jsonify({'error': '資料不足，請確認幣種代碼是否正確'}), 400
             allowed = strategy_pool('crypto', deep_intraday=True)    # 1H/4H 深度分析一律用加密策略集(跟原本一樣)
             min_trades = min_trades_for('crypto', deep=True)
@@ -1073,11 +1162,14 @@ def deep_analysis():
             start = (datetime.datetime.now() - datetime.timedelta(days=days + 700)).strftime('%Y-%m-%d')
             ohlcv = fetch_data(symbol, start, interval=yf_tf)
             if not ohlcv or len(ohlcv) < 220:
+                _job.error('data', '5年資料不足', bars=len(ohlcv) if ohlcv else 0)
                 return jsonify({'error': '5年資料不足'}), 400
             allowed = strategy_pool(market)
             min_trades = min_trades_for(market, deep=True)
 
+        _job.done('data', bars=len(ohlcv))
         top, split, tested = rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=use_oos)
+        for _st in ('indicators', 'signal', 'summary'): _job.skip(_st, reason='排名流程不含此階段')
         for r in top:
             r['trust'] = 2 if r.get('oosStatus') == 'pass' else 1     # 只代表 OOS 是否通過,不影響排序
         return jsonify({'results': top, 'hasOos': use_oos, 'isDeep': True, 'isCrypto': intraday,

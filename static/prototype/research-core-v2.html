@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Research Core v2(原型)</title>
+<link rel="stylesheet" href="research-core-v2.css">
+</head>
+<body>
+<main class="rc-wrap">
+  <header class="rc-head">
+    <div><h1>Research Core <small>v2 原型 · 尚未整合到正式網站</small></h1>
+      <p>中央的球形網絡與路線會依<b>後端真實的分析事件</b>亮起:行情下載、指標計算、策略回測、訊號判斷、樣本外驗證、風險摘要。<b>沒有示範輪播、沒有假進度</b>;待機時的旋轉只是裝飾,不代表運算。</p></div>
+    <div class="rc-mode" id="rc-mode" aria-live="polite">待機中 · 背景為裝飾</div>
+  </header>
+
+  <section class="rc-controls" aria-label="控制">
+    <label>分析 <select id="rc-kind"><option value="analyze">單一標的分析</option><option value="best">最佳策略排名</option><option value="deep">深度分析</option></select></label>
+    <label>代號 <input id="rc-symbol" type="text" value="2330.TW" size="10" autocomplete="off"></label>
+    <label>時框 <select id="rc-tf"><option value="1d">日線</option><option value="4h">4H(僅加密)</option><option value="1h">1H</option></select></label>
+    <label id="rc-strat-wrap">策略 <select id="rc-strat"><option value="diadx">DMI/ADX</option><option value="sixline">六條線</option><option value="supertrend">Supertrend</option><option value="keltner">Keltner</option><option value="ttm">TTM 擠壓</option><option value="tsmom">時間序列動能</option></select></label>
+    <label id="rc-base-wrap">服務位址 <input id="rc-base" type="text" size="22"></label>
+    <button id="rc-start" class="primary" type="button">開始真實分析</button>
+    <span class="sep"></span>
+    <label>重播紀錄 <select id="rc-trace"></select></label>
+    <label>速度 <select id="rc-speed"><option value="1">1×</option><option value="4">4×</option></select></label>
+    <button id="rc-replay" type="button">重播真實紀錄</button>
+    <button id="rc-reset" type="button">重設</button>
+    <label class="chk"><input id="rc-ambient" type="checkbox" checked> 裝飾動畫(待機,低幀率)</label>
+  </section>
+  <p class="rc-note" id="rc-note"></p>
+
+  <section class="rc-main">
+    <div class="rc-box" id="rc-box">
+      <canvas id="rc-canvas" aria-hidden="true"></canvas>
+      <div id="rc-nodes"></div>
+      <div class="rc-center idle" id="rc-center" role="status" aria-live="polite"><div class="k">研究核心</div><div class="t" id="rc-center-title">待機中</div><div class="b" id="rc-center-body"></div></div>
+    </div>
+    <aside class="rc-side">
+      <div class="rc-panel"><h3>結果摘要 <small>來自 API 實際回應</small></h3><div id="rc-result" class="rc-result">尚未分析</div></div>
+      <div class="rc-panel"><h3>真實事件紀錄 <small>後端實測時間</small></h3><div id="rc-log" class="rc-log"></div></div>
+    </aside>
+  </section>
+
+  <section id="rc-cards" class="rc-cards"></section>
+  <div class="rc-stats" id="rc-stats"></div>
+  <footer>光點與路線的亮度、節點狀態、進度數字全部來自事件:<code>/api/job_events</code>(即時)或錄製的真實紀錄(重播)。沒有事件就不會亮。僅供研究,不構成投資建議。</footer>
+</main>
+<script src="traces/traces.js"></script>
+<script src="research-core-v2.js"></script>
+</body>
+</html>
