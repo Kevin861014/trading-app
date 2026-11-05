@@ -1,0 +1,76 @@
+{
+ "asof_perpetual_count": 659,
+ "status_now": {
+  "SETTLING": 136,
+  "PENDING_TRADING": 1,
+  "TRADING": 522
+ },
+ "onboarded_before_2021-01-01": {
+  "listed_before": 70,
+  "by_status_now": {
+   "TRADING": 56,
+   "SETTLING": 14
+  }
+ },
+ "onboarded_before_2023-07-01": {
+  "listed_before": 177,
+  "by_status_now": {
+   "TRADING": 131,
+   "SETTLING": 46
+  }
+ },
+ "onboarded_before_2024-03-01": {
+  "listed_before": 246,
+  "by_status_now": {
+   "TRADING": 185,
+   "SETTLING": 61
+  }
+ },
+ "our_23_status_now": {
+  "XRPUSDT": "TRADING",
+  "TRXUSDT": "TRADING",
+  "XLMUSDT": "TRADING",
+  "ADAUSDT": "TRADING",
+  "BNBUSDT": "TRADING",
+  "ATOMUSDT": "TRADING",
+  "VETUSDT": "TRADING",
+  "THETAUSDT": "TRADING",
+  "ALGOUSDT": "TRADING",
+  "KAVAUSDT": "TRADING",
+  "DOTUSDT": "TRADING",
+  "RUNEUSDT": "TRADING",
+  "SOLUSDT": "TRADING",
+  "NEARUSDT": "TRADING",
+  "AAVEUSDT": "TRADING",
+  "CHZUSDT": "TRADING",
+  "INJUSDT": "TRADING",
+  "FETUSDT": "TRADING",
+  "1000PEPEUSDT": "TRADING",
+  "WLDUSDT": "TRADING",
+  "PYTHUSDT": "TRADING",
+  "JUPUSDT": "TRADING",
+  "PAXGUSDT": "TRADING"
+ },
+ "our_23_onboard_before_2023-07-01": [
+  "1000PEPEUSDT",
+  "AAVEUSDT",
+  "ADAUSDT",
+  "ALGOUSDT",
+  "ATOMUSDT",
+  "BNBUSDT",
+  "CHZUSDT",
+  "DOTUSDT",
+  "FETUSDT",
+  "INJUSDT",
+  "KAVAUSDT",
+  "NEARUSDT",
+  "RUNEUSDT",
+  "SOLUSDT",
+  "THETAUSDT",
+  "TRXUSDT",
+  "VETUSDT",
+  "XLMUSDT",
+  "XRPUSDT"
+ ],
+ "note": "SETTLING = 正在下架/結算中的合約(仍在清單上)。已經從清單消失的合約公開 API 看不到,所以「當時存在、後來消失」的幣種無法納入;這會讓任何由今天清單挑出的組合在歷史上顯得比真實母體好。"
+}

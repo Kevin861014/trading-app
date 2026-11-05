@@ -1,0 +1,524 @@
+{
+ "generated": "2026-11-05",
+ "exchange_info": {
+  "usdt_perpetuals_listed_now": 659,
+  "by_status": {
+   "TRADING": 522,
+   "SETTLING": 136,
+   "PENDING_TRADING": 1
+  },
+  "other_contract_types": [
+   "CURRENT_QUARTER",
+   "NEXT_QUARTER",
+   "PERPETUAL",
+   "TRADIFI_PERPETUAL"
+  ],
+  "note": "exchangeInfo 只列出「目前還存在」的合約;已下架(delisted)的合約不在公開清單裡,無法列舉,所以任何由今天清單挑出的組合都有倖存者偏誤。"
+ },
+ "symbols": {
+  "1000PEPE/USDT": {
+   "id": "1000PEPEUSDT",
+   "onboard_date": "2023-05-05",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 7679,
+    "first": "2023-05-05",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 30719,
+    "first": "2023-05-05",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 3840,
+   "funding_first": "2023-05-05"
+  },
+  "AAVE/USDT": {
+   "id": "AAVEUSDT",
+   "onboard_date": "2020-10-16",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 13268,
+    "first": "2020-10-16",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 53072,
+    "first": "2020-10-16",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 6634,
+   "funding_first": "2020-10-16"
+  },
+  "ADA/USDT": {
+   "id": "ADAUSDT",
+   "onboard_date": "2020-01-31",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 14821,
+    "first": "2020-01-31",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 59287,
+    "first": "2020-01-31",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 7446,
+   "funding_first": "2020-01-19"
+  },
+  "ALGO/USDT": {
+   "id": "ALGOUSDT",
+   "onboard_date": "2020-06-16",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 13999,
+    "first": "2020-06-16",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 55998,
+    "first": "2020-06-16",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 7062,
+   "funding_first": "2020-05-26"
+  },
+  "ATOM/USDT": {
+   "id": "ATOMUSDT",
+   "onboard_date": "2020-02-07",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 14778,
+    "first": "2020-02-07",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 59115,
+    "first": "2020-02-07",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 7392,
+   "funding_first": "2020-02-06"
+  },
+  "BNB/USDT": {
+   "id": "BNBUSDT",
+   "onboard_date": "2020-02-10",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 14761,
+    "first": "2020-02-10",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 59047,
+    "first": "2020-02-10",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 7381,
+   "funding_first": "2020-02-10"
+  },
+  "CHZ/USDT": {
+   "id": "CHZUSDT",
+   "onboard_date": "2021-01-21",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 12686,
+    "first": "2021-01-21",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 50744,
+    "first": "2021-01-21",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 6415,
+   "funding_first": "2020-12-28"
+  },
+  "DOT/USDT": {
+   "id": "DOTUSDT",
+   "onboard_date": "2020-08-22",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 13598,
+    "first": "2020-08-22",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 54392,
+    "first": "2020-08-22",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 6805,
+   "funding_first": "2020-08-20"
+  },
+  "FET/USDT": {
+   "id": "FETUSDT",
+   "onboard_date": "2023-01-15",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 8331,
+    "first": "2023-01-17",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 33325,
+    "first": "2023-01-17",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 4168,
+   "funding_first": "2023-01-16"
+  },
+  "INJ/USDT": {
+   "id": "INJUSDT",
+   "onboard_date": "2022-08-16",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 9249,
+    "first": "2022-08-17",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 36997,
+    "first": "2022-08-17",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 4626,
+   "funding_first": "2022-08-16"
+  },
+  "JUP/USDT": {
+   "id": "JUPUSDT",
+   "onboard_date": "2024-01-31",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 6053,
+    "first": "2024-01-31",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 24213,
+    "first": "2024-01-31",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 6050,
+   "funding_first": "2024-02-01"
+  },
+  "KAVA/USDT": {
+   "id": "KAVAUSDT",
+   "onboard_date": "2020-07-28",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 13748,
+    "first": "2020-07-28",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 54992,
+    "first": "2020-07-28",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 8703,
+   "funding_first": "2020-07-28"
+  },
+  "NEAR/USDT": {
+   "id": "NEARUSDT",
+   "onboard_date": "2020-10-15",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 13273,
+    "first": "2020-10-15",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 53095,
+    "first": "2020-10-15",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 6639,
+   "funding_first": "2020-10-14"
+  },
+  "PAXG/USDT": {
+   "id": "PAXGUSDT",
+   "onboard_date": "2025-03-27",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 3529,
+    "first": "2025-03-27",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 14117,
+    "first": "2025-03-27",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 3529,
+   "funding_first": "2025-03-27"
+  },
+  "PYTH/USDT": {
+   "id": "PYTHUSDT",
+   "onboard_date": "2023-11-22",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 6474,
+    "first": "2023-11-22",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 25897,
+    "first": "2023-11-22",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 6473,
+   "funding_first": "2023-11-22"
+  },
+  "RUNE/USDT": {
+   "id": "RUNEUSDT",
+   "onboard_date": "2020-09-04",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 13520,
+    "first": "2020-09-04",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 54080,
+    "first": "2020-09-04",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 6760,
+   "funding_first": "2020-09-04"
+  },
+  "SOL/USDT": {
+   "id": "SOLUSDT",
+   "onboard_date": "2020-09-14",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 13460,
+    "first": "2020-09-14",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 53840,
+    "first": "2020-09-14",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 6807,
+   "funding_first": "2020-09-13"
+  },
+  "THETA/USDT": {
+   "id": "THETAUSDT",
+   "onboard_date": "2020-05-27",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 14119,
+    "first": "2020-05-27",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 56479,
+    "first": "2020-05-27",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 7062,
+   "funding_first": "2020-05-26"
+  },
+  "TRX/USDT": {
+   "id": "TRXUSDT",
+   "onboard_date": "2020-01-15",
+   "one_hour_combo": true,
+   "4h": {
+    "bars": 14917,
+    "first": "2020-01-15",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 59671,
+    "first": "2020-01-15",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 7459,
+   "funding_first": "2020-01-15"
+  },
+  "VET/USDT": {
+   "id": "VETUSDT",
+   "onboard_date": "2020-02-14",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 14737,
+    "first": "2020-02-14",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 58951,
+    "first": "2020-02-14",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 7369,
+   "funding_first": "2020-02-14"
+  },
+  "WLD/USDT": {
+   "id": "WLDUSDT",
+   "onboard_date": "2023-07-24",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 7200,
+    "first": "2023-07-24",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 28803,
+    "first": "2023-07-24",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 3600,
+   "funding_first": "2023-07-24"
+  },
+  "XLM/USDT": {
+   "id": "XLMUSDT",
+   "onboard_date": "2020-01-20",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 14887,
+    "first": "2020-01-20",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 59551,
+    "first": "2020-01-20",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 7446,
+   "funding_first": "2020-01-19"
+  },
+  "XRP/USDT": {
+   "id": "XRPUSDT",
+   "onboard_date": "2020-01-06",
+   "one_hour_combo": true,
+   "4h": {
+    "bars": 14971,
+    "first": "2020-01-06",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 59887,
+    "first": "2020-01-06",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 7486,
+   "funding_first": "2020-01-06"
+  },
+  "BTC/USDT": {
+   "id": "BTCUSDT",
+   "onboard_date": "2019-09-08",
+   "one_hour_combo": false,
+   "4h": {
+    "bars": 15689,
+    "first": "2019-09-08",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "1h": {
+    "bars": 62758,
+    "first": "2019-09-08",
+    "last": "2026-11-05",
+    "missing_bars": 0,
+    "largest_gaps": []
+   },
+   "funding_records": 7840,
+   "funding_first": "2019-09-10"
+  }
+ }
+}

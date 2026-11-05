@@ -1,0 +1,4964 @@
+{
+ "init": 310.0,
+ "class_label": {
+  "I": "較獨立的歷史(未證明獨立)",
+  "G": "灰色地帶(曾被取得當暖機,不算獨立)",
+  "X": "歷史探索(選擇已看過)",
+  "T": "選擇之後(太短)"
+ },
+ "blocks": [
+  {
+   "class": "I",
+   "class_label": "較獨立的歷史(未證明獨立)",
+   "name": "2021H1",
+   "from": "2021-01-01",
+   "to": "2021-07-01",
+   "active_combos_at_start": 15,
+   "btc_pct": 16.4,
+   "btc_regime": "up",
+   "A": {
+    "return_pct": 16.35,
+    "max_dd_pct": -8.11,
+    "worst_day_usd": -5.14,
+    "trades": 593,
+    "win_pct": 31.9,
+    "pf": 1.28,
+    "avg_net_usd": 0.0871,
+    "avg_net_pct_of_notional": 0.818,
+    "fees": 9.92,
+    "gross": 77.21,
+    "funding": -15.65,
+    "avg_concurrent": 2.11,
+    "max_concurrent": 8,
+    "max_exposure_x": 0.4,
+    "avg_exposure_x": 0.089,
+    "top3_net": 38.76,
+    "net_without_top3": 12.89,
+    "net_closed": 51.65,
+    "rejected": {
+     "below_min_notional": 9,
+     "below_step": 32
+    }
+   },
+   "B": {
+    "return_pct": 12.15,
+    "max_dd_pct": -6.0,
+    "worst_day_usd": -4.67,
+    "trades": 360,
+    "win_pct": 34.2,
+    "pf": 1.3,
+    "avg_net_usd": 0.1072,
+    "avg_net_pct_of_notional": 1.137,
+    "fees": 6.08,
+    "gross": 54.84,
+    "funding": -10.19,
+    "avg_concurrent": 1.45,
+    "max_concurrent": 6,
+    "max_exposure_x": 0.32,
+    "avg_exposure_x": 0.057,
+    "top3_net": 33.49,
+    "net_without_top3": 5.08,
+    "net_closed": 38.57,
+    "rejected": {
+     "below_step": 37,
+     "below_min_notional": 4
+    }
+   },
+   "A_stress": {
+    "return_pct": 13.0,
+    "max_dd_pct": -9.34,
+    "worst_day_usd": -5.18,
+    "trades": 591,
+    "win_pct": 31.1,
+    "pf": 1.22,
+    "avg_net_usd": 0.0698,
+    "avg_net_pct_of_notional": 0.712,
+    "fees": 14.66,
+    "gross": 71.46,
+    "funding": -15.53,
+    "avg_concurrent": 2.11,
+    "max_concurrent": 8,
+    "max_exposure_x": 0.41,
+    "avg_exposure_x": 0.089,
+    "top3_net": 38.54,
+    "net_without_top3": 2.73,
+    "net_closed": 41.27,
+    "rejected": {
+     "below_min_notional": 9,
+     "below_step": 34
+    }
+   },
+   "B_stress": {
+    "return_pct": 10.59,
+    "max_dd_pct": -6.1,
+    "worst_day_usd": -4.7,
+    "trades": 358,
+    "win_pct": 33.8,
+    "pf": 1.26,
+    "avg_net_usd": 0.0944,
+    "avg_net_pct_of_notional": 1.047,
+    "fees": 8.96,
+    "gross": 52.89,
+    "funding": -10.13,
+    "avg_concurrent": 1.45,
+    "max_concurrent": 6,
+    "max_exposure_x": 0.32,
+    "avg_exposure_x": 0.057,
+    "top3_net": 33.39,
+    "net_without_top3": 0.4,
+    "net_closed": 33.8,
+    "rejected": {
+     "below_step": 39,
+     "below_min_notional": 4
+    }
+   },
+   "decomp_A": {
+    "1H": {
+     "n": 228,
+     "gross": 24.829,
+     "fees": 3.588,
+     "funding": -5.046,
+     "net": 16.194,
+     "avg_gross_pct": 0.61,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": 0.354,
+     "avg_hold_h": 12.3,
+     "notional_hours": 46641.0,
+     "gross_bp_per_notional_hour": 5.3235,
+     "net_bp_per_notional_hour": 3.4722
+    },
+    "4H": {
+     "n": 365,
+     "gross": 52.38,
+     "fees": 6.329,
+     "funding": -10.599,
+     "net": 35.452,
+     "avg_gross_pct": 1.474,
+     "avg_fee_pct": 0.101,
+     "avg_net_pct": 1.107,
+     "avg_hold_h": 17.5,
+     "notional_hours": 79605.0,
+     "gross_bp_per_notional_hour": 6.58,
+     "net_bp_per_notional_hour": 4.4535
+    }
+   },
+   "btc_drops": {
+    "A": {
+     "events": [
+      {
+       "peak": "2021-01-02",
+       "btc_drop_pct": -6.7,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.46
+      },
+      {
+       "peak": "2021-01-03",
+       "btc_drop_pct": -5.0,
+       "open_at_peak": 2,
+       "equity_change_usd": 1.39
+      },
+      {
+       "peak": "2021-01-03",
+       "btc_drop_pct": -12.1,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.58
+      },
+      {
+       "peak": "2021-01-04",
+       "btc_drop_pct": -8.4,
+       "open_at_peak": 4,
+       "equity_change_usd": -1.84
+      },
+      {
+       "peak": "2021-01-07",
+       "btc_drop_pct": -6.5,
+       "open_at_peak": 3,
+       "equity_change_usd": -5.02
+      },
+      {
+       "peak": "2021-01-08",
+       "btc_drop_pct": -5.9,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.74
+      },
+      {
+       "peak": "2021-01-08",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 3,
+       "equity_change_usd": -1.02
+      },
+      {
+       "peak": "2021-01-10",
+       "btc_drop_pct": -19.8,
+       "open_at_peak": 5,
+       "equity_change_usd": -8.06
+      },
+      {
+       "peak": "2021-01-12",
+       "btc_drop_pct": -10.7,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.52
+      },
+      {
+       "peak": "2021-01-14",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 3,
+       "equity_change_usd": 1.73
+      },
+      {
+       "peak": "2021-01-14",
+       "btc_drop_pct": -11.2,
+       "open_at_peak": 3,
+       "equity_change_usd": 1.51
+      },
+      {
+       "peak": "2021-01-16",
+       "btc_drop_pct": -9.4,
+       "open_at_peak": 2,
+       "equity_change_usd": -4.38
+      },
+      {
+       "peak": "2021-01-19",
+       "btc_drop_pct": -8.6,
+       "open_at_peak": 5,
+       "equity_change_usd": -3.64
+      },
+      {
+       "peak": "2021-01-21",
+       "btc_drop_pct": -15.1,
+       "open_at_peak": 3,
+       "equity_change_usd": -1.37
+      },
+      {
+       "peak": "2021-01-22",
+       "btc_drop_pct": -5.9,
+       "open_at_peak": 0,
+       "equity_change_usd": -1.14
+      },
+      {
+       "peak": "2021-01-25",
+       "btc_drop_pct": -9.4,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.45
+      },
+      {
+       "peak": "2021-01-26",
+       "btc_drop_pct": -9.8,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.89
+      },
+      {
+       "peak": "2021-01-29",
+       "btc_drop_pct": -5.4,
+       "open_at_peak": 3,
+       "equity_change_usd": 0.31
+      },
+      {
+       "peak": "2021-01-29",
+       "btc_drop_pct": -13.1,
+       "open_at_peak": 5,
+       "equity_change_usd": -0.98
+      },
+      {
+       "peak": "2021-01-30",
+       "btc_drop_pct": -6.9,
+       "open_at_peak": 4,
+       "equity_change_usd": -0.91
+      },
+      {
+       "peak": "2021-02-06",
+       "btc_drop_pct": -6.7,
+       "open_at_peak": 4,
+       "equity_change_usd": -3.58
+      },
+      {
+       "peak": "2021-02-09",
+       "btc_drop_pct": -5.8,
+       "open_at_peak": 4,
+       "equity_change_usd": -0.81
+      },
+      {
+       "peak": "2021-02-09",
+       "btc_drop_pct": -6.2,
+       "open_at_peak": 4,
+       "equity_change_usd": -0.45
+      },
+      {
+       "peak": "2021-02-14",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 3,
+       "equity_change_usd": -6.47
+      },
+      {
+       "peak": "2021-02-22",
+       "btc_drop_pct": -17.0,
+       "open_at_peak": 1,
+       "equity_change_usd": 0.39
+      },
+      {
+       "peak": "2021-02-25",
+       "btc_drop_pct": -12.8,
+       "open_at_peak": 0,
+       "equity_change_usd": -1.07
+      },
+      {
+       "peak": "2021-02-26",
+       "btc_drop_pct": -5.5,
+       "open_at_peak": 1,
+       "equity_change_usd": 0.45
+      },
+      {
+       "peak": "2021-02-27",
+       "btc_drop_pct": -9.0,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.07
+      },
+      {
+       "peak": "2021-03-04",
+       "btc_drop_pct": -9.0,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.04
+      },
+      {
+       "peak": "2021-03-15",
+       "btc_drop_pct": -10.5,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.91
+      },
+      {
+       "peak": "2021-03-20",
+       "btc_drop_pct": -5.7,
+       "open_at_peak": 7,
+       "equity_change_usd": -3.03
+      },
+      {
+       "peak": "2021-03-22",
+       "btc_drop_pct": -8.0,
+       "open_at_peak": 4,
+       "equity_change_usd": -3.14
+      },
+      {
+       "peak": "2021-03-24",
+       "btc_drop_pct": -10.0,
+       "open_at_peak": 3,
+       "equity_change_usd": -1.54
+      },
+      {
+       "peak": "2021-04-17",
+       "btc_drop_pct": -12.7,
+       "open_at_peak": 3,
+       "equity_change_usd": -4.97
+      },
+      {
+       "peak": "2021-04-19",
+       "btc_drop_pct": -6.0,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-04-22",
+       "btc_drop_pct": -12.7,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.7
+      },
+      {
+       "peak": "2021-04-25",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-05-03",
+       "btc_drop_pct": -7.1,
+       "open_at_peak": 4,
+       "equity_change_usd": -2.68
+      },
+      {
+       "peak": "2021-05-10",
+       "btc_drop_pct": -8.0,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.31
+      },
+      {
+       "peak": "2021-05-12",
+       "btc_drop_pct": -14.2,
+       "open_at_peak": 4,
+       "equity_change_usd": -0.9
+      },
+      {
+       "peak": "2021-05-15",
+       "btc_drop_pct": -7.6,
+       "open_at_peak": 1,
+       "equity_change_usd": 0.06
+      },
+      {
+       "peak": "2021-05-16",
+       "btc_drop_pct": -13.3,
+       "open_at_peak": 3,
+       "equity_change_usd": -3.71
+      },
+      {
+       "peak": "2021-05-18",
+       "btc_drop_pct": -19.8,
+       "open_at_peak": 1,
+       "equity_change_usd": 0.06
+      },
+      {
+       "peak": "2021-05-20",
+       "btc_drop_pct": -5.8,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.46
+      },
+      {
+       "peak": "2021-05-21",
+       "btc_drop_pct": -15.6,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-05-23",
+       "btc_drop_pct": -15.6,
+       "open_at_peak": 0,
+       "equity_change_usd": -1.08
+      },
+      {
+       "peak": "2021-05-24",
+       "btc_drop_pct": -7.6,
+       "open_at_peak": 0,
+       "equity_change_usd": -1.2
+      },
+      {
+       "peak": "2021-05-26",
+       "btc_drop_pct": -7.2,
+       "open_at_peak": 3,
+       "equity_change_usd": -0.44
+      },
+      {
+       "peak": "2021-05-27",
+       "btc_drop_pct": -11.6,
+       "open_at_peak": 1,
+       "equity_change_usd": 0.82
+      },
+      {
+       "peak": "2021-05-29",
+       "btc_drop_pct": -8.2,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-05-30",
+       "btc_drop_pct": -5.3,
+       "open_at_peak": 0,
+       "equity_change_usd": -1.06
+      },
+      {
+       "peak": "2021-06-01",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.4
+      },
+      {
+       "peak": "2021-06-04",
+       "btc_drop_pct": -6.7,
+       "open_at_peak": 7,
+       "equity_change_usd": -5.24
+      },
+      {
+       "peak": "2021-06-05",
+       "btc_drop_pct": -7.4,
+       "open_at_peak": 4,
+       "equity_change_usd": -2.97
+      },
+      {
+       "peak": "2021-06-07",
+       "btc_drop_pct": -11.9,
+       "open_at_peak": 4,
+       "equity_change_usd": -4.9
+      },
+      {
+       "peak": "2021-06-11",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.39
+      },
+      {
+       "peak": "2021-06-16",
+       "btc_drop_pct": -5.0,
+       "open_at_peak": 3,
+       "equity_change_usd": -0.63
+      },
+      {
+       "peak": "2021-06-18",
+       "btc_drop_pct": -7.4,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.56
+      },
+      {
+       "peak": "2021-06-19",
+       "btc_drop_pct": -6.5,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-06-21",
+       "btc_drop_pct": -12.1,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.21
+      },
+      {
+       "peak": "2021-06-22",
+       "btc_drop_pct": -11.4,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-06-23",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.97
+      },
+      {
+       "peak": "2021-06-25",
+       "btc_drop_pct": -10.6,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.36
+      },
+      {
+       "peak": "2021-06-29",
+       "btc_drop_pct": -6.2,
+       "open_at_peak": 6,
+       "equity_change_usd": -3.38
+      }
+     ],
+     "n": 64,
+     "sum_usd": -98.91
+    },
+    "B": {
+     "events": [
+      {
+       "peak": "2021-01-02",
+       "btc_drop_pct": -6.7,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.69
+      },
+      {
+       "peak": "2021-01-03",
+       "btc_drop_pct": -5.0,
+       "open_at_peak": 2,
+       "equity_change_usd": 1.39
+      },
+      {
+       "peak": "2021-01-03",
+       "btc_drop_pct": -12.1,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.58
+      },
+      {
+       "peak": "2021-01-04",
+       "btc_drop_pct": -8.4,
+       "open_at_peak": 4,
+       "equity_change_usd": -1.5
+      },
+      {
+       "peak": "2021-01-07",
+       "btc_drop_pct": -6.5,
+       "open_at_peak": 2,
+       "equity_change_usd": -3.77
+      },
+      {
+       "peak": "2021-01-08",
+       "btc_drop_pct": -5.9,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.54
+      },
+      {
+       "peak": "2021-01-08",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 2,
+       "equity_change_usd": -0.71
+      },
+      {
+       "peak": "2021-01-10",
+       "btc_drop_pct": -19.8,
+       "open_at_peak": 3,
+       "equity_change_usd": -5.17
+      },
+      {
+       "peak": "2021-01-12",
+       "btc_drop_pct": -10.7,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.53
+      },
+      {
+       "peak": "2021-01-14",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 1,
+       "equity_change_usd": 2.36
+      },
+      {
+       "peak": "2021-01-14",
+       "btc_drop_pct": -11.2,
+       "open_at_peak": 1,
+       "equity_change_usd": 2.36
+      },
+      {
+       "peak": "2021-01-16",
+       "btc_drop_pct": -9.4,
+       "open_at_peak": 1,
+       "equity_change_usd": -4.0
+      },
+      {
+       "peak": "2021-01-19",
+       "btc_drop_pct": -8.6,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.2
+      },
+      {
+       "peak": "2021-01-21",
+       "btc_drop_pct": -15.1,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.06
+      },
+      {
+       "peak": "2021-01-22",
+       "btc_drop_pct": -5.9,
+       "open_at_peak": 0,
+       "equity_change_usd": -1.14
+      },
+      {
+       "peak": "2021-01-25",
+       "btc_drop_pct": -9.4,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.19
+      },
+      {
+       "peak": "2021-01-26",
+       "btc_drop_pct": -9.8,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.9
+      },
+      {
+       "peak": "2021-01-29",
+       "btc_drop_pct": -5.4,
+       "open_at_peak": 2,
+       "equity_change_usd": 0.27
+      },
+      {
+       "peak": "2021-01-29",
+       "btc_drop_pct": -13.1,
+       "open_at_peak": 4,
+       "equity_change_usd": -0.77
+      },
+      {
+       "peak": "2021-01-30",
+       "btc_drop_pct": -6.9,
+       "open_at_peak": 3,
+       "equity_change_usd": -1.28
+      },
+      {
+       "peak": "2021-02-06",
+       "btc_drop_pct": -6.7,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.37
+      },
+      {
+       "peak": "2021-02-09",
+       "btc_drop_pct": -5.8,
+       "open_at_peak": 2,
+       "equity_change_usd": -0.61
+      },
+      {
+       "peak": "2021-02-09",
+       "btc_drop_pct": -6.2,
+       "open_at_peak": 2,
+       "equity_change_usd": 2.78
+      },
+      {
+       "peak": "2021-02-14",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 2,
+       "equity_change_usd": -6.36
+      },
+      {
+       "peak": "2021-02-22",
+       "btc_drop_pct": -17.0,
+       "open_at_peak": 1,
+       "equity_change_usd": 0.52
+      },
+      {
+       "peak": "2021-02-25",
+       "btc_drop_pct": -12.8,
+       "open_at_peak": 0,
+       "equity_change_usd": -1.07
+      },
+      {
+       "peak": "2021-02-26",
+       "btc_drop_pct": -5.5,
+       "open_at_peak": 1,
+       "equity_change_usd": 0.45
+      },
+      {
+       "peak": "2021-02-27",
+       "btc_drop_pct": -9.0,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.24
+      },
+      {
+       "peak": "2021-03-04",
+       "btc_drop_pct": -9.0,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-03-15",
+       "btc_drop_pct": -10.5,
+       "open_at_peak": 0,
+       "equity_change_usd": -1.7
+      },
+      {
+       "peak": "2021-03-20",
+       "btc_drop_pct": -5.7,
+       "open_at_peak": 5,
+       "equity_change_usd": -1.58
+      },
+      {
+       "peak": "2021-03-22",
+       "btc_drop_pct": -8.0,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.93
+      },
+      {
+       "peak": "2021-03-24",
+       "btc_drop_pct": -10.0,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.02
+      },
+      {
+       "peak": "2021-04-17",
+       "btc_drop_pct": -12.7,
+       "open_at_peak": 2,
+       "equity_change_usd": -3.93
+      },
+      {
+       "peak": "2021-04-19",
+       "btc_drop_pct": -6.0,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-04-22",
+       "btc_drop_pct": -12.7,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-04-25",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-05-03",
+       "btc_drop_pct": -7.1,
+       "open_at_peak": 3,
+       "equity_change_usd": -0.42
+      },
+      {
+       "peak": "2021-05-10",
+       "btc_drop_pct": -8.0,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.0
+      },
+      {
+       "peak": "2021-05-12",
+       "btc_drop_pct": -14.2,
+       "open_at_peak": 3,
+       "equity_change_usd": 0.25
+      },
+      {
+       "peak": "2021-05-15",
+       "btc_drop_pct": -7.6,
+       "open_at_peak": 1,
+       "equity_change_usd": 0.12
+      },
+      {
+       "peak": "2021-05-16",
+       "btc_drop_pct": -13.3,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.8
+      },
+      {
+       "peak": "2021-05-18",
+       "btc_drop_pct": -19.8,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-05-20",
+       "btc_drop_pct": -5.8,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.46
+      },
+      {
+       "peak": "2021-05-21",
+       "btc_drop_pct": -15.6,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-05-23",
+       "btc_drop_pct": -15.6,
+       "open_at_peak": 0,
+       "equity_change_usd": -1.08
+      },
+      {
+       "peak": "2021-05-24",
+       "btc_drop_pct": -7.6,
+       "open_at_peak": 0,
+       "equity_change_usd": -1.15
+      },
+      {
+       "peak": "2021-05-26",
+       "btc_drop_pct": -7.2,
+       "open_at_peak": 2,
+       "equity_change_usd": 0.12
+      },
+      {
+       "peak": "2021-05-27",
+       "btc_drop_pct": -11.6,
+       "open_at_peak": 0,
+       "equity_change_usd": 1.11
+      },
+      {
+       "peak": "2021-05-29",
+       "btc_drop_pct": -8.2,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-05-30",
+       "btc_drop_pct": -5.3,
+       "open_at_peak": 0,
+       "equity_change_usd": -1.06
+      },
+      {
+       "peak": "2021-06-01",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.37
+      },
+      {
+       "peak": "2021-06-04",
+       "btc_drop_pct": -6.7,
+       "open_at_peak": 5,
+       "equity_change_usd": -3.08
+      },
+      {
+       "peak": "2021-06-05",
+       "btc_drop_pct": -7.4,
+       "open_at_peak": 4,
+       "equity_change_usd": -2.85
+      },
+      {
+       "peak": "2021-06-07",
+       "btc_drop_pct": -11.9,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.5
+      },
+      {
+       "peak": "2021-06-11",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.39
+      },
+      {
+       "peak": "2021-06-16",
+       "btc_drop_pct": -5.0,
+       "open_at_peak": 2,
+       "equity_change_usd": -0.31
+      },
+      {
+       "peak": "2021-06-18",
+       "btc_drop_pct": -7.4,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.8
+      },
+      {
+       "peak": "2021-06-19",
+       "btc_drop_pct": -6.5,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-06-21",
+       "btc_drop_pct": -12.1,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.21
+      },
+      {
+       "peak": "2021-06-22",
+       "btc_drop_pct": -11.4,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-06-23",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.94
+      },
+      {
+       "peak": "2021-06-25",
+       "btc_drop_pct": -10.6,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.36
+      },
+      {
+       "peak": "2021-06-29",
+       "btc_drop_pct": -6.2,
+       "open_at_peak": 4,
+       "equity_change_usd": -2.02
+      }
+     ],
+     "n": 64,
+     "sum_usd": -63.91
+    }
+   }
+  },
+  {
+   "class": "I",
+   "class_label": "較獨立的歷史(未證明獨立)",
+   "name": "2021H2",
+   "from": "2021-07-01",
+   "to": "2022-01-01",
+   "active_combos_at_start": 16,
+   "btc_pct": 37.1,
+   "btc_regime": "up",
+   "A": {
+    "return_pct": -0.37,
+    "max_dd_pct": -10.82,
+    "worst_day_usd": -7.24,
+    "trades": 584,
+    "win_pct": 32.2,
+    "pf": 0.99,
+    "avg_net_usd": -0.0016,
+    "avg_net_pct_of_notional": -0.003,
+    "fees": 10.33,
+    "gross": 14.93,
+    "funding": -5.54,
+    "avg_concurrent": 2.43,
+    "max_concurrent": 10,
+    "max_exposure_x": 0.63,
+    "avg_exposure_x": 0.124,
+    "top3_net": 12.57,
+    "net_without_top3": -13.5,
+    "net_closed": -0.94,
+    "rejected": {
+     "below_step": 18
+    }
+   },
+   "B": {
+    "return_pct": -2.35,
+    "max_dd_pct": -8.0,
+    "worst_day_usd": -5.85,
+    "trades": 378,
+    "win_pct": 30.4,
+    "pf": 0.94,
+    "avg_net_usd": -0.0187,
+    "avg_net_pct_of_notional": -0.072,
+    "fees": 5.71,
+    "gross": 1.84,
+    "funding": -3.2,
+    "avg_concurrent": 1.83,
+    "max_concurrent": 8,
+    "max_exposure_x": 0.4,
+    "avg_exposure_x": 0.081,
+    "top3_net": 8.77,
+    "net_without_top3": -15.84,
+    "net_closed": -7.07,
+    "rejected": {
+     "below_step": 23
+    }
+   },
+   "A_stress": {
+    "return_pct": -2.85,
+    "max_dd_pct": -12.29,
+    "worst_day_usd": -7.22,
+    "trades": 582,
+    "win_pct": 30.9,
+    "pf": 0.95,
+    "avg_net_usd": -0.0148,
+    "avg_net_pct_of_notional": -0.093,
+    "fees": 15.22,
+    "gross": 12.07,
+    "funding": -5.46,
+    "avg_concurrent": 2.42,
+    "max_concurrent": 10,
+    "max_exposure_x": 0.63,
+    "avg_exposure_x": 0.123,
+    "top3_net": 12.45,
+    "net_without_top3": -21.07,
+    "net_closed": -8.62,
+    "rejected": {
+     "below_step": 20
+    }
+   },
+   "B_stress": {
+    "return_pct": -4.8,
+    "max_dd_pct": -9.78,
+    "worst_day_usd": -5.85,
+    "trades": 373,
+    "win_pct": 29.2,
+    "pf": 0.87,
+    "avg_net_usd": -0.0393,
+    "avg_net_pct_of_notional": -0.2,
+    "fees": 8.26,
+    "gross": -3.3,
+    "funding": -3.11,
+    "avg_concurrent": 1.82,
+    "max_concurrent": 8,
+    "max_exposure_x": 0.39,
+    "avg_exposure_x": 0.08,
+    "top3_net": 8.47,
+    "net_without_top3": -23.14,
+    "net_closed": -14.67,
+    "rejected": {
+     "below_step": 28
+    }
+   },
+   "decomp_A": {
+    "1H": {
+     "n": 201,
+     "gross": 15.158,
+     "fees": 4.293,
+     "funding": -2.155,
+     "net": 8.71,
+     "avg_gross_pct": 0.309,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": 0.163,
+     "avg_hold_h": 12.8,
+     "notional_hours": 58285.0,
+     "gross_bp_per_notional_hour": 2.6006,
+     "net_bp_per_notional_hour": 1.4944
+    },
+    "4H": {
+     "n": 383,
+     "gross": -0.228,
+     "fees": 6.034,
+     "funding": -3.384,
+     "net": -9.646,
+     "avg_gross_pct": 0.073,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": -0.091,
+     "avg_hold_h": 21.5,
+     "notional_hours": 111850.0,
+     "gross_bp_per_notional_hour": -0.0204,
+     "net_bp_per_notional_hour": -0.8624
+    }
+   },
+   "btc_drops": {
+    "A": {
+     "events": [
+      {
+       "peak": "2021-07-01",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.96
+      },
+      {
+       "peak": "2021-07-04",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 7,
+       "equity_change_usd": -5.64
+      },
+      {
+       "peak": "2021-07-07",
+       "btc_drop_pct": -6.8,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.33
+      },
+      {
+       "peak": "2021-07-14",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.74
+      },
+      {
+       "peak": "2021-07-19",
+       "btc_drop_pct": -6.9,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.38
+      },
+      {
+       "peak": "2021-07-26",
+       "btc_drop_pct": -8.0,
+       "open_at_peak": 4,
+       "equity_change_usd": -3.26
+      },
+      {
+       "peak": "2021-08-01",
+       "btc_drop_pct": -6.8,
+       "open_at_peak": 7,
+       "equity_change_usd": -5.2
+      },
+      {
+       "peak": "2021-08-11",
+       "btc_drop_pct": -5.3,
+       "open_at_peak": 5,
+       "equity_change_usd": -2.13
+      },
+      {
+       "peak": "2021-08-26",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-09-07",
+       "btc_drop_pct": -13.7,
+       "open_at_peak": 2,
+       "equity_change_usd": -4.89
+      },
+      {
+       "peak": "2021-09-10",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.64
+      },
+      {
+       "peak": "2021-09-20",
+       "btc_drop_pct": -11.8,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-09-21",
+       "btc_drop_pct": -6.7,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.5
+      },
+      {
+       "peak": "2021-09-24",
+       "btc_drop_pct": -8.2,
+       "open_at_peak": 4,
+       "equity_change_usd": -4.92
+      },
+      {
+       "peak": "2021-10-20",
+       "btc_drop_pct": -6.2,
+       "open_at_peak": 7,
+       "equity_change_usd": -1.48
+      },
+      {
+       "peak": "2021-10-22",
+       "btc_drop_pct": -5.5,
+       "open_at_peak": 4,
+       "equity_change_usd": -1.65
+      },
+      {
+       "peak": "2021-10-26",
+       "btc_drop_pct": -6.5,
+       "open_at_peak": 8,
+       "equity_change_usd": -8.28
+      },
+      {
+       "peak": "2021-11-10",
+       "btc_drop_pct": -6.4,
+       "open_at_peak": 5,
+       "equity_change_usd": -9.7
+      },
+      {
+       "peak": "2021-11-15",
+       "btc_drop_pct": -8.7,
+       "open_at_peak": 4,
+       "equity_change_usd": -6.06
+      },
+      {
+       "peak": "2021-11-18",
+       "btc_drop_pct": -6.7,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.76
+      },
+      {
+       "peak": "2021-11-21",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.85
+      },
+      {
+       "peak": "2021-11-25",
+       "btc_drop_pct": -9.2,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.98
+      },
+      {
+       "peak": "2021-12-03",
+       "btc_drop_pct": -18.3,
+       "open_at_peak": 6,
+       "equity_change_usd": -2.98
+      },
+      {
+       "peak": "2021-12-07",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 3,
+       "equity_change_usd": -3.18
+      },
+      {
+       "peak": "2021-12-08",
+       "btc_drop_pct": -6.0,
+       "open_at_peak": 0,
+       "equity_change_usd": -1.35
+      },
+      {
+       "peak": "2021-12-12",
+       "btc_drop_pct": -7.2,
+       "open_at_peak": 4,
+       "equity_change_usd": -3.21
+      },
+      {
+       "peak": "2021-12-16",
+       "btc_drop_pct": -5.4,
+       "open_at_peak": 3,
+       "equity_change_usd": -1.71
+      },
+      {
+       "peak": "2021-12-27",
+       "btc_drop_pct": -7.1,
+       "open_at_peak": 6,
+       "equity_change_usd": -7.35
+      },
+      {
+       "peak": "2021-12-31",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.52
+      }
+     ],
+     "n": 29,
+     "sum_usd": -85.65
+    },
+    "B": {
+     "events": [
+      {
+       "peak": "2021-07-01",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.96
+      },
+      {
+       "peak": "2021-07-04",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 5,
+       "equity_change_usd": -4.01
+      },
+      {
+       "peak": "2021-07-07",
+       "btc_drop_pct": -6.8,
+       "open_at_peak": 1,
+       "equity_change_usd": -2.03
+      },
+      {
+       "peak": "2021-07-14",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.74
+      },
+      {
+       "peak": "2021-07-19",
+       "btc_drop_pct": -6.9,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.38
+      },
+      {
+       "peak": "2021-07-26",
+       "btc_drop_pct": -8.0,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.35
+      },
+      {
+       "peak": "2021-08-01",
+       "btc_drop_pct": -6.8,
+       "open_at_peak": 5,
+       "equity_change_usd": -3.06
+      },
+      {
+       "peak": "2021-08-11",
+       "btc_drop_pct": -5.3,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.01
+      },
+      {
+       "peak": "2021-08-26",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-09-07",
+       "btc_drop_pct": -13.7,
+       "open_at_peak": 2,
+       "equity_change_usd": -4.73
+      },
+      {
+       "peak": "2021-09-10",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.73
+      },
+      {
+       "peak": "2021-09-20",
+       "btc_drop_pct": -11.8,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-09-21",
+       "btc_drop_pct": -6.7,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.25
+      },
+      {
+       "peak": "2021-09-24",
+       "btc_drop_pct": -8.2,
+       "open_at_peak": 4,
+       "equity_change_usd": -4.44
+      },
+      {
+       "peak": "2021-10-20",
+       "btc_drop_pct": -6.2,
+       "open_at_peak": 5,
+       "equity_change_usd": -1.14
+      },
+      {
+       "peak": "2021-10-22",
+       "btc_drop_pct": -5.5,
+       "open_at_peak": 4,
+       "equity_change_usd": -1.59
+      },
+      {
+       "peak": "2021-10-26",
+       "btc_drop_pct": -6.5,
+       "open_at_peak": 6,
+       "equity_change_usd": -4.38
+      },
+      {
+       "peak": "2021-11-10",
+       "btc_drop_pct": -6.4,
+       "open_at_peak": 3,
+       "equity_change_usd": -6.01
+      },
+      {
+       "peak": "2021-11-15",
+       "btc_drop_pct": -8.7,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.76
+      },
+      {
+       "peak": "2021-11-18",
+       "btc_drop_pct": -6.7,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.76
+      },
+      {
+       "peak": "2021-11-21",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.85
+      },
+      {
+       "peak": "2021-11-25",
+       "btc_drop_pct": -9.2,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.97
+      },
+      {
+       "peak": "2021-12-03",
+       "btc_drop_pct": -18.3,
+       "open_at_peak": 5,
+       "equity_change_usd": -1.8
+      },
+      {
+       "peak": "2021-12-07",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.46
+      },
+      {
+       "peak": "2021-12-08",
+       "btc_drop_pct": -6.0,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2021-12-12",
+       "btc_drop_pct": -7.2,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.74
+      },
+      {
+       "peak": "2021-12-16",
+       "btc_drop_pct": -5.4,
+       "open_at_peak": 3,
+       "equity_change_usd": -1.68
+      },
+      {
+       "peak": "2021-12-27",
+       "btc_drop_pct": -7.1,
+       "open_at_peak": 5,
+       "equity_change_usd": -6.08
+      },
+      {
+       "peak": "2021-12-31",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.5
+      }
+     ],
+     "n": 29,
+     "sum_usd": -61.41
+    }
+   }
+  },
+  {
+   "class": "I",
+   "class_label": "較獨立的歷史(未證明獨立)",
+   "name": "2022H1",
+   "from": "2022-01-01",
+   "to": "2022-07-01",
+   "active_combos_at_start": 16,
+   "btc_pct": -57.9,
+   "btc_regime": "down",
+   "A": {
+    "return_pct": -9.06,
+    "max_dd_pct": -11.25,
+    "worst_day_usd": -5.2,
+    "trades": 529,
+    "win_pct": 28.4,
+    "pf": 0.8,
+    "avg_net_usd": -0.0547,
+    "avg_net_pct_of_notional": -0.418,
+    "fees": 9.75,
+    "gross": -18.32,
+    "funding": -0.88,
+    "avg_concurrent": 2.02,
+    "max_concurrent": 10,
+    "max_exposure_x": 0.65,
+    "avg_exposure_x": 0.118,
+    "top3_net": 11.73,
+    "net_without_top3": -40.68,
+    "net_closed": -28.95,
+    "rejected": {
+     "below_step": 9,
+     "below_min_notional": 1
+    }
+   },
+   "B": {
+    "return_pct": -7.42,
+    "max_dd_pct": -8.37,
+    "worst_day_usd": -3.25,
+    "trades": 342,
+    "win_pct": 28.9,
+    "pf": 0.78,
+    "avg_net_usd": -0.0702,
+    "avg_net_pct_of_notional": -0.497,
+    "fees": 5.31,
+    "gross": -18.13,
+    "funding": -0.55,
+    "avg_concurrent": 1.47,
+    "max_concurrent": 8,
+    "max_exposure_x": 0.39,
+    "avg_exposure_x": 0.068,
+    "top3_net": 7.47,
+    "net_without_top3": -31.47,
+    "net_closed": -23.99,
+    "rejected": {
+     "below_step": 9
+    }
+   },
+   "A_stress": {
+    "return_pct": -11.77,
+    "max_dd_pct": -13.15,
+    "worst_day_usd": -5.24,
+    "trades": 529,
+    "win_pct": 27.2,
+    "pf": 0.75,
+    "avg_net_usd": -0.0706,
+    "avg_net_pct_of_notional": -0.518,
+    "fees": 14.39,
+    "gross": -22.09,
+    "funding": -0.86,
+    "avg_concurrent": 2.02,
+    "max_concurrent": 10,
+    "max_exposure_x": 0.65,
+    "avg_exposure_x": 0.119,
+    "top3_net": 11.57,
+    "net_without_top3": -48.91,
+    "net_closed": -37.34,
+    "rejected": {
+     "below_step": 9,
+     "below_min_notional": 1
+    }
+   },
+   "B_stress": {
+    "return_pct": -9.36,
+    "max_dd_pct": -10.01,
+    "worst_day_usd": -3.33,
+    "trades": 342,
+    "win_pct": 28.7,
+    "pf": 0.73,
+    "avg_net_usd": -0.0874,
+    "avg_net_pct_of_notional": -0.601,
+    "fees": 7.89,
+    "gross": -21.45,
+    "funding": -0.55,
+    "avg_concurrent": 1.47,
+    "max_concurrent": 8,
+    "max_exposure_x": 0.39,
+    "avg_exposure_x": 0.069,
+    "top3_net": 6.98,
+    "net_without_top3": -36.86,
+    "net_closed": -29.88,
+    "rejected": {
+     "below_step": 9
+    }
+   },
+   "decomp_A": {
+    "1H": {
+     "n": 187,
+     "gross": 0.048,
+     "fees": 4.476,
+     "funding": -0.323,
+     "net": -4.751,
+     "avg_gross_pct": -0.17,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": -0.275,
+     "avg_hold_h": 12.9,
+     "notional_hours": 62969.0,
+     "gross_bp_per_notional_hour": 0.0076,
+     "net_bp_per_notional_hour": -0.7544
+    },
+    "4H": {
+     "n": 342,
+     "gross": -18.37,
+     "fees": 5.274,
+     "funding": -0.553,
+     "net": -24.197,
+     "avg_gross_pct": -0.386,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": -0.497,
+     "avg_hold_h": 18.9,
+     "notional_hours": 87065.0,
+     "gross_bp_per_notional_hour": -2.11,
+     "net_bp_per_notional_hour": -2.7791
+    }
+   },
+   "btc_drops": {
+    "A": {
+     "events": [
+      {
+       "peak": "2022-01-05",
+       "btc_drop_pct": -9.0,
+       "open_at_peak": 5,
+       "equity_change_usd": -4.55
+      },
+      {
+       "peak": "2022-01-20",
+       "btc_drop_pct": -11.8,
+       "open_at_peak": 1,
+       "equity_change_usd": -2.08
+      },
+      {
+       "peak": "2022-01-24",
+       "btc_drop_pct": -8.7,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-01-26",
+       "btc_drop_pct": -6.6,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.51
+      },
+      {
+       "peak": "2022-02-02",
+       "btc_drop_pct": -6.0,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.49
+      },
+      {
+       "peak": "2022-02-10",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.07
+      },
+      {
+       "peak": "2022-02-17",
+       "btc_drop_pct": -8.1,
+       "open_at_peak": 5,
+       "equity_change_usd": -3.9
+      },
+      {
+       "peak": "2022-02-21",
+       "btc_drop_pct": -6.9,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.25
+      },
+      {
+       "peak": "2022-02-23",
+       "btc_drop_pct": -11.1,
+       "open_at_peak": 4,
+       "equity_change_usd": -4.74
+      },
+      {
+       "peak": "2022-02-27",
+       "btc_drop_pct": -5.9,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.74
+      },
+      {
+       "peak": "2022-03-04",
+       "btc_drop_pct": -8.2,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.83
+      },
+      {
+       "peak": "2022-03-09",
+       "btc_drop_pct": -8.6,
+       "open_at_peak": 7,
+       "equity_change_usd": -4.52
+      },
+      {
+       "peak": "2022-03-31",
+       "btc_drop_pct": -6.3,
+       "open_at_peak": 5,
+       "equity_change_usd": -5.32
+      },
+      {
+       "peak": "2022-04-06",
+       "btc_drop_pct": -5.7,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-04-10",
+       "btc_drop_pct": -7.2,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.73
+      },
+      {
+       "peak": "2022-04-21",
+       "btc_drop_pct": -5.7,
+       "open_at_peak": 7,
+       "equity_change_usd": -3.42
+      },
+      {
+       "peak": "2022-04-26",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.0
+      },
+      {
+       "peak": "2022-05-05",
+       "btc_drop_pct": -9.5,
+       "open_at_peak": 6,
+       "equity_change_usd": -5.7
+      },
+      {
+       "peak": "2022-05-07",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.53
+      },
+      {
+       "peak": "2022-05-09",
+       "btc_drop_pct": -12.0,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.87
+      },
+      {
+       "peak": "2022-05-10",
+       "btc_drop_pct": -6.0,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-05-10",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-05-11",
+       "btc_drop_pct": -8.0,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-05-11",
+       "btc_drop_pct": -14.9,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-05-13",
+       "btc_drop_pct": -6.0,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.47
+      },
+      {
+       "peak": "2022-05-16",
+       "btc_drop_pct": -6.4,
+       "open_at_peak": 1,
+       "equity_change_usd": -2.63
+      },
+      {
+       "peak": "2022-05-18",
+       "btc_drop_pct": -5.9,
+       "open_at_peak": 6,
+       "equity_change_usd": -3.71
+      },
+      {
+       "peak": "2022-05-20",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 1,
+       "equity_change_usd": 0.47
+      },
+      {
+       "peak": "2022-06-01",
+       "btc_drop_pct": -7.3,
+       "open_at_peak": 3,
+       "equity_change_usd": -1.4
+      },
+      {
+       "peak": "2022-06-06",
+       "btc_drop_pct": -6.8,
+       "open_at_peak": 4,
+       "equity_change_usd": -2.83
+      },
+      {
+       "peak": "2022-06-11",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-06-12",
+       "btc_drop_pct": -18.9,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.37
+      },
+      {
+       "peak": "2022-06-16",
+       "btc_drop_pct": -10.2,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.87
+      },
+      {
+       "peak": "2022-06-18",
+       "btc_drop_pct": -13.4,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.19
+      },
+      {
+       "peak": "2022-06-21",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 4,
+       "equity_change_usd": -2.6
+      },
+      {
+       "peak": "2022-06-28",
+       "btc_drop_pct": -5.5,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.27
+      },
+      {
+       "peak": "2022-06-29",
+       "btc_drop_pct": -7.6,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.27
+      }
+     ],
+     "n": 37,
+     "sum_usd": -69.39
+    },
+    "B": {
+     "events": [
+      {
+       "peak": "2022-01-05",
+       "btc_drop_pct": -9.0,
+       "open_at_peak": 4,
+       "equity_change_usd": -3.8
+      },
+      {
+       "peak": "2022-01-20",
+       "btc_drop_pct": -11.8,
+       "open_at_peak": 1,
+       "equity_change_usd": -2.08
+      },
+      {
+       "peak": "2022-01-24",
+       "btc_drop_pct": -8.7,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-01-26",
+       "btc_drop_pct": -6.6,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.52
+      },
+      {
+       "peak": "2022-02-02",
+       "btc_drop_pct": -6.0,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.47
+      },
+      {
+       "peak": "2022-02-10",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 2,
+       "equity_change_usd": -0.54
+      },
+      {
+       "peak": "2022-02-17",
+       "btc_drop_pct": -8.1,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.44
+      },
+      {
+       "peak": "2022-02-21",
+       "btc_drop_pct": -6.9,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.25
+      },
+      {
+       "peak": "2022-02-23",
+       "btc_drop_pct": -11.1,
+       "open_at_peak": 3,
+       "equity_change_usd": -3.79
+      },
+      {
+       "peak": "2022-02-27",
+       "btc_drop_pct": -5.9,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.89
+      },
+      {
+       "peak": "2022-03-04",
+       "btc_drop_pct": -8.2,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.83
+      },
+      {
+       "peak": "2022-03-09",
+       "btc_drop_pct": -8.6,
+       "open_at_peak": 6,
+       "equity_change_usd": -3.95
+      },
+      {
+       "peak": "2022-03-31",
+       "btc_drop_pct": -6.3,
+       "open_at_peak": 3,
+       "equity_change_usd": -3.27
+      },
+      {
+       "peak": "2022-04-06",
+       "btc_drop_pct": -5.7,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-04-10",
+       "btc_drop_pct": -7.2,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.73
+      },
+      {
+       "peak": "2022-04-21",
+       "btc_drop_pct": -5.7,
+       "open_at_peak": 6,
+       "equity_change_usd": -1.68
+      },
+      {
+       "peak": "2022-04-26",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.0
+      },
+      {
+       "peak": "2022-05-05",
+       "btc_drop_pct": -9.5,
+       "open_at_peak": 5,
+       "equity_change_usd": -3.83
+      },
+      {
+       "peak": "2022-05-07",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.63
+      },
+      {
+       "peak": "2022-05-09",
+       "btc_drop_pct": -12.0,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.58
+      },
+      {
+       "peak": "2022-05-10",
+       "btc_drop_pct": -6.0,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-05-10",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-05-11",
+       "btc_drop_pct": -8.0,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-05-11",
+       "btc_drop_pct": -14.9,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-05-13",
+       "btc_drop_pct": -6.0,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.85
+      },
+      {
+       "peak": "2022-05-16",
+       "btc_drop_pct": -6.4,
+       "open_at_peak": 1,
+       "equity_change_usd": -2.64
+      },
+      {
+       "peak": "2022-05-18",
+       "btc_drop_pct": -5.9,
+       "open_at_peak": 4,
+       "equity_change_usd": -2.67
+      },
+      {
+       "peak": "2022-05-20",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 1,
+       "equity_change_usd": 0.47
+      },
+      {
+       "peak": "2022-06-01",
+       "btc_drop_pct": -7.3,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.0
+      },
+      {
+       "peak": "2022-06-06",
+       "btc_drop_pct": -6.8,
+       "open_at_peak": 3,
+       "equity_change_usd": -1.97
+      },
+      {
+       "peak": "2022-06-11",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-06-12",
+       "btc_drop_pct": -18.9,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.45
+      },
+      {
+       "peak": "2022-06-16",
+       "btc_drop_pct": -10.2,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.89
+      },
+      {
+       "peak": "2022-06-18",
+       "btc_drop_pct": -13.4,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.19
+      },
+      {
+       "peak": "2022-06-21",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.94
+      },
+      {
+       "peak": "2022-06-28",
+       "btc_drop_pct": -5.5,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-06-29",
+       "btc_drop_pct": -7.6,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.29
+      }
+     ],
+     "n": 37,
+     "sum_usd": -50.7
+    }
+   }
+  },
+  {
+   "class": "I",
+   "class_label": "較獨立的歷史(未證明獨立)",
+   "name": "2022H2",
+   "from": "2022-07-01",
+   "to": "2023-01-01",
+   "active_combos_at_start": 16,
+   "btc_pct": -16.2,
+   "btc_regime": "down",
+   "A": {
+    "return_pct": -19.19,
+    "max_dd_pct": -24.07,
+    "worst_day_usd": -7.85,
+    "trades": 629,
+    "win_pct": 26.7,
+    "pf": 0.63,
+    "avg_net_usd": -0.0951,
+    "avg_net_pct_of_notional": -0.485,
+    "fees": 13.82,
+    "gross": -45.52,
+    "funding": -0.48,
+    "avg_concurrent": 3.0,
+    "max_concurrent": 12,
+    "max_exposure_x": 0.74,
+    "avg_exposure_x": 0.193,
+    "top3_net": 10.3,
+    "net_without_top3": -70.12,
+    "net_closed": -59.82,
+    "rejected": {}
+   },
+   "B": {
+    "return_pct": -12.68,
+    "max_dd_pct": -17.35,
+    "worst_day_usd": -8.41,
+    "trades": 372,
+    "win_pct": 26.6,
+    "pf": 0.66,
+    "avg_net_usd": -0.1061,
+    "avg_net_pct_of_notional": -0.608,
+    "fees": 6.37,
+    "gross": -32.19,
+    "funding": -0.91,
+    "avg_concurrent": 2.41,
+    "max_concurrent": 10,
+    "max_exposure_x": 0.55,
+    "avg_exposure_x": 0.126,
+    "top3_net": 10.3,
+    "net_without_top3": -49.77,
+    "net_closed": -39.47,
+    "rejected": {}
+   },
+   "A_stress": {
+    "return_pct": -22.76,
+    "max_dd_pct": -26.9,
+    "worst_day_usd": -7.72,
+    "trades": 629,
+    "win_pct": 25.0,
+    "pf": 0.58,
+    "avg_net_usd": -0.1126,
+    "avg_net_pct_of_notional": -0.581,
+    "fees": 20.3,
+    "gross": -50.06,
+    "funding": -0.47,
+    "avg_concurrent": 3.0,
+    "max_concurrent": 12,
+    "max_exposure_x": 0.74,
+    "avg_exposure_x": 0.193,
+    "top3_net": 10.22,
+    "net_without_top3": -81.04,
+    "net_closed": -70.82,
+    "rejected": {}
+   },
+   "B_stress": {
+    "return_pct": -14.42,
+    "max_dd_pct": -18.51,
+    "worst_day_usd": -8.35,
+    "trades": 372,
+    "win_pct": 25.8,
+    "pf": 0.63,
+    "avg_net_usd": -0.1205,
+    "avg_net_pct_of_notional": -0.709,
+    "fees": 9.41,
+    "gross": -34.5,
+    "funding": -0.91,
+    "avg_concurrent": 2.41,
+    "max_concurrent": 10,
+    "max_exposure_x": 0.54,
+    "avg_exposure_x": 0.126,
+    "top3_net": 10.22,
+    "net_without_top3": -55.03,
+    "net_closed": -44.82,
+    "rejected": {}
+   },
+   "decomp_A": {
+    "1H": {
+     "n": 257,
+     "gross": -16.126,
+     "fees": 7.753,
+     "funding": 0.405,
+     "net": -23.474,
+     "avg_gross_pct": -0.211,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": -0.305,
+     "avg_hold_h": 10.0,
+     "notional_hours": 82250.0,
+     "gross_bp_per_notional_hour": -1.9606,
+     "net_bp_per_notional_hour": -2.854
+    },
+    "4H": {
+     "n": 372,
+     "gross": -29.39,
+     "fees": 6.072,
+     "funding": -0.885,
+     "net": -36.347,
+     "avg_gross_pct": -0.493,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": -0.608,
+     "avg_hold_h": 28.1,
+     "notional_hours": 153558.0,
+     "gross_bp_per_notional_hour": -1.9139,
+     "net_bp_per_notional_hour": -2.367
+    }
+   },
+   "btc_drops": {
+    "A": {
+     "events": [
+      {
+       "peak": "2022-07-01",
+       "btc_drop_pct": -6.6,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.46
+      },
+      {
+       "peak": "2022-07-11",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-07-18",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 7,
+       "equity_change_usd": -4.38
+      },
+      {
+       "peak": "2022-07-20",
+       "btc_drop_pct": -6.6,
+       "open_at_peak": 4,
+       "equity_change_usd": -3.25
+      },
+      {
+       "peak": "2022-07-22",
+       "btc_drop_pct": -6.0,
+       "open_at_peak": 4,
+       "equity_change_usd": -2.36
+      },
+      {
+       "peak": "2022-07-25",
+       "btc_drop_pct": -6.4,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-08-18",
+       "btc_drop_pct": -9.7,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.49
+      },
+      {
+       "peak": "2022-08-26",
+       "btc_drop_pct": -7.5,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.47
+      },
+      {
+       "peak": "2022-09-06",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 6,
+       "equity_change_usd": -5.08
+      },
+      {
+       "peak": "2022-09-13",
+       "btc_drop_pct": -10.7,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.65
+      },
+      {
+       "peak": "2022-09-18",
+       "btc_drop_pct": -8.0,
+       "open_at_peak": 7,
+       "equity_change_usd": -4.93
+      },
+      {
+       "peak": "2022-09-21",
+       "btc_drop_pct": -7.4,
+       "open_at_peak": 4,
+       "equity_change_usd": -1.57
+      },
+      {
+       "peak": "2022-09-27",
+       "btc_drop_pct": -8.1,
+       "open_at_peak": 10,
+       "equity_change_usd": -6.99
+      },
+      {
+       "peak": "2022-11-07",
+       "btc_drop_pct": -6.9,
+       "open_at_peak": 4,
+       "equity_change_usd": -7.89
+      },
+      {
+       "peak": "2022-11-08",
+       "btc_drop_pct": -16.0,
+       "open_at_peak": 1,
+       "equity_change_usd": -5.21
+      },
+      {
+       "peak": "2022-11-10",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 0,
+       "equity_change_usd": -1.26
+      },
+      {
+       "peak": "2022-11-13",
+       "btc_drop_pct": -5.4,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.73
+      }
+     ],
+     "n": 17,
+     "sum_usd": -48.72
+    },
+    "B": {
+     "events": [
+      {
+       "peak": "2022-07-01",
+       "btc_drop_pct": -6.6,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-07-11",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-07-18",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 5,
+       "equity_change_usd": -2.74
+      },
+      {
+       "peak": "2022-07-20",
+       "btc_drop_pct": -6.6,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.3
+      },
+      {
+       "peak": "2022-07-22",
+       "btc_drop_pct": -6.0,
+       "open_at_peak": 3,
+       "equity_change_usd": -1.85
+      },
+      {
+       "peak": "2022-07-25",
+       "btc_drop_pct": -6.4,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2022-08-18",
+       "btc_drop_pct": -9.7,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.5
+      },
+      {
+       "peak": "2022-08-26",
+       "btc_drop_pct": -7.5,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.91
+      },
+      {
+       "peak": "2022-09-06",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 4,
+       "equity_change_usd": -3.92
+      },
+      {
+       "peak": "2022-09-13",
+       "btc_drop_pct": -10.7,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.72
+      },
+      {
+       "peak": "2022-09-18",
+       "btc_drop_pct": -8.0,
+       "open_at_peak": 6,
+       "equity_change_usd": -4.3
+      },
+      {
+       "peak": "2022-09-21",
+       "btc_drop_pct": -7.4,
+       "open_at_peak": 4,
+       "equity_change_usd": -1.13
+      },
+      {
+       "peak": "2022-09-27",
+       "btc_drop_pct": -8.1,
+       "open_at_peak": 8,
+       "equity_change_usd": -6.02
+      },
+      {
+       "peak": "2022-11-07",
+       "btc_drop_pct": -6.9,
+       "open_at_peak": 4,
+       "equity_change_usd": -8.42
+      },
+      {
+       "peak": "2022-11-08",
+       "btc_drop_pct": -16.0,
+       "open_at_peak": 1,
+       "equity_change_usd": -5.62
+      },
+      {
+       "peak": "2022-11-10",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 0,
+       "equity_change_usd": -1.29
+      },
+      {
+       "peak": "2022-11-13",
+       "btc_drop_pct": -5.4,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.73
+      }
+     ],
+     "n": 17,
+     "sum_usd": -41.45
+    }
+   }
+  },
+  {
+   "class": "I",
+   "class_label": "較獨立的歷史(未證明獨立)",
+   "name": "2023H1",
+   "from": "2023-01-01",
+   "to": "2023-07-01",
+   "active_combos_at_start": 17,
+   "btc_pct": 83.9,
+   "btc_regime": "up",
+   "A": {
+    "return_pct": 3.29,
+    "max_dd_pct": -14.8,
+    "worst_day_usd": -8.83,
+    "trades": 619,
+    "win_pct": 28.3,
+    "pf": 1.01,
+    "avg_net_usd": 0.0018,
+    "avg_net_pct_of_notional": 0.245,
+    "fees": 15.82,
+    "gross": 18.36,
+    "funding": -1.4,
+    "avg_concurrent": 3.93,
+    "max_concurrent": 12,
+    "max_exposure_x": 0.92,
+    "avg_exposure_x": 0.264,
+    "top3_net": 29.42,
+    "net_without_top3": -28.28,
+    "net_closed": 1.14,
+    "rejected": {}
+   },
+   "B": {
+    "return_pct": 7.98,
+    "max_dd_pct": -10.3,
+    "worst_day_usd": -7.13,
+    "trades": 388,
+    "win_pct": 30.4,
+    "pf": 1.14,
+    "avg_net_usd": 0.0424,
+    "avg_net_pct_of_notional": 0.503,
+    "fees": 7.32,
+    "gross": 25.07,
+    "funding": -1.31,
+    "avg_concurrent": 3.32,
+    "max_concurrent": 10,
+    "max_exposure_x": 0.65,
+    "avg_exposure_x": 0.19,
+    "top3_net": 27.91,
+    "net_without_top3": -11.47,
+    "net_closed": 16.44,
+    "rejected": {}
+   },
+   "A_stress": {
+    "return_pct": -1.59,
+    "max_dd_pct": -18.22,
+    "worst_day_usd": -9.03,
+    "trades": 619,
+    "win_pct": 27.1,
+    "pf": 0.93,
+    "avg_net_usd": -0.0216,
+    "avg_net_pct_of_notional": 0.148,
+    "fees": 23.18,
+    "gross": 11.2,
+    "funding": -1.41,
+    "avg_concurrent": 3.93,
+    "max_concurrent": 12,
+    "max_exposure_x": 0.92,
+    "avg_exposure_x": 0.264,
+    "top3_net": 28.69,
+    "net_without_top3": -42.09,
+    "net_closed": -13.39,
+    "rejected": {}
+   },
+   "B_stress": {
+    "return_pct": 5.58,
+    "max_dd_pct": -11.48,
+    "worst_day_usd": -7.2,
+    "trades": 388,
+    "win_pct": 29.6,
+    "pf": 1.08,
+    "avg_net_usd": 0.0241,
+    "avg_net_pct_of_notional": 0.402,
+    "fees": 10.86,
+    "gross": 21.52,
+    "funding": -1.29,
+    "avg_concurrent": 3.32,
+    "max_concurrent": 10,
+    "max_exposure_x": 0.65,
+    "avg_exposure_x": 0.19,
+    "top3_net": 27.86,
+    "net_without_top3": -18.5,
+    "net_closed": 9.36,
+    "rejected": {}
+   },
+   "decomp_A": {
+    "1H": {
+     "n": 231,
+     "gross": -7.934,
+     "fees": 8.698,
+     "funding": -0.123,
+     "net": -16.755,
+     "avg_gross_pct": -0.084,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": -0.187,
+     "avg_hold_h": 11.3,
+     "notional_hours": 102922.0,
+     "gross_bp_per_notional_hour": -0.7708,
+     "net_bp_per_notional_hour": -1.628
+    },
+    "4H": {
+     "n": 388,
+     "gross": 26.292,
+     "fees": 7.122,
+     "funding": -1.279,
+     "net": 17.891,
+     "avg_gross_pct": 0.61,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": 0.503,
+     "avg_hold_h": 35.9,
+     "notional_hours": 252324.0,
+     "gross_bp_per_notional_hour": 1.042,
+     "net_bp_per_notional_hour": 0.7091
+    }
+   },
+   "btc_drops": {
+    "A": {
+     "events": [
+      {
+       "peak": "2023-02-09",
+       "btc_drop_pct": -5.3,
+       "open_at_peak": 3,
+       "equity_change_usd": -5.6
+      },
+      {
+       "peak": "2023-02-16",
+       "btc_drop_pct": -6.2,
+       "open_at_peak": 8,
+       "equity_change_usd": -6.05
+      },
+      {
+       "peak": "2023-03-02",
+       "btc_drop_pct": -5.9,
+       "open_at_peak": 1,
+       "equity_change_usd": -2.03
+      },
+      {
+       "peak": "2023-03-09",
+       "btc_drop_pct": -9.7,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.82
+      },
+      {
+       "peak": "2023-03-14",
+       "btc_drop_pct": -6.0,
+       "open_at_peak": 4,
+       "equity_change_usd": -3.37
+      },
+      {
+       "peak": "2023-03-22",
+       "btc_drop_pct": -6.9,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.28
+      },
+      {
+       "peak": "2023-04-19",
+       "btc_drop_pct": -5.0,
+       "open_at_peak": 8,
+       "equity_change_usd": -5.32
+      },
+      {
+       "peak": "2023-04-26",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 9,
+       "equity_change_usd": -8.77
+      },
+      {
+       "peak": "2023-04-30",
+       "btc_drop_pct": -5.9,
+       "open_at_peak": 6,
+       "equity_change_usd": -2.16
+      },
+      {
+       "peak": "2023-05-07",
+       "btc_drop_pct": -5.4,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.38
+      },
+      {
+       "peak": "2023-06-04",
+       "btc_drop_pct": -6.2,
+       "open_at_peak": 8,
+       "equity_change_usd": -7.94
+      }
+     ],
+     "n": 11,
+     "sum_usd": -46.72
+    },
+    "B": {
+     "events": [
+      {
+       "peak": "2023-02-09",
+       "btc_drop_pct": -5.3,
+       "open_at_peak": 2,
+       "equity_change_usd": -3.77
+      },
+      {
+       "peak": "2023-02-16",
+       "btc_drop_pct": -6.2,
+       "open_at_peak": 8,
+       "equity_change_usd": -6.09
+      },
+      {
+       "peak": "2023-03-02",
+       "btc_drop_pct": -5.9,
+       "open_at_peak": 0,
+       "equity_change_usd": -1.0
+      },
+      {
+       "peak": "2023-03-09",
+       "btc_drop_pct": -9.7,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.5
+      },
+      {
+       "peak": "2023-03-14",
+       "btc_drop_pct": -6.0,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.56
+      },
+      {
+       "peak": "2023-03-22",
+       "btc_drop_pct": -6.9,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.24
+      },
+      {
+       "peak": "2023-04-19",
+       "btc_drop_pct": -5.0,
+       "open_at_peak": 7,
+       "equity_change_usd": -3.57
+      },
+      {
+       "peak": "2023-04-26",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 8,
+       "equity_change_usd": -7.44
+      },
+      {
+       "peak": "2023-04-30",
+       "btc_drop_pct": -5.9,
+       "open_at_peak": 5,
+       "equity_change_usd": -1.79
+      },
+      {
+       "peak": "2023-05-07",
+       "btc_drop_pct": -5.4,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.61
+      },
+      {
+       "peak": "2023-06-04",
+       "btc_drop_pct": -6.2,
+       "open_at_peak": 7,
+       "equity_change_usd": -7.0
+      }
+     ],
+     "n": 11,
+     "sum_usd": -37.57
+    }
+   }
+  },
+  {
+   "class": "G",
+   "class_label": "灰色地帶(曾被取得當暖機,不算獨立)",
+   "name": "2023H2",
+   "from": "2023-07-01",
+   "to": "2024-01-01",
+   "active_combos_at_start": 18,
+   "btc_pct": 39.4,
+   "btc_regime": "up",
+   "A": {
+    "return_pct": 9.16,
+    "max_dd_pct": -13.89,
+    "worst_day_usd": -10.79,
+    "trades": 716,
+    "win_pct": 26.5,
+    "pf": 1.13,
+    "avg_net_usd": 0.0369,
+    "avg_net_pct_of_notional": 0.16,
+    "fees": 18.68,
+    "gross": 49.24,
+    "funding": -4.11,
+    "avg_concurrent": 4.03,
+    "max_concurrent": 13,
+    "max_exposure_x": 0.97,
+    "avg_exposure_x": 0.297,
+    "top3_net": 42.1,
+    "net_without_top3": -15.65,
+    "net_closed": 26.45,
+    "rejected": {}
+   },
+   "B": {
+    "return_pct": 8.24,
+    "max_dd_pct": -11.16,
+    "worst_day_usd": -9.71,
+    "trades": 493,
+    "win_pct": 26.8,
+    "pf": 1.16,
+    "avg_net_usd": 0.0501,
+    "avg_net_pct_of_notional": 0.296,
+    "fees": 8.71,
+    "gross": 36.12,
+    "funding": -2.71,
+    "avg_concurrent": 3.44,
+    "max_concurrent": 12,
+    "max_exposure_x": 0.71,
+    "avg_exposure_x": 0.209,
+    "top3_net": 35.65,
+    "net_without_top3": -10.96,
+    "net_closed": 24.69,
+    "rejected": {}
+   },
+   "A_stress": {
+    "return_pct": 3.58,
+    "max_dd_pct": -16.3,
+    "worst_day_usd": -10.97,
+    "trades": 716,
+    "win_pct": 25.1,
+    "pf": 1.04,
+    "avg_net_usd": 0.013,
+    "avg_net_pct_of_notional": 0.062,
+    "fees": 27.22,
+    "gross": 40.46,
+    "funding": -3.94,
+    "avg_concurrent": 4.03,
+    "max_concurrent": 13,
+    "max_exposure_x": 0.97,
+    "avg_exposure_x": 0.298,
+    "top3_net": 41.24,
+    "net_without_top3": -31.94,
+    "net_closed": 9.3,
+    "rejected": {}
+   },
+   "B_stress": {
+    "return_pct": 5.34,
+    "max_dd_pct": -12.18,
+    "worst_day_usd": -9.64,
+    "trades": 493,
+    "win_pct": 26.6,
+    "pf": 1.1,
+    "avg_net_usd": 0.0319,
+    "avg_net_pct_of_notional": 0.194,
+    "fees": 12.85,
+    "gross": 31.24,
+    "funding": -2.66,
+    "avg_concurrent": 3.44,
+    "max_concurrent": 12,
+    "max_exposure_x": 0.71,
+    "avg_exposure_x": 0.209,
+    "top3_net": 34.68,
+    "net_without_top3": -18.95,
+    "net_closed": 15.74,
+    "rejected": {}
+   },
+   "decomp_A": {
+    "1H": {
+     "n": 223,
+     "gross": 13.913,
+     "fees": 9.826,
+     "funding": -1.366,
+     "net": 2.72,
+     "avg_gross_pct": -0.027,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": -0.14,
+     "avg_hold_h": 11.7,
+     "notional_hours": 123824.0,
+     "gross_bp_per_notional_hour": 1.1236,
+     "net_bp_per_notional_hour": 0.2197
+    },
+    "4H": {
+     "n": 493,
+     "gross": 35.329,
+     "fees": 8.855,
+     "funding": -2.739,
+     "net": 23.734,
+     "avg_gross_pct": 0.426,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": 0.296,
+     "avg_hold_h": 30.5,
+     "notional_hours": 274155.0,
+     "gross_bp_per_notional_hour": 1.2886,
+     "net_bp_per_notional_hour": 0.8657
+    }
+   },
+   "btc_drops": {
+    "A": {
+     "events": [
+      {
+       "peak": "2023-08-16",
+       "btc_drop_pct": -9.2,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2023-11-16",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 2,
+       "equity_change_usd": -4.85
+      },
+      {
+       "peak": "2023-11-21",
+       "btc_drop_pct": -5.0,
+       "open_at_peak": 4,
+       "equity_change_usd": -7.22
+      },
+      {
+       "peak": "2023-12-10",
+       "btc_drop_pct": -7.3,
+       "open_at_peak": 4,
+       "equity_change_usd": -3.22
+      }
+     ],
+     "n": 4,
+     "sum_usd": -15.29
+    },
+    "B": {
+     "events": [
+      {
+       "peak": "2023-08-16",
+       "btc_drop_pct": -9.2,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2023-11-16",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 2,
+       "equity_change_usd": -4.65
+      },
+      {
+       "peak": "2023-11-21",
+       "btc_drop_pct": -5.0,
+       "open_at_peak": 4,
+       "equity_change_usd": -7.18
+      },
+      {
+       "peak": "2023-12-10",
+       "btc_drop_pct": -7.3,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.21
+      }
+     ],
+     "n": 4,
+     "sum_usd": -14.04
+    }
+   }
+  },
+  {
+   "class": "G",
+   "class_label": "灰色地帶(曾被取得當暖機,不算獨立)",
+   "name": "2024-01~02",
+   "from": "2024-01-01",
+   "to": "2024-03-01",
+   "active_combos_at_start": 20,
+   "btc_pct": 44.4,
+   "btc_regime": "up",
+   "A": {
+    "return_pct": 6.09,
+    "max_dd_pct": -5.25,
+    "worst_day_usd": -7.2,
+    "trades": 238,
+    "win_pct": 34.5,
+    "pf": 1.21,
+    "avg_net_usd": 0.053,
+    "avg_net_pct_of_notional": 0.17,
+    "fees": 5.55,
+    "gross": 20.77,
+    "funding": -2.61,
+    "avg_concurrent": 4.58,
+    "max_concurrent": 13,
+    "max_exposure_x": 0.96,
+    "avg_exposure_x": 0.335,
+    "top3_net": 12.29,
+    "net_without_top3": 0.32,
+    "net_closed": 12.61,
+    "rejected": {
+     "below_min_notional": 1
+    }
+   },
+   "B": {
+    "return_pct": 2.95,
+    "max_dd_pct": -5.36,
+    "worst_day_usd": -5.1,
+    "trades": 173,
+    "win_pct": 34.7,
+    "pf": 1.06,
+    "avg_net_usd": 0.017,
+    "avg_net_pct_of_notional": 0.146,
+    "fees": 2.8,
+    "gross": 7.29,
+    "funding": -1.55,
+    "avg_concurrent": 3.8,
+    "max_concurrent": 11,
+    "max_exposure_x": 0.69,
+    "avg_exposure_x": 0.216,
+    "top3_net": 7.89,
+    "net_without_top3": -4.95,
+    "net_closed": 2.94,
+    "rejected": {
+     "below_min_notional": 1
+    }
+   },
+   "A_stress": {
+    "return_pct": 4.32,
+    "max_dd_pct": -5.76,
+    "worst_day_usd": -7.31,
+    "trades": 238,
+    "win_pct": 33.2,
+    "pf": 1.11,
+    "avg_net_usd": 0.0303,
+    "avg_net_pct_of_notional": 0.072,
+    "fees": 8.27,
+    "gross": 18.05,
+    "funding": -2.58,
+    "avg_concurrent": 4.58,
+    "max_concurrent": 13,
+    "max_exposure_x": 0.96,
+    "avg_exposure_x": 0.336,
+    "top3_net": 12.09,
+    "net_without_top3": -4.88,
+    "net_closed": 7.2,
+    "rejected": {
+     "below_min_notional": 1
+    }
+   },
+   "B_stress": {
+    "return_pct": 1.99,
+    "max_dd_pct": -5.66,
+    "worst_day_usd": -5.13,
+    "trades": 173,
+    "win_pct": 34.7,
+    "pf": 1.0,
+    "avg_net_usd": 0.0001,
+    "avg_net_pct_of_notional": 0.046,
+    "fees": 4.18,
+    "gross": 5.73,
+    "funding": -1.54,
+    "avg_concurrent": 3.8,
+    "max_concurrent": 11,
+    "max_exposure_x": 0.69,
+    "avg_exposure_x": 0.216,
+    "top3_net": 7.67,
+    "net_without_top3": -7.66,
+    "net_closed": 0.01,
+    "rejected": {
+     "below_min_notional": 1
+    }
+   },
+   "decomp_A": {
+    "1H": {
+     "n": 65,
+     "gross": 13.416,
+     "fees": 2.729,
+     "funding": -1.035,
+     "net": 9.652,
+     "avg_gross_pct": 0.37,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": 0.235,
+     "avg_hold_h": 17.4,
+     "notional_hours": 53093.0,
+     "gross_bp_per_notional_hour": 2.5269,
+     "net_bp_per_notional_hour": 1.8179
+    },
+    "4H": {
+     "n": 173,
+     "gross": 7.349,
+     "fees": 2.82,
+     "funding": -1.572,
+     "net": 2.957,
+     "avg_gross_pct": 0.305,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": 0.146,
+     "avg_hold_h": 28.8,
+     "notional_hours": 81128.0,
+     "gross_bp_per_notional_hour": 0.9059,
+     "net_bp_per_notional_hour": 0.3645
+    }
+   },
+   "btc_drops": {
+    "A": {
+     "events": [
+      {
+       "peak": "2024-01-02",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 2,
+       "equity_change_usd": -3.15
+      },
+      {
+       "peak": "2024-01-11",
+       "btc_drop_pct": -5.7,
+       "open_at_peak": 8,
+       "equity_change_usd": -2.76
+      },
+      {
+       "peak": "2024-01-12",
+       "btc_drop_pct": -8.2,
+       "open_at_peak": 7,
+       "equity_change_usd": -3.16
+      },
+      {
+       "peak": "2024-01-22",
+       "btc_drop_pct": -5.0,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.65
+      },
+      {
+       "peak": "2024-01-22",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.38
+      }
+     ],
+     "n": 5,
+     "sum_usd": -11.1
+    },
+    "B": {
+     "events": [
+      {
+       "peak": "2024-01-02",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.12
+      },
+      {
+       "peak": "2024-01-11",
+       "btc_drop_pct": -5.7,
+       "open_at_peak": 6,
+       "equity_change_usd": -2.29
+      },
+      {
+       "peak": "2024-01-12",
+       "btc_drop_pct": -8.2,
+       "open_at_peak": 5,
+       "equity_change_usd": -3.03
+      },
+      {
+       "peak": "2024-01-22",
+       "btc_drop_pct": -5.0,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.65
+      },
+      {
+       "peak": "2024-01-22",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.38
+      }
+     ],
+     "n": 5,
+     "sum_usd": -9.47
+    }
+   }
+  },
+  {
+   "class": "X",
+   "class_label": "歷史探索(選擇已看過)",
+   "name": "2024-03~12",
+   "from": "2024-03-01",
+   "to": "2025-01-01",
+   "active_combos_at_start": 21,
+   "btc_pct": 53.3,
+   "btc_regime": "up",
+   "A": {
+    "return_pct": 28.23,
+    "max_dd_pct": -19.67,
+    "worst_day_usd": -17.04,
+    "trades": 1282,
+    "win_pct": 29.9,
+    "pf": 1.26,
+    "avg_net_usd": 0.0682,
+    "avg_net_pct_of_notional": 0.37,
+    "fees": 26.73,
+    "gross": 121.94,
+    "funding": -7.74,
+    "avg_concurrent": 4.22,
+    "max_concurrent": 15,
+    "max_exposure_x": 0.92,
+    "avg_exposure_x": 0.272,
+    "top3_net": 105.26,
+    "net_without_top3": -17.8,
+    "net_closed": 87.46,
+    "rejected": {}
+   },
+   "B": {
+    "return_pct": 16.21,
+    "max_dd_pct": -16.27,
+    "worst_day_usd": -16.6,
+    "trades": 923,
+    "win_pct": 30.0,
+    "pf": 1.19,
+    "avg_net_usd": 0.0544,
+    "avg_net_pct_of_notional": 0.284,
+    "fees": 13.7,
+    "gross": 69.0,
+    "funding": -5.12,
+    "avg_concurrent": 3.54,
+    "max_concurrent": 13,
+    "max_exposure_x": 0.71,
+    "avg_exposure_x": 0.182,
+    "top3_net": 95.82,
+    "net_without_top3": -45.65,
+    "net_closed": 50.18,
+    "rejected": {}
+   },
+   "A_stress": {
+    "return_pct": 17.35,
+    "max_dd_pct": -23.05,
+    "worst_day_usd": -15.67,
+    "trades": 1282,
+    "win_pct": 29.2,
+    "pf": 1.16,
+    "avg_net_usd": 0.0419,
+    "avg_net_pct_of_notional": 0.27,
+    "fees": 37.69,
+    "gross": 98.75,
+    "funding": -7.32,
+    "avg_concurrent": 4.22,
+    "max_concurrent": 15,
+    "max_exposure_x": 0.92,
+    "avg_exposure_x": 0.27,
+    "top3_net": 97.2,
+    "net_without_top3": -43.46,
+    "net_closed": 53.74,
+    "rejected": {}
+   },
+   "B_stress": {
+    "return_pct": 10.78,
+    "max_dd_pct": -18.1,
+    "worst_day_usd": -16.16,
+    "trades": 923,
+    "win_pct": 29.6,
+    "pf": 1.13,
+    "avg_net_usd": 0.0362,
+    "avg_net_pct_of_notional": 0.181,
+    "fees": 19.91,
+    "gross": 58.3,
+    "funding": -5.01,
+    "avg_concurrent": 3.54,
+    "max_concurrent": 13,
+    "max_exposure_x": 0.67,
+    "avg_exposure_x": 0.182,
+    "top3_net": 92.22,
+    "net_without_top3": -58.84,
+    "net_closed": 33.37,
+    "rejected": {}
+   },
+   "decomp_A": {
+    "1H": {
+     "n": 359,
+     "gross": 51.507,
+     "fees": 12.582,
+     "funding": -2.468,
+     "net": 36.457,
+     "avg_gross_pct": 0.712,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": 0.59,
+     "avg_hold_h": 14.1,
+     "notional_hours": 186625.0,
+     "gross_bp_per_notional_hour": 2.7599,
+     "net_bp_per_notional_hour": 1.9535
+    },
+    "4H": {
+     "n": 923,
+     "gross": 70.431,
+     "fees": 14.152,
+     "funding": -5.273,
+     "net": 51.006,
+     "avg_gross_pct": 0.425,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": 0.284,
+     "avg_hold_h": 28.3,
+     "notional_hours": 369065.0,
+     "gross_bp_per_notional_hour": 1.9084,
+     "net_bp_per_notional_hour": 1.382
+    }
+   },
+   "btc_drops": {
+    "A": {
+     "events": [
+      {
+       "peak": "2024-03-05",
+       "btc_drop_pct": -10.6,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.23
+      },
+      {
+       "peak": "2024-03-14",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 5,
+       "equity_change_usd": -3.26
+      },
+      {
+       "peak": "2024-03-14",
+       "btc_drop_pct": -8.5,
+       "open_at_peak": 4,
+       "equity_change_usd": -6.88
+      },
+      {
+       "peak": "2024-03-15",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 5,
+       "equity_change_usd": -3.85
+      },
+      {
+       "peak": "2024-03-16",
+       "btc_drop_pct": -6.5,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.53
+      },
+      {
+       "peak": "2024-03-18",
+       "btc_drop_pct": -8.0,
+       "open_at_peak": 1,
+       "equity_change_usd": -2.93
+      },
+      {
+       "peak": "2024-03-21",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 4,
+       "equity_change_usd": -3.32
+      },
+      {
+       "peak": "2024-04-01",
+       "btc_drop_pct": -6.9,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2024-04-12",
+       "btc_drop_pct": -7.4,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.26
+      },
+      {
+       "peak": "2024-04-13",
+       "btc_drop_pct": -8.7,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2024-04-15",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 3,
+       "equity_change_usd": -1.29
+      },
+      {
+       "peak": "2024-04-17",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.44
+      },
+      {
+       "peak": "2024-04-30",
+       "btc_drop_pct": -8.2,
+       "open_at_peak": 3,
+       "equity_change_usd": -1.84
+      },
+      {
+       "peak": "2024-05-01",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.99
+      },
+      {
+       "peak": "2024-06-10",
+       "btc_drop_pct": -5.4,
+       "open_at_peak": 3,
+       "equity_change_usd": -1.19
+      },
+      {
+       "peak": "2024-06-23",
+       "btc_drop_pct": -7.1,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.2
+      },
+      {
+       "peak": "2024-07-04",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 3,
+       "equity_change_usd": -1.35
+      },
+      {
+       "peak": "2024-07-04",
+       "btc_drop_pct": -8.4,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.38
+      },
+      {
+       "peak": "2024-07-07",
+       "btc_drop_pct": -5.8,
+       "open_at_peak": 7,
+       "equity_change_usd": -6.62
+      },
+      {
+       "peak": "2024-07-29",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 9,
+       "equity_change_usd": -3.33
+      },
+      {
+       "peak": "2024-07-31",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 2,
+       "equity_change_usd": -0.64
+      },
+      {
+       "peak": "2024-08-02",
+       "btc_drop_pct": -6.3,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.12
+      },
+      {
+       "peak": "2024-08-04",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.34
+      },
+      {
+       "peak": "2024-08-04",
+       "btc_drop_pct": -18.1,
+       "open_at_peak": 2,
+       "equity_change_usd": -0.82
+      },
+      {
+       "peak": "2024-08-14",
+       "btc_drop_pct": -5.3,
+       "open_at_peak": 9,
+       "equity_change_usd": -1.55
+      },
+      {
+       "peak": "2024-08-15",
+       "btc_drop_pct": -5.0,
+       "open_at_peak": 2,
+       "equity_change_usd": -0.67
+      },
+      {
+       "peak": "2024-08-27",
+       "btc_drop_pct": -6.7,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.63
+      },
+      {
+       "peak": "2024-09-06",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.34
+      },
+      {
+       "peak": "2024-10-01",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 4,
+       "equity_change_usd": -4.16
+      },
+      {
+       "peak": "2024-11-13",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 6,
+       "equity_change_usd": -3.39
+      },
+      {
+       "peak": "2024-11-25",
+       "btc_drop_pct": -6.0,
+       "open_at_peak": 7,
+       "equity_change_usd": -21.23
+      },
+      {
+       "peak": "2024-12-05",
+       "btc_drop_pct": -6.7,
+       "open_at_peak": 4,
+       "equity_change_usd": -2.36
+      },
+      {
+       "peak": "2024-12-18",
+       "btc_drop_pct": -5.5,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.11
+      },
+      {
+       "peak": "2024-12-19",
+       "btc_drop_pct": -9.1,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      }
+     ],
+     "n": 34,
+     "sum_usd": -87.25
+    },
+    "B": {
+     "events": [
+      {
+       "peak": "2024-03-05",
+       "btc_drop_pct": -10.6,
+       "open_at_peak": 1,
+       "equity_change_usd": -2.22
+      },
+      {
+       "peak": "2024-03-14",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 4,
+       "equity_change_usd": -2.15
+      },
+      {
+       "peak": "2024-03-14",
+       "btc_drop_pct": -8.5,
+       "open_at_peak": 4,
+       "equity_change_usd": -5.9
+      },
+      {
+       "peak": "2024-03-15",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 5,
+       "equity_change_usd": -3.85
+      },
+      {
+       "peak": "2024-03-16",
+       "btc_drop_pct": -6.5,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.53
+      },
+      {
+       "peak": "2024-03-18",
+       "btc_drop_pct": -8.0,
+       "open_at_peak": 1,
+       "equity_change_usd": -2.41
+      },
+      {
+       "peak": "2024-03-21",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 3,
+       "equity_change_usd": -3.05
+      },
+      {
+       "peak": "2024-04-01",
+       "btc_drop_pct": -6.9,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2024-04-12",
+       "btc_drop_pct": -7.4,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.61
+      },
+      {
+       "peak": "2024-04-13",
+       "btc_drop_pct": -8.7,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2024-04-15",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 2,
+       "equity_change_usd": -0.51
+      },
+      {
+       "peak": "2024-04-17",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.45
+      },
+      {
+       "peak": "2024-04-30",
+       "btc_drop_pct": -8.2,
+       "open_at_peak": 3,
+       "equity_change_usd": -1.84
+      },
+      {
+       "peak": "2024-05-01",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.42
+      },
+      {
+       "peak": "2024-06-10",
+       "btc_drop_pct": -5.4,
+       "open_at_peak": 2,
+       "equity_change_usd": -0.62
+      },
+      {
+       "peak": "2024-06-23",
+       "btc_drop_pct": -7.1,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2024-07-04",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.09
+      },
+      {
+       "peak": "2024-07-04",
+       "btc_drop_pct": -8.4,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.38
+      },
+      {
+       "peak": "2024-07-07",
+       "btc_drop_pct": -5.8,
+       "open_at_peak": 6,
+       "equity_change_usd": -5.94
+      },
+      {
+       "peak": "2024-07-29",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 8,
+       "equity_change_usd": -2.82
+      },
+      {
+       "peak": "2024-07-31",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 2,
+       "equity_change_usd": -0.65
+      },
+      {
+       "peak": "2024-08-02",
+       "btc_drop_pct": -6.3,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.13
+      },
+      {
+       "peak": "2024-08-04",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.35
+      },
+      {
+       "peak": "2024-08-04",
+       "btc_drop_pct": -18.1,
+       "open_at_peak": 2,
+       "equity_change_usd": -0.83
+      },
+      {
+       "peak": "2024-08-14",
+       "btc_drop_pct": -5.3,
+       "open_at_peak": 7,
+       "equity_change_usd": -1.53
+      },
+      {
+       "peak": "2024-08-15",
+       "btc_drop_pct": -5.0,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.21
+      },
+      {
+       "peak": "2024-08-27",
+       "btc_drop_pct": -6.7,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.61
+      },
+      {
+       "peak": "2024-09-06",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.34
+      },
+      {
+       "peak": "2024-10-01",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 2,
+       "equity_change_usd": -3.39
+      },
+      {
+       "peak": "2024-11-13",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 4,
+       "equity_change_usd": -3.36
+      },
+      {
+       "peak": "2024-11-25",
+       "btc_drop_pct": -6.0,
+       "open_at_peak": 6,
+       "equity_change_usd": -19.89
+      },
+      {
+       "peak": "2024-12-05",
+       "btc_drop_pct": -6.7,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.0
+      },
+      {
+       "peak": "2024-12-18",
+       "btc_drop_pct": -5.5,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.0
+      },
+      {
+       "peak": "2024-12-19",
+       "btc_drop_pct": -9.1,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      }
+     ],
+     "n": 34,
+     "sum_usd": -77.08
+    }
+   }
+  },
+  {
+   "class": "X",
+   "class_label": "歷史探索(選擇已看過)",
+   "name": "2025H1",
+   "from": "2025-01-01",
+   "to": "2025-07-01",
+   "active_combos_at_start": 22,
+   "btc_pct": 14.2,
+   "btc_regime": "range",
+   "A": {
+    "return_pct": -7.44,
+    "max_dd_pct": -14.13,
+    "worst_day_usd": -7.06,
+    "trades": 728,
+    "win_pct": 27.1,
+    "pf": 0.87,
+    "avg_net_usd": -0.0356,
+    "avg_net_pct_of_notional": -0.185,
+    "fees": 14.83,
+    "gross": -9.44,
+    "funding": -1.68,
+    "avg_concurrent": 3.9,
+    "max_concurrent": 14,
+    "max_exposure_x": 0.89,
+    "avg_exposure_x": 0.225,
+    "top3_net": 10.02,
+    "net_without_top3": -35.97,
+    "net_closed": -25.95,
+    "rejected": {
+     "below_step": 6
+    }
+   },
+   "B": {
+    "return_pct": -2.03,
+    "max_dd_pct": -11.63,
+    "worst_day_usd": -5.94,
+    "trades": 517,
+    "win_pct": 30.0,
+    "pf": 0.95,
+    "avg_net_usd": -0.0142,
+    "avg_net_pct_of_notional": -0.179,
+    "fees": 8.12,
+    "gross": 1.73,
+    "funding": -0.95,
+    "avg_concurrent": 3.28,
+    "max_concurrent": 12,
+    "max_exposure_x": 0.61,
+    "avg_exposure_x": 0.154,
+    "top3_net": 8.63,
+    "net_without_top3": -15.98,
+    "net_closed": -7.35,
+    "rejected": {
+     "below_step": 6
+    }
+   },
+   "A_stress": {
+    "return_pct": -11.79,
+    "max_dd_pct": -18.03,
+    "worst_day_usd": -7.2,
+    "trades": 728,
+    "win_pct": 26.4,
+    "pf": 0.81,
+    "avg_net_usd": -0.0538,
+    "avg_net_pct_of_notional": -0.284,
+    "fees": 21.72,
+    "gross": -15.82,
+    "funding": -1.65,
+    "avg_concurrent": 3.9,
+    "max_concurrent": 14,
+    "max_exposure_x": 0.89,
+    "avg_exposure_x": 0.226,
+    "top3_net": 9.97,
+    "net_without_top3": -49.16,
+    "net_closed": -39.19,
+    "rejected": {
+     "below_step": 6
+    }
+   },
+   "B_stress": {
+    "return_pct": -4.72,
+    "max_dd_pct": -12.77,
+    "worst_day_usd": -5.76,
+    "trades": 517,
+    "win_pct": 29.2,
+    "pf": 0.9,
+    "avg_net_usd": -0.0302,
+    "avg_net_pct_of_notional": -0.282,
+    "fees": 12.05,
+    "gross": -2.62,
+    "funding": -0.94,
+    "avg_concurrent": 3.28,
+    "max_concurrent": 12,
+    "max_exposure_x": 0.61,
+    "avg_exposure_x": 0.154,
+    "top3_net": 8.44,
+    "net_without_top3": -24.05,
+    "net_closed": -15.61,
+    "rejected": {
+     "below_step": 6
+    }
+   },
+   "decomp_A": {
+    "1H": {
+     "n": 211,
+     "gross": -11.037,
+     "fees": 6.81,
+     "funding": -0.747,
+     "net": -18.595,
+     "avg_gross_pct": -0.088,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": -0.198,
+     "avg_hold_h": 12.5,
+     "notional_hours": 88324.0,
+     "gross_bp_per_notional_hour": -1.2496,
+     "net_bp_per_notional_hour": -2.1053
+    },
+    "4H": {
+     "n": 517,
+     "gross": 1.6,
+     "fees": 8.017,
+     "funding": -0.937,
+     "net": -7.354,
+     "avg_gross_pct": -0.068,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": -0.179,
+     "avg_hold_h": 26.7,
+     "notional_hours": 192294.0,
+     "gross_bp_per_notional_hour": 0.0832,
+     "net_bp_per_notional_hour": -0.3825
+    }
+   },
+   "btc_drops": {
+    "A": {
+     "events": [
+      {
+       "peak": "2025-01-07",
+       "btc_drop_pct": -6.5,
+       "open_at_peak": 9,
+       "equity_change_usd": -7.91
+      },
+      {
+       "peak": "2025-01-19",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.3
+      },
+      {
+       "peak": "2025-01-20",
+       "btc_drop_pct": -6.6,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.16
+      },
+      {
+       "peak": "2025-01-26",
+       "btc_drop_pct": -6.5,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.42
+      },
+      {
+       "peak": "2025-02-02",
+       "btc_drop_pct": -7.4,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.48
+      },
+      {
+       "peak": "2025-02-03",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.11
+      },
+      {
+       "peak": "2025-02-24",
+       "btc_drop_pct": -7.9,
+       "open_at_peak": 3,
+       "equity_change_usd": -3.17
+      },
+      {
+       "peak": "2025-02-26",
+       "btc_drop_pct": -6.0,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.48
+      },
+      {
+       "peak": "2025-02-27",
+       "btc_drop_pct": -9.2,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.61
+      },
+      {
+       "peak": "2025-03-03",
+       "btc_drop_pct": -11.1,
+       "open_at_peak": 3,
+       "equity_change_usd": -4.14
+      },
+      {
+       "peak": "2025-03-06",
+       "btc_drop_pct": -7.8,
+       "open_at_peak": 4,
+       "equity_change_usd": -3.65
+      },
+      {
+       "peak": "2025-03-07",
+       "btc_drop_pct": -5.0,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.66
+      },
+      {
+       "peak": "2025-03-09",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.62
+      },
+      {
+       "peak": "2025-03-10",
+       "btc_drop_pct": -7.1,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2025-04-02",
+       "btc_drop_pct": -6.3,
+       "open_at_peak": 4,
+       "equity_change_usd": -4.4
+      },
+      {
+       "peak": "2025-04-06",
+       "btc_drop_pct": -9.9,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.4
+      },
+      {
+       "peak": "2025-04-08",
+       "btc_drop_pct": -6.5,
+       "open_at_peak": 3,
+       "equity_change_usd": -3.17
+      },
+      {
+       "peak": "2025-04-09",
+       "btc_drop_pct": -5.4,
+       "open_at_peak": 8,
+       "equity_change_usd": -4.56
+      }
+     ],
+     "n": 18,
+     "sum_usd": -47.24
+    },
+    "B": {
+     "events": [
+      {
+       "peak": "2025-01-07",
+       "btc_drop_pct": -6.5,
+       "open_at_peak": 7,
+       "equity_change_usd": -6.04
+      },
+      {
+       "peak": "2025-01-19",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.28
+      },
+      {
+       "peak": "2025-01-20",
+       "btc_drop_pct": -6.6,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.09
+      },
+      {
+       "peak": "2025-01-26",
+       "btc_drop_pct": -6.5,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.22
+      },
+      {
+       "peak": "2025-02-02",
+       "btc_drop_pct": -7.4,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.48
+      },
+      {
+       "peak": "2025-02-03",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.11
+      },
+      {
+       "peak": "2025-02-24",
+       "btc_drop_pct": -7.9,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.42
+      },
+      {
+       "peak": "2025-02-26",
+       "btc_drop_pct": -6.0,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.47
+      },
+      {
+       "peak": "2025-02-27",
+       "btc_drop_pct": -9.2,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.61
+      },
+      {
+       "peak": "2025-03-03",
+       "btc_drop_pct": -11.1,
+       "open_at_peak": 3,
+       "equity_change_usd": -4.14
+      },
+      {
+       "peak": "2025-03-06",
+       "btc_drop_pct": -7.8,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.49
+      },
+      {
+       "peak": "2025-03-07",
+       "btc_drop_pct": -5.0,
+       "open_at_peak": 2,
+       "equity_change_usd": -1.92
+      },
+      {
+       "peak": "2025-03-09",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.3
+      },
+      {
+       "peak": "2025-03-10",
+       "btc_drop_pct": -7.1,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2025-04-02",
+       "btc_drop_pct": -6.3,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.76
+      },
+      {
+       "peak": "2025-04-06",
+       "btc_drop_pct": -9.9,
+       "open_at_peak": 2,
+       "equity_change_usd": -0.61
+      },
+      {
+       "peak": "2025-04-08",
+       "btc_drop_pct": -6.5,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.66
+      },
+      {
+       "peak": "2025-04-09",
+       "btc_drop_pct": -5.4,
+       "open_at_peak": 8,
+       "equity_change_usd": -4.64
+      }
+     ],
+     "n": 18,
+     "sum_usd": -37.24
+    }
+   }
+  },
+  {
+   "class": "X",
+   "class_label": "歷史探索(選擇已看過)",
+   "name": "2025H2",
+   "from": "2025-07-01",
+   "to": "2026-01-01",
+   "active_combos_at_start": 23,
+   "btc_pct": -18.0,
+   "btc_regime": "down",
+   "A": {
+    "return_pct": -10.39,
+    "max_dd_pct": -25.64,
+    "worst_day_usd": -13.41,
+    "trades": 805,
+    "win_pct": 26.3,
+    "pf": 0.87,
+    "avg_net_usd": -0.0403,
+    "avg_net_pct_of_notional": -0.281,
+    "fees": 18.9,
+    "gross": -10.52,
+    "funding": -3.05,
+    "avg_concurrent": 4.91,
+    "max_concurrent": 17,
+    "max_exposure_x": 1.14,
+    "avg_exposure_x": 0.303,
+    "top3_net": 28.99,
+    "net_without_top3": -61.45,
+    "net_closed": -32.46,
+    "rejected": {}
+   },
+   "B": {
+    "return_pct": -9.1,
+    "max_dd_pct": -20.47,
+    "worst_day_usd": -10.55,
+    "trades": 611,
+    "win_pct": 26.7,
+    "pf": 0.85,
+    "avg_net_usd": -0.0465,
+    "avg_net_pct_of_notional": -0.357,
+    "fees": 10.23,
+    "gross": -16.22,
+    "funding": -1.99,
+    "avg_concurrent": 4.35,
+    "max_concurrent": 15,
+    "max_exposure_x": 0.85,
+    "avg_exposure_x": 0.225,
+    "top3_net": 28.61,
+    "net_without_top3": -57.05,
+    "net_closed": -28.44,
+    "rejected": {}
+   },
+   "A_stress": {
+    "return_pct": -15.35,
+    "max_dd_pct": -29.26,
+    "worst_day_usd": -13.51,
+    "trades": 805,
+    "win_pct": 25.6,
+    "pf": 0.81,
+    "avg_net_usd": -0.0593,
+    "avg_net_pct_of_notional": -0.38,
+    "fees": 27.65,
+    "gross": -17.05,
+    "funding": -3.0,
+    "avg_concurrent": 4.91,
+    "max_concurrent": 17,
+    "max_exposure_x": 1.14,
+    "avg_exposure_x": 0.303,
+    "top3_net": 28.68,
+    "net_without_top3": -76.38,
+    "net_closed": -47.7,
+    "rejected": {}
+   },
+   "B_stress": {
+    "return_pct": -12.16,
+    "max_dd_pct": -22.81,
+    "worst_day_usd": -10.54,
+    "trades": 611,
+    "win_pct": 26.2,
+    "pf": 0.81,
+    "avg_net_usd": -0.0619,
+    "avg_net_pct_of_notional": -0.458,
+    "fees": 15.13,
+    "gross": -20.72,
+    "funding": -1.96,
+    "avg_concurrent": 4.35,
+    "max_concurrent": 15,
+    "max_exposure_x": 0.86,
+    "avg_exposure_x": 0.224,
+    "top3_net": 28.4,
+    "net_without_top3": -66.21,
+    "net_closed": -37.81,
+    "rejected": {}
+   },
+   "decomp_A": {
+    "1H": {
+     "n": 194,
+     "gross": 6.422,
+     "fees": 8.435,
+     "funding": -0.995,
+     "net": -3.008,
+     "avg_gross_pct": 0.07,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": -0.042,
+     "avg_hold_h": 12.8,
+     "notional_hours": 113201.0,
+     "gross_bp_per_notional_hour": 0.5673,
+     "net_bp_per_notional_hour": -0.2657
+    },
+    "4H": {
+     "n": 611,
+     "gross": -16.939,
+     "fees": 10.463,
+     "funding": -2.05,
+     "net": -29.453,
+     "avg_gross_pct": -0.238,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": -0.357,
+     "avg_hold_h": 31.2,
+     "notional_hours": 319682.0,
+     "gross_bp_per_notional_hour": -0.5299,
+     "net_bp_per_notional_hour": -0.9213
+    }
+   },
+   "btc_drops": {
+    "A": {
+     "events": [
+      {
+       "peak": "2025-10-10",
+       "btc_drop_pct": -9.3,
+       "open_at_peak": 5,
+       "equity_change_usd": -5.07
+      },
+      {
+       "peak": "2025-10-16",
+       "btc_drop_pct": -6.3,
+       "open_at_peak": 2,
+       "equity_change_usd": 0.21
+      },
+      {
+       "peak": "2025-10-21",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 1,
+       "equity_change_usd": -6.52
+      },
+      {
+       "peak": "2025-11-04",
+       "btc_drop_pct": -6.4,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.5
+      },
+      {
+       "peak": "2025-11-13",
+       "btc_drop_pct": -7.4,
+       "open_at_peak": 5,
+       "equity_change_usd": -3.77
+      },
+      {
+       "peak": "2025-11-13",
+       "btc_drop_pct": -5.5,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.37
+      },
+      {
+       "peak": "2025-11-17",
+       "btc_drop_pct": -6.3,
+       "open_at_peak": 2,
+       "equity_change_usd": -3.15
+      },
+      {
+       "peak": "2025-11-20",
+       "btc_drop_pct": -10.6,
+       "open_at_peak": 6,
+       "equity_change_usd": -5.1
+      },
+      {
+       "peak": "2025-11-30",
+       "btc_drop_pct": -7.8,
+       "open_at_peak": 7,
+       "equity_change_usd": -4.39
+      }
+     ],
+     "n": 9,
+     "sum_usd": -29.66
+    },
+    "B": {
+     "events": [
+      {
+       "peak": "2025-10-10",
+       "btc_drop_pct": -9.3,
+       "open_at_peak": 5,
+       "equity_change_usd": -4.95
+      },
+      {
+       "peak": "2025-10-16",
+       "btc_drop_pct": -6.3,
+       "open_at_peak": 2,
+       "equity_change_usd": 0.21
+      },
+      {
+       "peak": "2025-10-21",
+       "btc_drop_pct": -5.2,
+       "open_at_peak": 0,
+       "equity_change_usd": -3.78
+      },
+      {
+       "peak": "2025-11-04",
+       "btc_drop_pct": -6.4,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.5
+      },
+      {
+       "peak": "2025-11-13",
+       "btc_drop_pct": -7.4,
+       "open_at_peak": 3,
+       "equity_change_usd": -2.05
+      },
+      {
+       "peak": "2025-11-13",
+       "btc_drop_pct": -5.5,
+       "open_at_peak": 1,
+       "equity_change_usd": -1.07
+      },
+      {
+       "peak": "2025-11-17",
+       "btc_drop_pct": -6.3,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.52
+      },
+      {
+       "peak": "2025-11-20",
+       "btc_drop_pct": -10.6,
+       "open_at_peak": 6,
+       "equity_change_usd": -5.01
+      },
+      {
+       "peak": "2025-11-30",
+       "btc_drop_pct": -7.8,
+       "open_at_peak": 6,
+       "equity_change_usd": -3.06
+      }
+     ],
+     "n": 9,
+     "sum_usd": -22.73
+    }
+   }
+  },
+  {
+   "class": "X",
+   "class_label": "歷史探索(選擇已看過)",
+   "name": "2026H1",
+   "from": "2026-01-01",
+   "to": "2026-07-01",
+   "active_combos_at_start": 23,
+   "btc_pct": -32.6,
+   "btc_regime": "down",
+   "A": {
+    "return_pct": 4.55,
+    "max_dd_pct": -11.34,
+    "worst_day_usd": -6.69,
+    "trades": 707,
+    "win_pct": 30.0,
+    "pf": 1.07,
+    "avg_net_usd": 0.0193,
+    "avg_net_pct_of_notional": 0.054,
+    "fees": 17.1,
+    "gross": 31.32,
+    "funding": -0.6,
+    "avg_concurrent": 4.63,
+    "max_concurrent": 15,
+    "max_exposure_x": 1.05,
+    "avg_exposure_x": 0.313,
+    "top3_net": 18.32,
+    "net_without_top3": -4.7,
+    "net_closed": 13.62,
+    "rejected": {}
+   },
+   "B": {
+    "return_pct": 1.44,
+    "max_dd_pct": -11.58,
+    "worst_day_usd": -5.97,
+    "trades": 553,
+    "win_pct": 30.0,
+    "pf": 1.03,
+    "avg_net_usd": 0.0073,
+    "avg_net_pct_of_notional": 0.049,
+    "fees": 9.43,
+    "gross": 13.56,
+    "funding": -0.12,
+    "avg_concurrent": 4.02,
+    "max_concurrent": 14,
+    "max_exposure_x": 0.77,
+    "avg_exposure_x": 0.211,
+    "top3_net": 16.02,
+    "net_without_top3": -12.01,
+    "net_closed": 4.01,
+    "rejected": {}
+   },
+   "A_stress": {
+    "return_pct": -0.82,
+    "max_dd_pct": -13.69,
+    "worst_day_usd": -6.62,
+    "trades": 707,
+    "win_pct": 28.6,
+    "pf": 0.98,
+    "avg_net_usd": -0.0042,
+    "avg_net_pct_of_notional": -0.043,
+    "fees": 24.99,
+    "gross": 22.58,
+    "funding": -0.59,
+    "avg_concurrent": 4.63,
+    "max_concurrent": 15,
+    "max_exposure_x": 1.02,
+    "avg_exposure_x": 0.313,
+    "top3_net": 17.81,
+    "net_without_top3": -20.8,
+    "net_closed": -2.99,
+    "rejected": {}
+   },
+   "B_stress": {
+    "return_pct": -1.48,
+    "max_dd_pct": -12.98,
+    "worst_day_usd": -5.99,
+    "trades": 553,
+    "win_pct": 28.9,
+    "pf": 0.97,
+    "avg_net_usd": -0.0091,
+    "avg_net_pct_of_notional": -0.051,
+    "fees": 13.94,
+    "gross": 9.05,
+    "funding": -0.13,
+    "avg_concurrent": 4.02,
+    "max_concurrent": 14,
+    "max_exposure_x": 0.77,
+    "avg_exposure_x": 0.211,
+    "top3_net": 15.64,
+    "net_without_top3": -20.66,
+    "net_closed": -5.02,
+    "rejected": {}
+   },
+   "decomp_A": {
+    "1H": {
+     "n": 154,
+     "gross": 17.794,
+     "fees": 7.389,
+     "funding": -0.485,
+     "net": 9.919,
+     "avg_gross_pct": 0.18,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": 0.075,
+     "avg_hold_h": 17.5,
+     "notional_hours": 141708.0,
+     "gross_bp_per_notional_hour": 1.2556,
+     "net_bp_per_notional_hour": 0.7
+    },
+    "4H": {
+     "n": 553,
+     "gross": 13.526,
+     "fees": 9.71,
+     "funding": -0.116,
+     "net": 3.7,
+     "avg_gross_pct": 0.149,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": 0.049,
+     "avg_hold_h": 31.4,
+     "notional_hours": 288419.0,
+     "gross_bp_per_notional_hour": 0.469,
+     "net_bp_per_notional_hour": 0.1283
+    }
+   },
+   "btc_drops": {
+    "A": {
+     "events": [
+      {
+       "peak": "2026-01-29",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.35
+      },
+      {
+       "peak": "2026-01-30",
+       "btc_drop_pct": -7.8,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.47
+      },
+      {
+       "peak": "2026-02-03",
+       "btc_drop_pct": -7.5,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.68
+      },
+      {
+       "peak": "2026-02-05",
+       "btc_drop_pct": -13.7,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.46
+      },
+      {
+       "peak": "2026-02-10",
+       "btc_drop_pct": -5.5,
+       "open_at_peak": 2,
+       "equity_change_usd": -0.33
+      },
+      {
+       "peak": "2026-02-22",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 2,
+       "equity_change_usd": -0.68
+      },
+      {
+       "peak": "2026-02-23",
+       "btc_drop_pct": -5.0,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.01
+      },
+      {
+       "peak": "2026-02-27",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 5,
+       "equity_change_usd": -3.06
+      },
+      {
+       "peak": "2026-03-18",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 8,
+       "equity_change_usd": -5.54
+      },
+      {
+       "peak": "2026-06-02",
+       "btc_drop_pct": -7.1,
+       "open_at_peak": 3,
+       "equity_change_usd": -3.97
+      },
+      {
+       "peak": "2026-06-03",
+       "btc_drop_pct": -7.7,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.79
+      },
+      {
+       "peak": "2026-06-05",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 0,
+       "equity_change_usd": -1.37
+      },
+      {
+       "peak": "2026-06-17",
+       "btc_drop_pct": -5.7,
+       "open_at_peak": 6,
+       "equity_change_usd": -3.3
+      },
+      {
+       "peak": "2026-06-22",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 7,
+       "equity_change_usd": -6.42
+      },
+      {
+       "peak": "2026-06-24",
+       "btc_drop_pct": -5.7,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2026-06-25",
+       "btc_drop_pct": -5.9,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.44
+      },
+      {
+       "peak": "2026-06-25",
+       "btc_drop_pct": -5.4,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.49
+      }
+     ],
+     "n": 17,
+     "sum_usd": -34.36
+    },
+    "B": {
+     "events": [
+      {
+       "peak": "2026-01-29",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 1,
+       "equity_change_usd": -2.07
+      },
+      {
+       "peak": "2026-01-30",
+       "btc_drop_pct": -7.8,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.44
+      },
+      {
+       "peak": "2026-02-03",
+       "btc_drop_pct": -7.5,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.68
+      },
+      {
+       "peak": "2026-02-05",
+       "btc_drop_pct": -13.7,
+       "open_at_peak": 0,
+       "equity_change_usd": -0.46
+      },
+      {
+       "peak": "2026-02-10",
+       "btc_drop_pct": -5.5,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.19
+      },
+      {
+       "peak": "2026-02-22",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.28
+      },
+      {
+       "peak": "2026-02-23",
+       "btc_drop_pct": -5.0,
+       "open_at_peak": 1,
+       "equity_change_usd": 0.09
+      },
+      {
+       "peak": "2026-02-27",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 4,
+       "equity_change_usd": -2.4
+      },
+      {
+       "peak": "2026-03-18",
+       "btc_drop_pct": -5.6,
+       "open_at_peak": 7,
+       "equity_change_usd": -5.6
+      },
+      {
+       "peak": "2026-06-02",
+       "btc_drop_pct": -7.1,
+       "open_at_peak": 3,
+       "equity_change_usd": -3.83
+      },
+      {
+       "peak": "2026-06-03",
+       "btc_drop_pct": -7.7,
+       "open_at_peak": 1,
+       "equity_change_usd": -0.75
+      },
+      {
+       "peak": "2026-06-05",
+       "btc_drop_pct": -7.0,
+       "open_at_peak": 0,
+       "equity_change_usd": -1.36
+      },
+      {
+       "peak": "2026-06-17",
+       "btc_drop_pct": -5.7,
+       "open_at_peak": 5,
+       "equity_change_usd": -2.49
+      },
+      {
+       "peak": "2026-06-22",
+       "btc_drop_pct": -5.1,
+       "open_at_peak": 6,
+       "equity_change_usd": -5.88
+      },
+      {
+       "peak": "2026-06-24",
+       "btc_drop_pct": -5.7,
+       "open_at_peak": 0,
+       "equity_change_usd": 0.0
+      },
+      {
+       "peak": "2026-06-25",
+       "btc_drop_pct": -5.9,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.36
+      },
+      {
+       "peak": "2026-06-25",
+       "btc_drop_pct": -5.4,
+       "open_at_peak": 2,
+       "equity_change_usd": -2.4
+      }
+     ],
+     "n": 17,
+     "sum_usd": -31.1
+    }
+   }
+  },
+  {
+   "class": "X",
+   "class_label": "歷史探索(選擇已看過)",
+   "name": "2026-07~10-29",
+   "from": "2026-07-01",
+   "to": "2026-10-29",
+   "active_combos_at_start": 23,
+   "btc_pct": 34.9,
+   "btc_regime": "up",
+   "A": {
+    "return_pct": 20.15,
+    "max_dd_pct": -8.5,
+    "worst_day_usd": -4.9,
+    "trades": 472,
+    "win_pct": 36.2,
+    "pf": 1.56,
+    "avg_net_usd": 0.1335,
+    "avg_net_pct_of_notional": 0.7,
+    "fees": 11.83,
+    "gross": 76.49,
+    "funding": -1.64,
+    "avg_concurrent": 4.8,
+    "max_concurrent": 14,
+    "max_exposure_x": 0.93,
+    "avg_exposure_x": 0.299,
+    "top3_net": 24.93,
+    "net_without_top3": 38.09,
+    "net_closed": 63.02,
+    "rejected": {}
+   },
+   "B": {
+    "return_pct": 18.24,
+    "max_dd_pct": -5.52,
+    "worst_day_usd": -4.74,
+    "trades": 368,
+    "win_pct": 40.2,
+    "pf": 1.66,
+    "avg_net_usd": 0.154,
+    "avg_net_pct_of_notional": 0.873,
+    "fees": 6.51,
+    "gross": 64.67,
+    "funding": -1.5,
+    "avg_concurrent": 4.33,
+    "max_concurrent": 13,
+    "max_exposure_x": 0.71,
+    "avg_exposure_x": 0.226,
+    "top3_net": 10.14,
+    "net_without_top3": 46.52,
+    "net_closed": 56.66,
+    "rejected": {}
+   },
+   "A_stress": {
+    "return_pct": 16.22,
+    "max_dd_pct": -9.65,
+    "worst_day_usd": -4.86,
+    "trades": 472,
+    "win_pct": 34.5,
+    "pf": 1.43,
+    "avg_net_usd": 0.1078,
+    "avg_net_pct_of_notional": 0.604,
+    "fees": 17.46,
+    "gross": 69.97,
+    "funding": -1.61,
+    "avg_concurrent": 4.8,
+    "max_concurrent": 14,
+    "max_exposure_x": 0.93,
+    "avg_exposure_x": 0.299,
+    "top3_net": 24.38,
+    "net_without_top3": 26.52,
+    "net_closed": 50.9,
+    "rejected": {}
+   },
+   "B_stress": {
+    "return_pct": 16.04,
+    "max_dd_pct": -6.16,
+    "worst_day_usd": -4.71,
+    "trades": 368,
+    "win_pct": 38.9,
+    "pf": 1.56,
+    "avg_net_usd": 0.1356,
+    "avg_net_pct_of_notional": 0.775,
+    "fees": 9.69,
+    "gross": 61.07,
+    "funding": -1.48,
+    "avg_concurrent": 4.33,
+    "max_concurrent": 13,
+    "max_exposure_x": 0.71,
+    "avg_exposure_x": 0.226,
+    "top3_net": 9.99,
+    "net_without_top3": 39.91,
+    "net_closed": 49.9,
+    "rejected": {}
+   },
+   "decomp_A": {
+    "1H": {
+     "n": 104,
+     "gross": 10.365,
+     "fees": 5.215,
+     "funding": -0.118,
+     "net": 5.032,
+     "avg_gross_pct": 0.194,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": 0.09,
+     "avg_hold_h": 12.9,
+     "notional_hours": 68340.0,
+     "gross_bp_per_notional_hour": 1.5167,
+     "net_bp_per_notional_hour": 0.7363
+    },
+    "4H": {
+     "n": 368,
+     "gross": 66.127,
+     "fees": 6.614,
+     "funding": -1.524,
+     "net": 57.989,
+     "avg_gross_pct": 0.997,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": 0.873,
+     "avg_hold_h": 33.5,
+     "notional_hours": 212639.0,
+     "gross_bp_per_notional_hour": 3.1098,
+     "net_bp_per_notional_hour": 2.7271
+    }
+   },
+   "btc_drops": {
+    "A": {
+     "events": [],
+     "n": 0,
+     "sum_usd": 0
+    },
+    "B": {
+     "events": [],
+     "n": 0,
+     "sum_usd": 0
+    }
+   }
+  },
+  {
+   "class": "T",
+   "class_label": "選擇之後(太短)",
+   "name": "2026-10-29~now",
+   "from": "2026-10-29",
+   "to": "2026-11-05",
+   "active_combos_at_start": 23,
+   "btc_pct": 0.7,
+   "btc_regime": "range",
+   "A": {
+    "return_pct": -1.89,
+    "max_dd_pct": -1.98,
+    "worst_day_usd": -3.03,
+    "trades": 19,
+    "win_pct": 10.5,
+    "pf": 0.22,
+    "avg_net_usd": -0.3696,
+    "avg_net_pct_of_notional": -1.975,
+    "fees": 0.4,
+    "gross": -6.59,
+    "funding": -0.03,
+    "avg_concurrent": 2.11,
+    "max_concurrent": 8,
+    "max_exposure_x": 0.44,
+    "avg_exposure_x": 0.11,
+    "top3_net": 1.74,
+    "net_without_top3": -8.76,
+    "net_closed": -7.02,
+    "rejected": {}
+   },
+   "B": {
+    "return_pct": -1.56,
+    "max_dd_pct": -1.65,
+    "worst_day_usd": -2.63,
+    "trades": 15,
+    "win_pct": 6.7,
+    "pf": 0.19,
+    "avg_net_usd": -0.3992,
+    "avg_net_pct_of_notional": -2.273,
+    "fees": 0.25,
+    "gross": -5.71,
+    "funding": -0.03,
+    "avg_concurrent": 1.96,
+    "max_concurrent": 7,
+    "max_exposure_x": 0.33,
+    "avg_exposure_x": 0.093,
+    "top3_net": 0.57,
+    "net_without_top3": -6.56,
+    "net_closed": -5.99,
+    "rejected": {}
+   },
+   "A_stress": {
+    "return_pct": -2.04,
+    "max_dd_pct": -2.12,
+    "worst_day_usd": -3.11,
+    "trades": 19,
+    "win_pct": 10.5,
+    "pf": 0.21,
+    "avg_net_usd": -0.3921,
+    "avg_net_pct_of_notional": -2.085,
+    "fees": 0.6,
+    "gross": -6.82,
+    "funding": -0.03,
+    "avg_concurrent": 2.11,
+    "max_concurrent": 8,
+    "max_exposure_x": 0.44,
+    "avg_exposure_x": 0.11,
+    "top3_net": 1.67,
+    "net_without_top3": -9.12,
+    "net_closed": -7.45,
+    "rejected": {}
+   },
+   "B_stress": {
+    "return_pct": -1.66,
+    "max_dd_pct": -1.74,
+    "worst_day_usd": -2.68,
+    "trades": 15,
+    "win_pct": 6.7,
+    "pf": 0.19,
+    "avg_net_usd": -0.4185,
+    "avg_net_pct_of_notional": -2.386,
+    "fees": 0.38,
+    "gross": -5.87,
+    "funding": -0.03,
+    "avg_concurrent": 1.96,
+    "max_concurrent": 7,
+    "max_exposure_x": 0.33,
+    "avg_exposure_x": 0.093,
+    "top3_net": 0.53,
+    "net_without_top3": -6.81,
+    "net_closed": -6.28,
+    "rejected": {}
+   },
+   "decomp_A": {
+    "1H": {
+     "n": 4,
+     "gross": -0.894,
+     "fees": 0.147,
+     "funding": -0.007,
+     "net": -1.047,
+     "avg_gross_pct": -0.753,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": -0.857,
+     "avg_hold_h": 7.1,
+     "notional_hours": 972.0,
+     "gross_bp_per_notional_hour": -9.1889,
+     "net_bp_per_notional_hour": -10.7689
+    },
+    "4H": {
+     "n": 15,
+     "gross": -5.697,
+     "fees": 0.25,
+     "funding": -0.028,
+     "net": -5.974,
+     "avg_gross_pct": -2.163,
+     "avg_fee_pct": 0.099,
+     "avg_net_pct": -2.273,
+     "avg_hold_h": 11.3,
+     "notional_hours": 2799.0,
+     "gross_bp_per_notional_hour": -20.3512,
+     "net_bp_per_notional_hour": -21.3431
+    }
+   },
+   "btc_drops": {
+    "A": {
+     "events": [
+      {
+       "peak": "2026-10-29",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 1,
+       "equity_change_usd": -3.89
+      }
+     ],
+     "n": 1,
+     "sum_usd": -3.89
+    },
+    "B": {
+     "events": [
+      {
+       "peak": "2026-10-29",
+       "btc_drop_pct": -6.1,
+       "open_at_peak": 1,
+       "equity_change_usd": -2.54
+      }
+     ],
+     "n": 1,
+     "sum_usd": -2.54
+    }
+   }
+  }
+ ],
+ "btc_drop_events_total": 303,
+ "continuous": {
+  "I": {
+   "label": "較獨立的歷史連續 2021-01 → 2023-06-30",
+   "from": "2021-01-01",
+   "to": "2023-07-01",
+   "A": {
+    "return_pct": -13.0,
+    "max_dd_pct": -34.7,
+    "worst_day_usd": -8.96,
+    "trades": 2979,
+    "win_pct": 29.5,
+    "pf": 0.94,
+    "avg_net_usd": -0.0161,
+    "avg_net_pct_of_notional": 0.028,
+    "fees": 61.6,
+    "gross": 38.6,
+    "funding": -25.01,
+    "avg_concurrent": 2.72,
+    "max_concurrent": 12,
+    "max_exposure_x": 0.92,
+    "avg_exposure_x": 0.159,
+    "top3_net": 42.45,
+    "net_without_top3": -90.45,
+    "net_closed": -48.0,
+    "rejected": {
+     "below_min_notional": 10,
+     "below_step": 42
+    }
+   },
+   "B": {
+    "return_pct": -5.06,
+    "max_dd_pct": -26.75,
+    "worst_day_usd": -8.41,
+    "trades": 1859,
+    "win_pct": 30.1,
+    "pf": 0.96,
+    "avg_net_usd": -0.0123,
+    "avg_net_pct_of_notional": 0.084,
+    "fees": 31.48,
+    "gross": 25.25,
+    "funding": -16.68,
+    "avg_concurrent": 2.12,
+    "max_concurrent": 10,
+    "max_exposure_x": 0.67,
+    "avg_exposure_x": 0.105,
+    "top3_net": 42.06,
+    "net_without_top3": -64.96,
+    "net_closed": -22.9,
+    "rejected": {
+     "below_step": 55,
+     "below_min_notional": 4
+    }
+   },
+   "decomp_A": {
+    "1H": {
+     "n": 1107,
+     "gross": 18.73,
+     "fees": 29.184,
+     "funding": -7.576,
+     "net": -18.03,
+     "avg_gross_pct": 0.083,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": -0.057,
+     "avg_hold_h": 11.8,
+     "notional_hours": 361227.0,
+     "gross_bp_per_notional_hour": 0.5185,
+     "net_bp_per_notional_hour": -0.4991
+    },
+    "4H": {
+     "n": 1872,
+     "gross": 19.873,
+     "fees": 32.413,
+     "funding": -17.434,
+     "net": -29.974,
+     "avg_gross_pct": 0.25,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": 0.078,
+     "avg_hold_h": 24.7,
+     "notional_hours": 696440.0,
+     "gross_bp_per_notional_hour": 0.2853,
+     "net_bp_per_notional_hour": -0.4304
+    }
+   }
+  },
+  "X": {
+   "label": "歷史探索連續 2024-03 → 2026-10-29",
+   "from": "2024-03-01",
+   "to": "2026-10-29",
+   "A": {
+    "return_pct": 32.74,
+    "max_dd_pct": -28.87,
+    "worst_day_usd": -17.04,
+    "trades": 4015,
+    "win_pct": 29.5,
+    "pf": 1.09,
+    "avg_net_usd": 0.0254,
+    "avg_net_pct_of_notional": 0.126,
+    "fees": 98.87,
+    "gross": 216.89,
+    "funding": -15.93,
+    "avg_concurrent": 4.49,
+    "max_concurrent": 17,
+    "max_exposure_x": 1.15,
+    "avg_exposure_x": 0.283,
+    "top3_net": 113.42,
+    "net_without_top3": -11.33,
+    "net_closed": 102.09,
+    "rejected": {}
+   },
+   "B": {
+    "return_pct": 22.27,
+    "max_dd_pct": -25.03,
+    "worst_day_usd": -16.6,
+    "trades": 2991,
+    "win_pct": 30.7,
+    "pf": 1.08,
+    "avg_net_usd": 0.0231,
+    "avg_net_pct_of_notional": 0.106,
+    "fees": 51.07,
+    "gross": 130.29,
+    "funding": -10.07,
+    "avg_concurrent": 3.88,
+    "max_concurrent": 15,
+    "max_exposure_x": 0.87,
+    "avg_exposure_x": 0.198,
+    "top3_net": 101.21,
+    "net_without_top3": -32.06,
+    "net_closed": 69.15,
+    "rejected": {}
+   },
+   "decomp_A": {
+    "1H": {
+     "n": 1024,
+     "gross": 77.85,
+     "fees": 44.63,
+     "funding": -5.281,
+     "net": 27.939,
+     "avg_gross_pct": 0.296,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": 0.182,
+     "avg_hold_h": 14.0,
+     "notional_hours": 665409.0,
+     "gross_bp_per_notional_hour": 1.17,
+     "net_bp_per_notional_hour": 0.4199
+    },
+    "4H": {
+     "n": 2991,
+     "gross": 139.043,
+     "fees": 54.241,
+     "funding": -10.647,
+     "net": 74.155,
+     "avg_gross_pct": 0.227,
+     "avg_fee_pct": 0.1,
+     "avg_net_pct": 0.106,
+     "avg_hold_h": 30.4,
+     "notional_hours": 1553642.0,
+     "gross_bp_per_notional_hour": 0.8949,
+     "net_bp_per_notional_hour": 0.4773
+    }
+   }
+  }
+ }
+}
