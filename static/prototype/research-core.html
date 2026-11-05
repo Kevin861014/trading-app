@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>原型:互動式策略研究核心</title>
+<link rel="stylesheet" href="/static/prototype/research-core.css">
+</head>
+<body>
+<div class="proto-top">
+  <h1>互動式策略研究核心</h1>
+  <span class="proto-tag">視覺原型 · 狀態為腳本模擬(示意),不是真實分析結果 · 未整合進正式介面</span>
+</div>
+<div class="proto-controls">
+  <button type="button" id="b-normal">模擬:一次完整分析</button>
+  <button type="button" id="b-nodata">模擬:資料不足</button>
+  <button type="button" id="b-weak">模擬:樣本外證據不足</button>
+  <button type="button" id="b-fail">模擬:資料取得失敗</button>
+  <button type="button" id="b-reset">重設</button>
+  <label><input type="checkbox" id="motion" checked> 動態效果</label>
+  <label><input type="checkbox" id="ambient"> 待命時緩慢旋轉(純裝飾,預設關)</label>
+</div>
+
+<section class="rc-section" aria-label="策略研究流程">
+  <div class="rc-stage" id="core"></div>
+  <ul class="rc-mobile" id="coreMobile" aria-label="策略研究流程(簡化版)"></ul>
+  <div class="rc-note" id="rcNote" role="status"></div>
+  <div class="rc-legend">
+    <span><i style="background:#6b7390"></i>待命</span><span><i style="background:#3fc1ff"></i>執行中(光點 = 資料正在交接)</span>
+    <span><i style="background:#26a69a"></i>完成</span><span><i style="background:#f5a623"></i>注意(資料不足、證據不足等)</span>
+    <span><i style="background:#ef5350"></i>失敗</span><span><i style="background:#444a60"></i>略過</span>
+  </div>
+</section>
+
+<div class="proto-info">
+  <b>怎麼讀這張圖:</b>五個節點是本站真實的分析流程;<b>只有在某個階段真的在執行或在交接資料時才會有光點流動</b>,待命時保持靜止(旋轉是可選的裝飾開關)。
+  點節點會前往對應功能(原型中只顯示會前往哪裡)。滑鼠移進核心區會暫停旋轉。<br>
+  <b>動態效果會在下列情況自動停止:</b>分頁被隱藏、核心滾出畫面、系統設定「減少動態效果」、手機寬度(改用簡化路線圖)、繪製過慢(自動降級)。
+  這個頁面<b>不呼叫任何 API、不執行任何回測</b>。
+</div>
+<div class="proto-stats" id="stats" aria-hidden="true"></div>
+<div class="spacer" aria-hidden="true"></div>
+<div class="proto-toast" id="toast" role="status"></div>
+
+<script src="/static/prototype/research-core.js"></script>
+<script>
+(function(){
+  var NAV={watchlist:'自選清單(市場資料與資料品質)',market:'市場環境',symbol:'標的分析(目前訊號)','symbol-risk':'標的分析 > 回撤與成本',best:'最佳策略 / 策略實驗室(IS/OOS)'};
+  var toast=document.getElementById('toast'),tt;
+  ResearchCore.mount({
+    host:document.getElementById('core'),mobileEl:document.getElementById('coreMobile'),statsEl:document.getElementById('stats'),
+    onNavigate:function(t){toast.textContent='正式整合時會前往:'+(NAV[t]||t);toast.style.display='block';clearTimeout(tt);tt=setTimeout(function(){toast.style.display='none';},2200);}
+  });
+  function bind(id,fn){document.getElementById(id).addEventListener('click',fn);}
+  bind('b-normal',function(){ResearchCore.simulate('normal');});
+  bind('b-nodata',function(){ResearchCore.simulate('nodata');});
+  bind('b-weak',function(){ResearchCore.simulate('weak');});
+  bind('b-fail',function(){ResearchCore.simulate('fail');});
+  bind('b-reset',function(){ResearchCore.reset();});
+  document.getElementById('motion').addEventListener('change',function(e){ResearchCore.setEnabled(e.target.checked);});
+  document.getElementById('ambient').addEventListener('change',function(e){ResearchCore.setAmbient(e.target.checked);});
+  var s=ResearchCore.stats();
+  var n=document.getElementById('rcNote');
+  if(s.reduced) n.textContent='偵測到系統設定「減少動態效果」:顯示靜態版本,狀態變化仍會即時更新。';
+  setInterval(function(){var x=ResearchCore.stats();document.getElementById('stats').textContent='fps '+x.fps+'  |  繪製 '+x.emaMs.toFixed(2)+' ms/幀  |  光點 '+x.particles+'  |  迴圈 '+(x.loopOn?'運行':'停止')+(x.lowPower?'  |  省電模式':'')+(x.forcedStatic?'  |  已自動停用':'');},500);
+})();
+</script>
+</body>
+</html>

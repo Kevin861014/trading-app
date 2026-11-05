@@ -468,6 +468,109 @@ def get_real_trades(ohlcv, el_full, xl_full, strat_info=None):
         if t.get('exit_i') is not None:  sell_idx[t['exit_i']] = True
     return buy_idx, sell_idx
 
+_MARKET_TZ = {'crypto': ('UTC', 'UTC'), 'tw': ('Asia/Taipei', '台北時間 (UTC+8)'),
+              'us': ('America/New_York', '美東時間'), 'commodity': ('America/New_York', '美東時間'),
+              'metal_etf': ('America/New_York', '美東時間')}
+
+
+def build_data_info(symbol, yf_tf, ohlcv):
+    """最新資料時間與時區(只描述事實;完整的資料品質狀態機在後續階段)。最後一根一律是已收盤 K 棒(fetch 時已排除未收盤)。"""
+    market = classify_market(symbol)
+    tz, tz_label = _MARKET_TZ.get(market, ('UTC', 'UTC'))
+    intraday = yf_tf in INTRADAY
+    fmt = '%Y-%m-%d %H:%M' if intraday else '%Y-%m-%d'
+    last_ts = ohlcv[-1][0] / 1000.0
+    last_utc = datetime.datetime.utcfromtimestamp(last_ts)
+    info = {'market': market, 'tz': tz, 'tzLabel': tz_label, 'interval': yf_tf, 'bars': len(ohlcv),
+            'source': 'ccxt' if uses_ccxt(symbol) else 'yfinance',
+            'firstBar': datetime.datetime.utcfromtimestamp(ohlcv[0][0] / 1000.0).strftime(fmt),
+            'lastBarUtc': last_utc.strftime(fmt), 'lastBarClosed': True}
+    if intraday:
+        try:
+            from zoneinfo import ZoneInfo
+            info['lastBarLocal'] = datetime.datetime.fromtimestamp(last_ts, ZoneInfo(tz)).strftime(fmt)
+        except Exception:
+            info['lastBarLocal'] = None
+    else:
+        info['lastBarLocal'] = last_utc.strftime(fmt)      # 日線時間戳已統一成「交易所當地日期」
+    return info
+
+
+def build_validation(symbol, strategy, yf_tf, days, ohlcv, dates, equity, stats, now_dt):
+    """這個『已選定策略』的樣本內 / 樣本外績效(跟排名用同一套切分與函式)。
+    注意:若這個策略是看過排名或 OOS 結果後才選的,這段 OOS 就已經不是完全獨立的了。"""
+    base = {'minOosTrades': OOS_MIN_TRADES, 'tierThresholds': {'preliminary': OOS_TIER_PRELIM, 'evaluable': OOS_TIER_EVAL}}
+    window_start = now_dt - datetime.timedelta(days=days)
+    split = is_oos_split(ohlcv, window_start, now_dt)
+    if not split:
+        return dict(base, available=False, reason='這個期間的資料不夠長,切不出樣本內/樣本外')
+    ck = cost_kwargs(symbol, strategy)
+    is_blk = None
+    res_is = run_backtest(ohlcv[:split['idx_b']], strategy=strategy, risk_pct=0.015, timeframe=yf_tf, **ck)
+    if res_is:
+        d_is, e_is, st_is = res_is
+        tl = [t for t in st_is.get('trade_log', []) if not t.get('open') and t.get('entry_date') and t['entry_date'] >= window_start]
+        is_blk = _perf_block(tl, d_is, e_is, window_start)
+    boundary = split['boundary_dt']
+    _, oos_t, carry, _ = partition_trades(stats.get('trade_log', []), window_start, boundary)
+    oos = _perf_block(oos_t, dates, equity, boundary)
+    oos['carry'] = len(carry)
+    oos['tier'] = oos_tier(oos['trades'])
+    _insuff, legacy = oos_verdict(oos['trades'], oos['pf'])
+    oos['legacyTechPass'] = legacy
+    return dict(base, available=True, tier=oos['tier'], legacyTechPass=legacy, **{'is': is_blk}, oos=oos,
+                split={'windowStart': window_start.strftime('%Y-%m-%d'), 'boundary': boundary.strftime('%Y-%m-%d'),
+                       'end': split['end_dt'].strftime('%Y-%m-%d'), 'isBars': split['is_bars'], 'oosBars': split['oos_bars']})
+
+
+def _downsample(seq, max_pts):
+    n = len(seq)
+    if n <= max_pts: return list(seq)
+    step = (n - 1) / float(max_pts - 1)
+    idx = sorted({int(round(i * step)) for i in range(max_pts)} | {n - 1})
+    return [seq[i] for i in idx]
+
+
+def build_backtest_viz(symbol, strategy, ohlcv, dates, equity, stats, cut_dt, yf_tf, n_trades, max_pts=300):
+    """權益 / 回撤 / 買進持有 / 成本,全部來自同一次回測與同一份已收盤 K 棒(沒有另外編造)。
+    權益與回撤以『顯示期間起點』為 0%,與卡片上的總報酬、最大回撤同口徑(同一個 equity_window_metrics 切法)。"""
+    idx = next((i for i, d in enumerate(dates) if d >= cut_dt), 0)
+    seg_d, seg_e = dates[idx:], equity[idx:]
+    if len(seg_e) < 2 or seg_e[0] <= 0:
+        return {'available': False, 'reason': '這個期間的權益曲線資料不足'}
+    base = seg_e[0]
+    ts = [_to_ms(d) // 1000 for d in seg_d]
+    eq_pct = [(e / base - 1.0) * 100.0 for e in seg_e]
+    peak = seg_e[0]; dd = []
+    for e in seg_e:
+        peak = max(peak, e); dd.append((e / peak - 1.0) * 100.0 if peak > 0 else 0.0)
+    close_by_ms = {r[0]: r[4] for r in ohlcv}
+    bh = []; c0 = close_by_ms.get(_to_ms(seg_d[0]))
+    if c0:
+        for d, t in zip(seg_d, ts):
+            c = close_by_ms.get(_to_ms(d))
+            bh.append([t, round((c / c0 - 1.0) * 100.0, 3)] if c else None)
+    bh = [x for x in bh if x]
+    bh_mdd = None
+    if bh:
+        pk = -1e18; bh_mdd = 0.0
+        for _, v in bh:
+            lvl = 100.0 + v; pk = max(pk, lvl); bh_mdd = max(bh_mdd, (pk - lvl) / pk * 100.0)
+    ck = cost_kwargs(symbol, strategy)
+    win_tr = [t for t in stats.get('trade_log', []) if not t.get('open') and t.get('entry_date') and t['entry_date'] >= cut_dt]
+    paid = sum(t.get('cost', 0.0) for t in win_tr)
+    rt = 2 * (ck['commission'] + ck['slippage']) + ck['sell_tax']
+    mk = lambda xs, ys: [[t, round(v, 3)] for t, v in zip(xs, ys)]
+    return {'available': True, 'tz': 'UTC',
+            'period': {'start': seg_d[0].strftime('%Y-%m-%d'), 'end': seg_d[-1].strftime('%Y-%m-%d'), 'bars': len(seg_e), 'trades': n_trades},
+            'equity': _downsample(mk(ts, eq_pct), max_pts), 'drawdown': _downsample(mk(ts, dd), max_pts), 'buyHold': _downsample(bh, max_pts),
+            'summary': {'strategyTotal': round(eq_pct[-1], 2), 'strategyMaxDD': round(-min(dd), 2),
+                        'buyHoldTotal': bh[-1][1] if bh else None, 'buyHoldMaxDD': round(bh_mdd, 2) if bh_mdd is not None else None},
+            'cost': {'paidPctOfEquity': round(paid / base * 100.0, 2), 'tradesInWindow': len(win_tr), 'roundTripPct': round(rt * 100.0, 3),
+                     'commission': ck['commission'], 'slippage': ck['slippage'], 'sellTax': ck['sell_tax'],
+                     'note': '成本已計入上面的策略權益曲線(每筆交易:手續費+滑價,台股另加賣出證交稅);買進持有未計成本。'}}
+
+
 @app.route('/api/strategies')
 def get_strategies():
     return jsonify(STRAT_LIST)
@@ -633,7 +736,14 @@ def analyze():
         # 切到圖表顯示的期間（_disp_cut_dt 之後）。確定性、與圖表期間一致。
         _disp_total, _disp_mdd, _disp_cagr = equity_window_metrics(dates_dt, equity, _disp_cut_dt)
 
+        try:
+            _extras = {'dataInfo': build_data_info(symbol, yf_tf, ohlcv),
+                       'validation': build_validation(symbol, strategy, yf_tf, days, ohlcv, dates_dt, equity, stats, _utcnow()),
+                       'backtest': build_backtest_viz(symbol, strategy, ohlcv, dates_dt, equity, stats, _disp_cut_dt, yf_tf, _disp_count)}
+        except Exception as _e:
+            _extras = {'extrasError': str(_e)}
         return jsonify({
+            **_extras,
             'dates': dates,
             'opens':  [round(p,2) for p in opens],
             'highs':  [round(p,2) for p in highs],
@@ -790,6 +900,17 @@ def partition_trades(trade_log, window_start_dt, boundary_dt):
     return is_t, oos_t, carry, opened
 
 
+# OOS 筆數的『展示分級』:只是讓人知道樣本量大概在哪個層級,不是統計顯著性判定,也不用於選策略。
+OOS_TIER_PRELIM = 20     # < 20 筆:樣本不足
+OOS_TIER_EVAL = 50       # 20~49 筆:初步觀察;>= 50 筆:可進一步評估(不代表已證明有效)
+
+
+def oos_tier(n_trades):
+    if n_trades < OOS_TIER_PRELIM: return 'insufficient'
+    if n_trades < OOS_TIER_EVAL: return 'preliminary'
+    return 'evaluable'
+
+
 def oos_verdict(n_trades, pf):
     """回傳 (證據不足, 通過)。筆數不足就是『證據不足』,**不可能**算通過;夠了才看 PF 是否 > 1。"""
     insufficient = n_trades < OOS_MIN_TRADES
@@ -844,7 +965,7 @@ def rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=Tru
     for r in top:
         r.update({'oos': None, 'full': None, 'oosStatus': 'unavailable', 'oosPf': None, 'oosTotal': None,
                   'oosTrades': None, 'oosPass': None, 'oosInsufficient': None, 'oosIndependent': bool(split),
-                  'minOosTrades': OOS_MIN_TRADES})
+                  'minOosTrades': OOS_MIN_TRADES, 'oosTier': 'unavailable', 'legacyTechPass': None})
         if not split:
             r['full'] = dict(r['is'])
             continue
@@ -861,6 +982,9 @@ def rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=Tru
             o = _perf_block(oos_t, dates, equity, boundary_dt)
             o['carry'] = len(carry)
             o['insufficient'], o['pass'] = oos_verdict(o['trades'], o['pf'])
+            o['tier'] = oos_tier(o['trades'])                 # 展示分級(樣本量),與 pass 無關
+            o['legacyTechPass'] = o['pass']                   # 舊版技術門檻:>=5 筆且 PF>1(非研究可信度)
+            r['oosTier'] = o['tier']; r['legacyTechPass'] = o['pass']
             r['oos'] = o
             r['oosStatus'] = 'insufficient' if o['insufficient'] else ('pass' if o['pass'] else 'fail')
             r['oosInsufficient'] = o['insufficient']
@@ -878,7 +1002,8 @@ def rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=Tru
                 'windowStart': split['window_start_dt'].strftime('%Y-%m-%d'),
                 'boundary': split['boundary_dt'].strftime('%Y-%m-%d'),
                 'end': split['end_dt'].strftime('%Y-%m-%d'),
-                'isBars': split['is_bars'], 'oosBars': split['oos_bars']}
+                'isBars': split['is_bars'], 'oosBars': split['oos_bars'],
+                'tierThresholds': {'preliminary': OOS_TIER_PRELIM, 'evaluable': OOS_TIER_EVAL}}
     return top, info, len(pool)
 
 
