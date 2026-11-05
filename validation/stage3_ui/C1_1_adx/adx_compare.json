@@ -1,0 +1,1258 @@
+[
+ {
+  "symbol": "2330.TW",
+  "tf": "1d",
+  "bars": 730,
+  "ref_vs_sim.dmi_maxdiff": 3.045845065557799,
+  "ref_vs_sim.dmi_none_mismatch": 12,
+  "sim_first_adx_idx": 15,
+  "ref_first_adx_idx": 27,
+  "sim_vs_ref_maxdiff_by_range": {
+   "28-59": 2.828284703732244,
+   "60-99": 0.2640056715878387,
+   "100-149": 0.013621530964918804,
+   "150+": 0.0003349590787458112
+  },
+  "site_last": {
+   "adx": 15.3,
+   "plus_di": 15.5,
+   "minus_di": 37.1
+  },
+  "ref_sma_last": 15.3,
+  "wilder_last": 21.0,
+  "calc_adx_equals_sma_ref": true,
+  "calc_adx_prefix_checks_pass": true,
+  "diff_all": {
+   "n": 703,
+   "mean": 4.222685114809232,
+   "median": 3.502050028689032,
+   "p95": 10.392534142423605,
+   "max": 17.031976645014552
+  },
+  "diff_warm": {
+   "n": 630,
+   "mean": 4.211916325724185,
+   "median": 3.502050028689032,
+   "p95": 10.395998191037428,
+   "max": 17.031976645014552
+  },
+  "signed_mean_sma_minus_wilder": -0.24720368380971672,
+  "cross25": {
+   "wilder": [
+    10,
+    11
+   ],
+   "sma": [
+    9,
+    10
+   ]
+  },
+  "cross20": {
+   "wilder": [
+    9,
+    9
+   ],
+   "sma": [
+    8,
+    9
+   ]
+  },
+  "label_changed_pct": 18.571428571428573,
+  "code_changed_pct": 8.095238095238095,
+  "label_dist": {
+   "wilder": {
+    "上升趨勢": 235,
+    "下降趨勢": 45,
+    "盤整": 238,
+    "趨勢轉換中": 112
+   },
+   "sma": {
+    "上升趨勢": 232,
+    "下降趨勢": 55,
+    "盤整": 289,
+    "趨勢轉換中": 54
+   }
+  },
+  "hypothetical_condition_flip_pct": {
+   "diadx adx>20": 11.26984126984127,
+   "adx_di adx>=25": 8.095238095238095,
+   "ema50_200_adx adx>25": 8.095238095238095,
+   "holy_grail adx>30": 9.047619047619047,
+   "adx_di_trend >25 且上升": 10.158730158730158
+  },
+  "site120d": {
+   "bars": 82,
+   "site_adx": 15.5,
+   "site_label": "盤整",
+   "wilder_same_window": 20.9,
+   "wilder_full_history": 21.0,
+   "label_wilder_same_window": "趨勢轉換中"
+  },
+  "pandas_ewm_last": 21.0,
+  "pandas_vs_wilder_last_diff": -0.0
+ },
+ {
+  "symbol": "2330.TW",
+  "tf": "1h",
+  "bars": 3635,
+  "ref_vs_sim.dmi_maxdiff": 3.1202066208489754,
+  "ref_vs_sim.dmi_none_mismatch": 12,
+  "sim_first_adx_idx": 15,
+  "ref_first_adx_idx": 27,
+  "sim_vs_ref_maxdiff_by_range": {
+   "28-59": 2.897334719359762,
+   "60-99": 0.27045113152503575,
+   "100-149": 0.01395408833611711,
+   "150+": 0.00034313680200881436
+  },
+  "site_last": {
+   "adx": 52.4,
+   "plus_di": 10.6,
+   "minus_di": 36.0
+  },
+  "ref_sma_last": 52.4,
+  "wilder_last": 43.8,
+  "calc_adx_equals_sma_ref": true,
+  "calc_adx_prefix_checks_pass": true,
+  "diff_all": {
+   "n": 3608,
+   "mean": 4.507832662135795,
+   "median": 3.7628701376531772,
+   "p95": 11.023421088650181,
+   "max": 20.332447908454505
+  },
+  "diff_warm": {
+   "n": 3535,
+   "mean": 4.465329647373627,
+   "median": 3.72586082956434,
+   "p95": 10.942226375191566,
+   "max": 20.332447908454505
+  },
+  "signed_mean_sma_minus_wilder": 0.044239271866705156,
+  "cross25": {
+   "wilder": [
+    62,
+    61
+   ],
+   "sma": [
+    69,
+    68
+   ]
+  },
+  "cross20": {
+   "wilder": [
+    55,
+    54
+   ],
+   "sma": [
+    68,
+    67
+   ]
+  },
+  "label_changed_pct": 19.801980198019802,
+  "code_changed_pct": 10.551626591230551,
+  "label_dist": {
+   "wilder": {
+    "上升趨勢": 1504,
+    "下降趨勢": 640,
+    "盤整": 736,
+    "趨勢轉換中": 655
+   },
+   "sma": {
+    "上升趨勢": 1383,
+    "下降趨勢": 620,
+    "盤整": 1100,
+    "趨勢轉換中": 432
+   }
+  },
+  "hypothetical_condition_flip_pct": {
+   "diadx adx>20": 12.164073550212164,
+   "adx_di adx>=25": 10.551626591230551,
+   "ema50_200_adx adx>25": 10.551626591230551,
+   "holy_grail adx>30": 11.25884016973126,
+   "adx_di_trend >25 且上升": 13.917963224893917
+  },
+  "site120d": {
+   "bars": 401,
+   "site_adx": 52.4,
+   "site_label": "下降趨勢",
+   "wilder_same_window": 43.8,
+   "wilder_full_history": 43.8,
+   "label_wilder_same_window": "下降趨勢"
+  },
+  "pandas_ewm_last": 43.8,
+  "pandas_vs_wilder_last_diff": -0.0
+ },
+ {
+  "symbol": "2330.TW",
+  "tf": "1w",
+  "bars": 314,
+  "ref_vs_sim.dmi_maxdiff": 4.360915456615565,
+  "ref_vs_sim.dmi_none_mismatch": 12,
+  "sim_first_adx_idx": 15,
+  "ref_first_adx_idx": 27,
+  "sim_vs_ref_maxdiff_by_range": {
+   "28-59": 4.049421495428739,
+   "60-99": 0.37799244186135184,
+   "100-149": 0.019502746741618893,
+   "150+": 0.00047958060648767287
+  },
+  "site_last": {
+   "adx": 16.1,
+   "plus_di": 25.2,
+   "minus_di": 24.3
+  },
+  "ref_sma_last": 16.1,
+  "wilder_last": 27.4,
+  "calc_adx_equals_sma_ref": true,
+  "calc_adx_prefix_checks_pass": true,
+  "diff_all": {
+   "n": 287,
+   "mean": 5.229905742494232,
+   "median": 4.335518759525307,
+   "p95": 13.828763337973804,
+   "max": 18.865715771937612
+  },
+  "diff_warm": {
+   "n": 214,
+   "mean": 4.74593471504909,
+   "median": 4.210531988104769,
+   "p95": 12.669754566630331,
+   "max": 15.69781319131403
+  },
+  "signed_mean_sma_minus_wilder": 0.4536770665175495,
+  "cross25": {
+   "wilder": [
+    4,
+    4
+   ],
+   "sma": [
+    4,
+    5
+   ]
+  },
+  "cross20": {
+   "wilder": [
+    1,
+    1
+   ],
+   "sma": [
+    6,
+    7
+   ]
+  },
+  "label_changed_pct": 32.71028037383178,
+  "code_changed_pct": 15.42056074766355,
+  "label_dist": {
+   "wilder": {
+    "上升趨勢": 132,
+    "下降趨勢": 15,
+    "盤整": 4,
+    "趨勢轉換中": 63
+   },
+   "sma": {
+    "上升趨勢": 111,
+    "下降趨勢": 17,
+    "盤整": 48,
+    "趨勢轉換中": 38
+   }
+  },
+  "hypothetical_condition_flip_pct": {
+   "diadx adx>20": 21.49532710280374,
+   "adx_di adx>=25": 15.42056074766355,
+   "ema50_200_adx adx>25": 15.42056074766355,
+   "holy_grail adx>30": 13.08411214953271,
+   "adx_di_trend >25 且上升": 18.22429906542056
+  },
+  "pandas_ewm_last": 27.4,
+  "pandas_vs_wilder_last_diff": 0.0
+ },
+ {
+  "symbol": "AAPL",
+  "tf": "1d",
+  "bars": 755,
+  "ref_vs_sim.dmi_maxdiff": 1.893281332537768,
+  "ref_vs_sim.dmi_none_mismatch": 12,
+  "sim_first_adx_idx": 15,
+  "ref_first_adx_idx": 27,
+  "sim_vs_ref_maxdiff_by_range": {
+   "28-59": 1.7580469516422141,
+   "60-99": 0.16410454207057867,
+   "100-149": 0.008467072271056253,
+   "150+": 0.0002082088081465372
+  },
+  "site_last": {
+   "adx": 20.2,
+   "plus_di": 31.7,
+   "minus_di": 25.0
+  },
+  "ref_sma_last": 20.2,
+  "wilder_last": 18.6,
+  "calc_adx_equals_sma_ref": true,
+  "calc_adx_prefix_checks_pass": true,
+  "diff_all": {
+   "n": 728,
+   "mean": 3.80011506944543,
+   "median": 3.0534745125838025,
+   "p95": 10.197393421418482,
+   "max": 13.455685799370372
+  },
+  "diff_warm": {
+   "n": 655,
+   "mean": 3.6738405529371922,
+   "median": 2.852096062651892,
+   "p95": 9.834251912674311,
+   "max": 13.455685799370372
+  },
+  "signed_mean_sma_minus_wilder": -0.13487153093914053,
+  "cross25": {
+   "wilder": [
+    11,
+    11
+   ],
+   "sma": [
+    12,
+    12
+   ]
+  },
+  "cross20": {
+   "wilder": [
+    12,
+    13
+   ],
+   "sma": [
+    14,
+    14
+   ]
+  },
+  "label_changed_pct": 18.625954198473284,
+  "code_changed_pct": 8.854961832061068,
+  "label_dist": {
+   "wilder": {
+    "上升趨勢": 183,
+    "下降趨勢": 81,
+    "盤整": 275,
+    "趨勢轉換中": 116
+   },
+   "sma": {
+    "上升趨勢": 176,
+    "下降趨勢": 72,
+    "盤整": 310,
+    "趨勢轉換中": 97
+   }
+  },
+  "hypothetical_condition_flip_pct": {
+   "diadx adx>20": 12.061068702290076,
+   "adx_di adx>=25": 8.854961832061068,
+   "ema50_200_adx adx>25": 8.854961832061068,
+   "holy_grail adx>30": 8.549618320610687,
+   "adx_di_trend >25 且上升": 12.82442748091603
+  },
+  "site120d": {
+   "bars": 86,
+   "site_adx": 20.2,
+   "site_label": "趨勢轉換中",
+   "wilder_same_window": 18.6,
+   "wilder_full_history": 18.6,
+   "label_wilder_same_window": "盤整"
+  },
+  "pandas_ewm_last": 18.6,
+  "pandas_vs_wilder_last_diff": 0.0
+ },
+ {
+  "symbol": "AAPL",
+  "tf": "1h",
+  "bars": 5077,
+  "ref_vs_sim.dmi_maxdiff": 2.6139077104912367,
+  "ref_vs_sim.dmi_none_mismatch": 12,
+  "sim_first_adx_idx": 15,
+  "ref_first_adx_idx": 27,
+  "sim_vs_ref_maxdiff_by_range": {
+   "28-59": 2.4272000168847185,
+   "60-99": 0.22656650148764967,
+   "100-149": 0.011689834529210685,
+   "150+": 0.00028745786467609946
+  },
+  "site_last": {
+   "adx": 40.0,
+   "plus_di": 32.8,
+   "minus_di": 26.2
+  },
+  "ref_sma_last": 40.0,
+  "wilder_last": 32.2,
+  "calc_adx_equals_sma_ref": true,
+  "calc_adx_prefix_checks_pass": true,
+  "diff_all": {
+   "n": 5050,
+   "mean": 4.5127849982139,
+   "median": 3.853592372725231,
+   "p95": 10.847317653157804,
+   "max": 18.810871924817427
+  },
+  "diff_warm": {
+   "n": 4977,
+   "mean": 4.5367235297870385,
+   "median": 3.8882055327935667,
+   "p95": 10.86855507664518,
+   "max": 18.810871924817427
+  },
+  "signed_mean_sma_minus_wilder": 0.018003690862145805,
+  "cross25": {
+   "wilder": [
+    86,
+    85
+   ],
+   "sma": [
+    101,
+    100
+   ]
+  },
+  "cross20": {
+   "wilder": [
+    88,
+    87
+   ],
+   "sma": [
+    103,
+    103
+   ]
+  },
+  "label_changed_pct": 21.940928270042193,
+  "code_changed_pct": 10.46815350612819,
+  "label_dist": {
+   "wilder": {
+    "上升趨勢": 1661,
+    "下降趨勢": 1237,
+    "盤整": 1172,
+    "趨勢轉換中": 907
+   },
+   "sma": {
+    "上升趨勢": 1520,
+    "下降趨勢": 1119,
+    "盤整": 1645,
+    "趨勢轉換中": 693
+   }
+  },
+  "hypothetical_condition_flip_pct": {
+   "diadx adx>20": 13.843680932288526,
+   "adx_di adx>=25": 10.46815350612819,
+   "ema50_200_adx adx>25": 10.46815350612819,
+   "holy_grail adx>30": 9.0014064697609,
+   "adx_di_trend >25 且上升": 11.854530841872615
+  },
+  "site120d": {
+   "bars": 595,
+   "site_adx": 40.0,
+   "site_label": "上升趨勢",
+   "wilder_same_window": 32.2,
+   "wilder_full_history": 32.2,
+   "label_wilder_same_window": "上升趨勢"
+  },
+  "pandas_ewm_last": 32.2,
+  "pandas_vs_wilder_last_diff": 0.0
+ },
+ {
+  "symbol": "AAPL",
+  "tf": "1w",
+  "bars": 314,
+  "ref_vs_sim.dmi_maxdiff": 1.4971316092767424,
+  "ref_vs_sim.dmi_none_mismatch": 12,
+  "sim_first_adx_idx": 15,
+  "ref_first_adx_idx": 27,
+  "sim_vs_ref_maxdiff_by_range": {
+   "28-59": 1.390193637185547,
+   "60-99": 0.12976734779847732,
+   "100-149": 0.006695424138584372,
+   "150+": 0.00016464324804132957
+  },
+  "site_last": {
+   "adx": 21.8,
+   "plus_di": 23.3,
+   "minus_di": 13.6
+  },
+  "ref_sma_last": 21.8,
+  "wilder_last": 23.9,
+  "calc_adx_equals_sma_ref": true,
+  "calc_adx_prefix_checks_pass": true,
+  "diff_all": {
+   "n": 287,
+   "mean": 3.646637995086995,
+   "median": 3.0120116849009264,
+   "p95": 9.381059436914931,
+   "max": 11.379694426098121
+  },
+  "diff_warm": {
+   "n": 214,
+   "mean": 3.480131147599357,
+   "median": 2.816689729973888,
+   "p95": 9.381059436914931,
+   "max": 10.36566425159073
+  },
+  "signed_mean_sma_minus_wilder": -0.2746328278102075,
+  "cross25": {
+   "wilder": [
+    4,
+    4
+   ],
+   "sma": [
+    5,
+    5
+   ]
+  },
+  "cross20": {
+   "wilder": [
+    6,
+    5
+   ],
+   "sma": [
+    6,
+    5
+   ]
+  },
+  "label_changed_pct": 19.1588785046729,
+  "code_changed_pct": 8.878504672897197,
+  "label_dist": {
+   "wilder": {
+    "上升趨勢": 63,
+    "下降趨勢": 3,
+    "盤整": 85,
+    "趨勢轉換中": 63
+   },
+   "sma": {
+    "上升趨勢": 73,
+    "下降趨勢": 4,
+    "盤整": 99,
+    "趨勢轉換中": 38
+   }
+  },
+  "hypothetical_condition_flip_pct": {
+   "diadx adx>20": 10.280373831775702,
+   "adx_di adx>=25": 8.878504672897197,
+   "ema50_200_adx adx>25": 8.878504672897197,
+   "holy_grail adx>30": 7.94392523364486,
+   "adx_di_trend >25 且上升": 7.94392523364486
+  },
+  "pandas_ewm_last": 23.9,
+  "pandas_vs_wilder_last_diff": 0.0
+ },
+ {
+  "symbol": "BTC/USDT",
+  "tf": "1d",
+  "bars": 1129,
+  "ref_vs_sim.dmi_maxdiff": 1.7411797299647418,
+  "ref_vs_sim.dmi_none_mismatch": 12,
+  "sim_first_adx_idx": 15,
+  "ref_first_adx_idx": 27,
+  "sim_vs_ref_maxdiff_by_range": {
+   "28-59": 1.6168097492529796,
+   "60-99": 0.1509207835823716,
+   "100-149": 0.007786848344800035,
+   "150+": 0.0001914818205506208
+  },
+  "site_last": {
+   "adx": 21.4,
+   "plus_di": 21.0,
+   "minus_di": 23.1
+  },
+  "ref_sma_last": 21.4,
+  "wilder_last": 21.8,
+  "calc_adx_equals_sma_ref": true,
+  "calc_adx_prefix_checks_pass": true,
+  "diff_all": {
+   "n": 1102,
+   "mean": 4.442943172327019,
+   "median": 3.657269650080739,
+   "p95": 11.837927697883499,
+   "max": 17.849009769880595
+  },
+  "diff_warm": {
+   "n": 1029,
+   "mean": 4.360656680764914,
+   "median": 3.5928918929149063,
+   "p95": 11.837927697883499,
+   "max": 17.849009769880595
+  },
+  "signed_mean_sma_minus_wilder": -0.026977376962126882,
+  "cross25": {
+   "wilder": [
+    17,
+    17
+   ],
+   "sma": [
+    18,
+    18
+   ]
+  },
+  "cross20": {
+   "wilder": [
+    20,
+    20
+   ],
+   "sma": [
+    22,
+    21
+   ]
+  },
+  "label_changed_pct": 21.477162293488824,
+  "code_changed_pct": 8.940719144800777,
+  "label_dist": {
+   "wilder": {
+    "上升趨勢": 234,
+    "下降趨勢": 262,
+    "盤整": 312,
+    "趨勢轉換中": 221
+   },
+   "sma": {
+    "上升趨勢": 234,
+    "下降趨勢": 236,
+    "盤整": 421,
+    "趨勢轉換中": 138
+   }
+  },
+  "hypothetical_condition_flip_pct": {
+   "diadx adx>20": 14.480077745383868,
+   "adx_di adx>=25": 8.940719144800777,
+   "ema50_200_adx adx>25": 8.940719144800777,
+   "holy_grail adx>30": 7.191448007774539,
+   "adx_di_trend >25 且上升": 10.592808551992226
+  },
+  "site120d": {
+   "bars": 121,
+   "site_adx": 21.4,
+   "site_label": "趨勢轉換中",
+   "wilder_same_window": 21.8,
+   "wilder_full_history": 21.8,
+   "label_wilder_same_window": "趨勢轉換中"
+  },
+  "pandas_ewm_last": 21.8,
+  "pandas_vs_wilder_last_diff": -0.0
+ },
+ {
+  "symbol": "BTC/USDT",
+  "tf": "1h",
+  "bars": 3119,
+  "ref_vs_sim.dmi_maxdiff": 2.940964961192577,
+  "ref_vs_sim.dmi_none_mismatch": 12,
+  "sim_first_adx_idx": 15,
+  "ref_first_adx_idx": 27,
+  "sim_vs_ref_maxdiff_by_range": {
+   "28-59": 2.7308960353931013,
+   "60-99": 0.2549149457652078,
+   "100-149": 0.013152489513906573,
+   "150+": 0.00032342515552130635
+  },
+  "site_last": {
+   "adx": 38.6,
+   "plus_di": 24.2,
+   "minus_di": 13.2
+  },
+  "ref_sma_last": 38.6,
+  "wilder_last": 34.8,
+  "calc_adx_equals_sma_ref": true,
+  "calc_adx_prefix_checks_pass": true,
+  "diff_all": {
+   "n": 3092,
+   "mean": 3.9730368374205454,
+   "median": 3.3629019285736064,
+   "p95": 9.736314901369948,
+   "max": 19.52740413481066
+  },
+  "diff_warm": {
+   "n": 3019,
+   "mean": 3.9867347052750874,
+   "median": 3.3803510282292066,
+   "p95": 9.70761486276178,
+   "max": 19.52740413481066
+  },
+  "signed_mean_sma_minus_wilder": 0.009707965806806444,
+  "cross25": {
+   "wilder": [
+    58,
+    58
+   ],
+   "sma": [
+    64,
+    64
+   ]
+  },
+  "cross20": {
+   "wilder": [
+    50,
+    50
+   ],
+   "sma": [
+    60,
+    60
+   ]
+  },
+  "label_changed_pct": 19.41040079496522,
+  "code_changed_pct": 10.467042066909572,
+  "label_dist": {
+   "wilder": {
+    "上升趨勢": 699,
+    "下降趨勢": 669,
+    "盤整": 1008,
+    "趨勢轉換中": 643
+   },
+   "sma": {
+    "上升趨勢": 713,
+    "下降趨勢": 667,
+    "盤整": 1214,
+    "趨勢轉換中": 425
+   }
+  },
+  "hypothetical_condition_flip_pct": {
+   "diadx adx>20": 10.33454786353097,
+   "adx_di adx>=25": 10.467042066909572,
+   "ema50_200_adx adx>25": 10.467042066909572,
+   "holy_grail adx>30": 9.572706194104008,
+   "adx_di_trend >25 且上升": 12.520702219277906
+  },
+  "site120d": {
+   "bars": 2881,
+   "site_adx": 38.6,
+   "site_label": "上升趨勢",
+   "wilder_same_window": 34.8,
+   "wilder_full_history": 34.8,
+   "label_wilder_same_window": "上升趨勢"
+  },
+  "pandas_ewm_last": 34.8,
+  "pandas_vs_wilder_last_diff": -0.0
+ },
+ {
+  "symbol": "BTC/USDT",
+  "tf": "1w",
+  "bars": 318,
+  "ref_vs_sim.dmi_maxdiff": 1.558548376135164,
+  "ref_vs_sim.dmi_none_mismatch": 12,
+  "sim_first_adx_idx": 15,
+  "ref_first_adx_idx": 27,
+  "sim_vs_ref_maxdiff_by_range": {
+   "28-59": 1.4472234921255165,
+   "60-99": 0.13509078823362586,
+   "100-149": 0.006970090240624671,
+   "150+": 0.00017139740103999657
+  },
+  "site_last": {
+   "adx": 22.3,
+   "plus_di": 20.4,
+   "minus_di": 17.4
+  },
+  "ref_sma_last": 22.3,
+  "wilder_last": 24.8,
+  "calc_adx_equals_sma_ref": true,
+  "calc_adx_prefix_checks_pass": true,
+  "diff_all": {
+   "n": 291,
+   "mean": 5.2490676142328265,
+   "median": 3.743750702530196,
+   "p95": 14.463147278352068,
+   "max": 19.885981218153827
+  },
+  "diff_warm": {
+   "n": 218,
+   "mean": 4.645619137693393,
+   "median": 3.490205455134877,
+   "p95": 11.96299660876199,
+   "max": 15.285758742255211
+  },
+  "signed_mean_sma_minus_wilder": 0.1160303145792252,
+  "cross25": {
+   "wilder": [
+    6,
+    7
+   ],
+   "sma": [
+    6,
+    7
+   ]
+  },
+  "cross20": {
+   "wilder": [
+    3,
+    3
+   ],
+   "sma": [
+    5,
+    5
+   ]
+  },
+  "label_changed_pct": 24.31192660550459,
+  "code_changed_pct": 14.678899082568808,
+  "label_dist": {
+   "wilder": {
+    "上升趨勢": 82,
+    "下降趨勢": 70,
+    "盤整": 16,
+    "趨勢轉換中": 50
+   },
+   "sma": {
+    "上升趨勢": 64,
+    "下降趨勢": 58,
+    "盤整": 50,
+    "趨勢轉換中": 46
+   }
+  },
+  "hypothetical_condition_flip_pct": {
+   "diadx adx>20": 15.596330275229358,
+   "adx_di adx>=25": 14.678899082568808,
+   "ema50_200_adx adx>25": 14.678899082568808,
+   "holy_grail adx>30": 11.46788990825688,
+   "adx_di_trend >25 且上升": 16.05504587155963
+  },
+  "pandas_ewm_last": 24.8,
+  "pandas_vs_wilder_last_diff": 0.0
+ },
+ {
+  "symbol": "BTC/USDT",
+  "tf": "4h",
+  "bars": 2579,
+  "ref_vs_sim.dmi_maxdiff": 0.24670323911785452,
+  "ref_vs_sim.dmi_none_mismatch": 12,
+  "sim_first_adx_idx": 15,
+  "ref_first_adx_idx": 27,
+  "sim_vs_ref_maxdiff_by_range": {
+   "28-59": 0.22908157918086225,
+   "60-99": 0.0213835743198878,
+   "100-149": 0.001103298341991632,
+   "150+": 2.713056242953371e-05
+  },
+  "site_last": {
+   "adx": 23.2,
+   "plus_di": 27.1,
+   "minus_di": 16.0
+  },
+  "ref_sma_last": 23.2,
+  "wilder_last": 23.7,
+  "calc_adx_equals_sma_ref": true,
+  "calc_adx_prefix_checks_pass": true,
+  "diff_all": {
+   "n": 2552,
+   "mean": 4.326886014001886,
+   "median": 3.556442569100696,
+   "p95": 11.019462372088363,
+   "max": 21.24733272526852
+  },
+  "diff_warm": {
+   "n": 2479,
+   "mean": 4.336784022592235,
+   "median": 3.559136714299065,
+   "p95": 11.110060623594828,
+   "max": 21.24733272526852
+  },
+  "signed_mean_sma_minus_wilder": -0.004510470703631585,
+  "cross25": {
+   "wilder": [
+    46,
+    46
+   ],
+   "sma": [
+    49,
+    49
+   ]
+  },
+  "cross20": {
+   "wilder": [
+    46,
+    45
+   ],
+   "sma": [
+    52,
+    51
+   ]
+  },
+  "label_changed_pct": 19.766034691407825,
+  "code_changed_pct": 9.963695038321903,
+  "label_dist": {
+   "wilder": {
+    "上升趨勢": 487,
+    "下降趨勢": 806,
+    "盤整": 643,
+    "趨勢轉換中": 543
+   },
+   "sma": {
+    "上升趨勢": 496,
+    "下降趨勢": 732,
+    "盤整": 888,
+    "趨勢轉換中": 363
+   }
+  },
+  "hypothetical_condition_flip_pct": {
+   "diadx adx>20": 11.980637353771682,
+   "adx_di adx>=25": 9.963695038321903,
+   "ema50_200_adx adx>25": 9.963695038321903,
+   "holy_grail adx>30": 10.0040338846309,
+   "adx_di_trend >25 且上升": 12.787414279951593
+  },
+  "site120d": {
+   "bars": 721,
+   "site_adx": 23.2,
+   "site_label": "趨勢轉換中",
+   "wilder_same_window": 23.7,
+   "wilder_full_history": 23.7,
+   "label_wilder_same_window": "趨勢轉換中"
+  },
+  "pandas_ewm_last": 23.7,
+  "pandas_vs_wilder_last_diff": 0.0
+ },
+ {
+  "symbol": "SOL/USDT",
+  "tf": "1d",
+  "bars": 1129,
+  "ref_vs_sim.dmi_maxdiff": 5.094063923744798,
+  "ref_vs_sim.dmi_none_mismatch": 12,
+  "sim_first_adx_idx": 15,
+  "ref_first_adx_idx": 27,
+  "sim_vs_ref_maxdiff_by_range": {
+   "28-59": 4.73020221490588,
+   "60-99": 0.44153978234393776,
+   "100-149": 0.022781509886833362,
+   "150+": 0.0005602067479557604
+  },
+  "site_last": {
+   "adx": 35.8,
+   "plus_di": 15.3,
+   "minus_di": 27.8
+  },
+  "ref_sma_last": 35.8,
+  "wilder_last": 33.9,
+  "calc_adx_equals_sma_ref": true,
+  "calc_adx_prefix_checks_pass": true,
+  "diff_all": {
+   "n": 1102,
+   "mean": 4.296392217022094,
+   "median": 3.437655559807933,
+   "p95": 11.159136608436349,
+   "max": 21.59470371811758
+  },
+  "diff_warm": {
+   "n": 1029,
+   "mean": 4.142159030046765,
+   "median": 3.263682104398262,
+   "p95": 10.775278057811397,
+   "max": 21.59470371811758
+  },
+  "signed_mean_sma_minus_wilder": -0.09911836383963424,
+  "cross25": {
+   "wilder": [
+    21,
+    21
+   ],
+   "sma": [
+    24,
+    23
+   ]
+  },
+  "cross20": {
+   "wilder": [
+    16,
+    16
+   ],
+   "sma": [
+    21,
+    20
+   ]
+  },
+  "label_changed_pct": 23.71234207968902,
+  "code_changed_pct": 11.273080660835763,
+  "label_dist": {
+   "wilder": {
+    "上升趨勢": 181,
+    "下降趨勢": 323,
+    "盤整": 296,
+    "趨勢轉換中": 229
+   },
+   "sma": {
+    "上升趨勢": 183,
+    "下降趨勢": 271,
+    "盤整": 416,
+    "趨勢轉換中": 159
+   }
+  },
+  "hypothetical_condition_flip_pct": {
+   "diadx adx>20": 14.77162293488824,
+   "adx_di adx>=25": 11.273080660835763,
+   "ema50_200_adx adx>25": 11.273080660835763,
+   "holy_grail adx>30": 7.38581146744412,
+   "adx_di_trend >25 且上升": 13.508260447035957
+  },
+  "site120d": {
+   "bars": 121,
+   "site_adx": 35.8,
+   "site_label": "下降趨勢",
+   "wilder_same_window": 34.0,
+   "wilder_full_history": 33.9,
+   "label_wilder_same_window": "下降趨勢"
+  },
+  "pandas_ewm_last": 33.9,
+  "pandas_vs_wilder_last_diff": -0.0
+ },
+ {
+  "symbol": "SOL/USDT",
+  "tf": "1h",
+  "bars": 3119,
+  "ref_vs_sim.dmi_maxdiff": 0.45982047643807533,
+  "ref_vs_sim.dmi_none_mismatch": 12,
+  "sim_first_adx_idx": 15,
+  "ref_first_adx_idx": 27,
+  "sim_vs_ref_maxdiff_by_range": {
+   "28-59": 0.426976156692497,
+   "60-99": 0.03985600418898372,
+   "100-149": 0.0020563944400606715,
+   "150+": 5.0567589582328765e-05
+  },
+  "site_last": {
+   "adx": 29.1,
+   "plus_di": 26.3,
+   "minus_di": 13.3
+  },
+  "ref_sma_last": 29.1,
+  "wilder_last": 26.6,
+  "calc_adx_equals_sma_ref": true,
+  "calc_adx_prefix_checks_pass": true,
+  "diff_all": {
+   "n": 3092,
+   "mean": 4.130366382430691,
+   "median": 3.4421523880637572,
+   "p95": 10.373772108929728,
+   "max": 18.46070249424445
+  },
+  "diff_warm": {
+   "n": 3019,
+   "mean": 4.165590418383461,
+   "median": 3.4552128117711582,
+   "p95": 10.400655335703448,
+   "max": 18.46070249424445
+  },
+  "signed_mean_sma_minus_wilder": -0.006381174242535284,
+  "cross25": {
+   "wilder": [
+    59,
+    59
+   ],
+   "sma": [
+    63,
+    63
+   ]
+  },
+  "cross20": {
+   "wilder": [
+    51,
+    51
+   ],
+   "sma": [
+    63,
+    63
+   ]
+  },
+  "label_changed_pct": 20.934084133819145,
+  "code_changed_pct": 10.632659821132826,
+  "label_dist": {
+   "wilder": {
+    "上升趨勢": 692,
+    "下降趨勢": 691,
+    "盤整": 1003,
+    "趨勢轉換中": 633
+   },
+   "sma": {
+    "上升趨勢": 653,
+    "下降趨勢": 681,
+    "盤整": 1250,
+    "趨勢轉換中": 435
+   }
+  },
+  "hypothetical_condition_flip_pct": {
+   "diadx adx>20": 12.09009605829745,
+   "adx_di adx>=25": 10.632659821132826,
+   "ema50_200_adx adx>25": 10.632659821132826,
+   "holy_grail adx>30": 8.810864524677045,
+   "adx_di_trend >25 且上升": 10.533289168598873
+  },
+  "site120d": {
+   "bars": 2881,
+   "site_adx": 29.1,
+   "site_label": "上升趨勢",
+   "wilder_same_window": 26.6,
+   "wilder_full_history": 26.6,
+   "label_wilder_same_window": "上升趨勢"
+  },
+  "pandas_ewm_last": 26.6,
+  "pandas_vs_wilder_last_diff": 0.0
+ },
+ {
+  "symbol": "SOL/USDT",
+  "tf": "1w",
+  "bars": 318,
+  "ref_vs_sim.dmi_maxdiff": 6.145055550771019,
+  "ref_vs_sim.dmi_none_mismatch": 12,
+  "sim_first_adx_idx": 15,
+  "ref_first_adx_idx": 27,
+  "sim_vs_ref_maxdiff_by_range": {
+   "28-59": 5.706123011430236,
+   "60-99": 0.5326369144547201,
+   "100-149": 0.027481721054254393,
+   "150+": 0.0006757868840239212
+  },
+  "site_last": {
+   "adx": 21.5,
+   "plus_di": 21.1,
+   "minus_di": 21.4
+  },
+  "ref_sma_last": 21.5,
+  "wilder_last": 24.9,
+  "calc_adx_equals_sma_ref": true,
+  "calc_adx_prefix_checks_pass": true,
+  "diff_all": {
+   "n": 291,
+   "mean": 5.310494719131554,
+   "median": 3.6858814149804005,
+   "p95": 14.806447577370733,
+   "max": 20.50476945879894
+  },
+  "diff_warm": {
+   "n": 218,
+   "mean": 4.29936920333871,
+   "median": 3.0684500250198994,
+   "p95": 13.768788983901104,
+   "max": 20.024151156784548
+  },
+  "signed_mean_sma_minus_wilder": 0.2864230630023921,
+  "cross25": {
+   "wilder": [
+    3,
+    3
+   ],
+   "sma": [
+    4,
+    4
+   ]
+  },
+  "cross20": {
+   "wilder": [
+    4,
+    4
+   ],
+   "sma": [
+    4,
+    4
+   ]
+  },
+  "label_changed_pct": 15.137614678899082,
+  "code_changed_pct": 7.798165137614679,
+  "label_dist": {
+   "wilder": {
+    "上升趨勢": 47,
+    "下降趨勢": 38,
+    "盤整": 91,
+    "趨勢轉換中": 42
+   },
+   "sma": {
+    "上升趨勢": 45,
+    "下降趨勢": 41,
+    "盤整": 100,
+    "趨勢轉換中": 32
+   }
+  },
+  "hypothetical_condition_flip_pct": {
+   "diadx adx>20": 9.63302752293578,
+   "adx_di adx>=25": 7.798165137614679,
+   "ema50_200_adx adx>25": 7.798165137614679,
+   "holy_grail adx>30": 5.045871559633028,
+   "adx_di_trend >25 且上升": 10.091743119266056
+  },
+  "pandas_ewm_last": 24.9,
+  "pandas_vs_wilder_last_diff": 0.0
+ },
+ {
+  "symbol": "SOL/USDT",
+  "tf": "4h",
+  "bars": 2579,
+  "ref_vs_sim.dmi_maxdiff": 1.6051408546838202,
+  "ref_vs_sim.dmi_none_mismatch": 12,
+  "sim_first_adx_idx": 15,
+  "ref_first_adx_idx": 27,
+  "sim_vs_ref_maxdiff_by_range": {
+   "28-59": 1.4904879364921184,
+   "60-99": 0.13912929916423877,
+   "100-149": 0.007178459634211265,
+   "150+": 0.00017652129061929145
+  },
+  "site_last": {
+   "adx": 25.5,
+   "plus_di": 24.0,
+   "minus_di": 16.9
+  },
+  "ref_sma_last": 25.5,
+  "wilder_last": 26.5,
+  "calc_adx_equals_sma_ref": true,
+  "calc_adx_prefix_checks_pass": true,
+  "diff_all": {
+   "n": 2552,
+   "mean": 4.429326634661843,
+   "median": 3.724683068810144,
+   "p95": 11.483954641128712,
+   "max": 22.12036098497216
+  },
+  "diff_warm": {
+   "n": 2479,
+   "mean": 4.3804327479745435,
+   "median": 3.7044672218929193,
+   "p95": 11.336570155501324,
+   "max": 22.12036098497216
+  },
+  "signed_mean_sma_minus_wilder": 0.02022512535134891,
+  "cross25": {
+   "wilder": [
+    49,
+    48
+   ],
+   "sma": [
+    51,
+    50
+   ]
+  },
+  "cross20": {
+   "wilder": [
+    47,
+    47
+   ],
+   "sma": [
+    56,
+    55
+   ]
+  },
+  "label_changed_pct": 22.46873739411053,
+  "code_changed_pct": 11.698265429608714,
+  "label_dist": {
+   "wilder": {
+    "上升趨勢": 513,
+    "下降趨勢": 709,
+    "盤整": 727,
+    "趨勢轉換中": 530
+   },
+   "sma": {
+    "上升趨勢": 522,
+    "下降趨勢": 650,
+    "盤整": 919,
+    "趨勢轉換中": 388
+   }
+  },
+  "hypothetical_condition_flip_pct": {
+   "diadx adx>20": 13.231141589350544,
+   "adx_di adx>=25": 11.698265429608714,
+   "ema50_200_adx adx>25": 11.698265429608714,
+   "holy_grail adx>30": 9.842678499394918,
+   "adx_di_trend >25 且上升": 11.8192819685357
+  },
+  "site120d": {
+   "bars": 721,
+   "site_adx": 25.5,
+   "site_label": "上升趨勢",
+   "wilder_same_window": 26.5,
+   "wilder_full_history": 26.5,
+   "label_wilder_same_window": "上升趨勢"
+  },
+  "pandas_ewm_last": 26.5,
+  "pandas_vs_wilder_last_diff": -0.0
+ }
+]
