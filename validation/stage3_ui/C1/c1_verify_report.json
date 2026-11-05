@@ -1,0 +1,1038 @@
+{
+ "mismatches": 0,
+ "rows": [
+  {
+   "symbol": "BTC/USDT",
+   "tf": "1w",
+   "quality": "ok",
+   "checks": {
+    "lastBarUtc": {
+     "api": "2026-10-26",
+     "raw": "2026-10-26",
+     "ok": true
+    },
+    "closeMatchesRaw": {
+     "api": 78313.0,
+     "raw": 78313.0,
+     "ok": true
+    },
+    "barCountMatches": {
+     "api": 318,
+     "raw": 318,
+     "ok": true
+    },
+    "ema20": {
+     "api": 76836.93,
+     "indep": 76836.926,
+     "ok": true
+    },
+    "ema50": {
+     "api": 78541.94,
+     "indep": 78541.935,
+     "ok": true
+    },
+    "ema200": {
+     "api": 69836.12,
+     "indep": 69836.117,
+     "ok": true
+    },
+    "atr": {
+     "api": 6108.96,
+     "indep": 6108.962,
+     "ok": true
+    },
+    "plusDi": {
+     "api": 20.4,
+     "indep": 20.426,
+     "ok": true
+    },
+    "minusDi": {
+     "api": 17.4,
+     "indep": 17.361,
+     "ok": true
+    },
+    "adx(參考)": {
+     "api": 22.3,
+     "indep(Wilder 平滑)": 24.8,
+     "note": "既有 calc_adx 用最後 14 個 DX 的平均,獨立實作用 Wilder 平滑,數值略有差異是預期;兩者用同一份 DX",
+     "ok": true
+    }
+   },
+   "allOk": true
+  },
+  {
+   "symbol": "BTC/USDT",
+   "tf": "1d",
+   "quality": "ok",
+   "checks": {
+    "lastBarUtc": {
+     "api": "2026-11-04",
+     "raw": "2026-11-04",
+     "ok": true
+    },
+    "closeMatchesRaw": {
+     "api": 80466.5,
+     "raw": 80466.5,
+     "ok": true
+    },
+    "barCountMatches": {
+     "api": 1129,
+     "raw": 1129,
+     "ok": true
+    },
+    "ema20": {
+     "api": 79906.89,
+     "indep": 79906.891,
+     "ok": true
+    },
+    "ema50": {
+     "api": 80109.72,
+     "indep": 80109.715,
+     "ok": true
+    },
+    "ema200": {
+     "api": 76511.06,
+     "indep": 76511.055,
+     "ok": true
+    },
+    "atr": {
+     "api": 2222.64,
+     "indep": 2222.64,
+     "ok": true
+    },
+    "plusDi": {
+     "api": 21.0,
+     "indep": 20.987,
+     "ok": true
+    },
+    "minusDi": {
+     "api": 23.1,
+     "indep": 23.122,
+     "ok": true
+    },
+    "adx(參考)": {
+     "api": 21.4,
+     "indep(Wilder 平滑)": 21.77,
+     "note": "既有 calc_adx 用最後 14 個 DX 的平均,獨立實作用 Wilder 平滑,數值略有差異是預期;兩者用同一份 DX",
+     "ok": true
+    }
+   },
+   "allOk": true
+  },
+  {
+   "symbol": "BTC/USDT",
+   "tf": "4h",
+   "quality": "ok",
+   "checks": {
+    "lastBarUtc": {
+     "api": "2026-11-05 04:00",
+     "raw": "2026-11-05 04:00",
+     "ok": true
+    },
+    "closeMatchesRaw": {
+     "api": 80362.4,
+     "raw": 80362.4,
+     "ok": true
+    },
+    "barCountMatches": {
+     "api": 2579,
+     "raw": 2579,
+     "ok": true
+    },
+    "ema20": {
+     "api": 78707.63,
+     "indep": 78707.63,
+     "ok": true
+    },
+    "ema50": {
+     "api": 78781.89,
+     "indep": 78781.889,
+     "ok": true
+    },
+    "ema200": {
+     "api": 80431.03,
+     "indep": 80431.03,
+     "ok": true
+    },
+    "atr": {
+     "api": 962.92,
+     "indep": 962.921,
+     "ok": true
+    },
+    "plusDi": {
+     "api": 28.0,
+     "indep": 27.975,
+     "ok": true
+    },
+    "minusDi": {
+     "api": 15.9,
+     "indep": 15.915,
+     "ok": true
+    },
+    "adx(參考)": {
+     "api": 23.7,
+     "indep(Wilder 平滑)": 23.58,
+     "note": "既有 calc_adx 用最後 14 個 DX 的平均,獨立實作用 Wilder 平滑,數值略有差異是預期;兩者用同一份 DX",
+     "ok": true
+    }
+   },
+   "allOk": true
+  },
+  {
+   "symbol": "BTC/USDT",
+   "tf": "1h",
+   "quality": "ok",
+   "checks": {
+    "lastBarUtc": {
+     "api": "2026-11-05 09:00",
+     "raw": "2026-11-05 09:00",
+     "ok": true
+    },
+    "closeMatchesRaw": {
+     "api": 80443.2,
+     "raw": 80443.2,
+     "ok": true
+    },
+    "barCountMatches": {
+     "api": 3119,
+     "raw": 3119,
+     "ok": true
+    },
+    "ema20": {
+     "api": 80081.79,
+     "indep": 80081.79,
+     "ok": true
+    },
+    "ema50": {
+     "api": 79154.52,
+     "indep": 79154.524,
+     "ok": true
+    },
+    "ema200": {
+     "api": 78787.3,
+     "indep": 78787.296,
+     "ok": true
+    },
+    "atr": {
+     "api": 440.89,
+     "indep": 440.887,
+     "ok": true
+    },
+    "plusDi": {
+     "api": 26.4,
+     "indep": 26.387,
+     "ok": true
+    },
+    "minusDi": {
+     "api": 13.5,
+     "indep": 13.462,
+     "ok": true
+    },
+    "adx(參考)": {
+     "api": 40.1,
+     "indep(Wilder 平滑)": 35.61,
+     "note": "既有 calc_adx 用最後 14 個 DX 的平均,獨立實作用 Wilder 平滑,數值略有差異是預期;兩者用同一份 DX",
+     "ok": true
+    }
+   },
+   "allOk": true
+  },
+  {
+   "symbol": "SOL/USDT",
+   "tf": "1w",
+   "quality": "ok",
+   "checks": {
+    "lastBarUtc": {
+     "api": "2026-10-26",
+     "raw": "2026-10-26",
+     "ok": true
+    },
+    "closeMatchesRaw": {
+     "api": 94.51,
+     "raw": 94.51,
+     "ok": true
+    },
+    "barCountMatches": {
+     "api": 318,
+     "raw": 318,
+     "ok": true
+    },
+    "ema20": {
+     "api": 98.09,
+     "indep": 98.085,
+     "ok": true
+    },
+    "ema50": {
+     "api": 105.72,
+     "indep": 105.721,
+     "ok": true
+    },
+    "ema200": {
+     "api": 111.11,
+     "indep": 111.114,
+     "ok": true
+    },
+    "atr": {
+     "api": 12.72,
+     "indep": 12.72,
+     "ok": true
+    },
+    "plusDi": {
+     "api": 21.1,
+     "indep": 21.134,
+     "ok": true
+    },
+    "minusDi": {
+     "api": 21.4,
+     "indep": 21.358,
+     "ok": true
+    },
+    "adx(參考)": {
+     "api": 21.5,
+     "indep(Wilder 平滑)": 24.88,
+     "note": "既有 calc_adx 用最後 14 個 DX 的平均,獨立實作用 Wilder 平滑,數值略有差異是預期;兩者用同一份 DX",
+     "ok": true
+    }
+   },
+   "allOk": true
+  },
+  {
+   "symbol": "SOL/USDT",
+   "tf": "1d",
+   "quality": "ok",
+   "checks": {
+    "lastBarUtc": {
+     "api": "2026-11-04",
+     "raw": "2026-11-04",
+     "ok": true
+    },
+    "closeMatchesRaw": {
+     "api": 95.55,
+     "raw": 95.55,
+     "ok": true
+    },
+    "barCountMatches": {
+     "api": 1129,
+     "raw": 1129,
+     "ok": true
+    },
+    "ema20": {
+     "api": 99.82,
+     "indep": 99.82,
+     "ok": true
+    },
+    "ema50": {
+     "api": 102.9,
+     "indep": 102.904,
+     "ok": true
+    },
+    "ema200": {
+     "api": 98.04,
+     "indep": 98.04,
+     "ok": true
+    },
+    "atr": {
+     "api": 4.56,
+     "indep": 4.562,
+     "ok": true
+    },
+    "plusDi": {
+     "api": 15.3,
+     "indep": 15.254,
+     "ok": true
+    },
+    "minusDi": {
+     "api": 27.8,
+     "indep": 27.769,
+     "ok": true
+    },
+    "adx(參考)": {
+     "api": 35.8,
+     "indep(Wilder 平滑)": 33.93,
+     "note": "既有 calc_adx 用最後 14 個 DX 的平均,獨立實作用 Wilder 平滑,數值略有差異是預期;兩者用同一份 DX",
+     "ok": true
+    }
+   },
+   "allOk": true
+  },
+  {
+   "symbol": "SOL/USDT",
+   "tf": "4h",
+   "quality": "ok",
+   "checks": {
+    "lastBarUtc": {
+     "api": "2026-11-05 04:00",
+     "raw": "2026-11-05 04:00",
+     "ok": true
+    },
+    "closeMatchesRaw": {
+     "api": 95.85,
+     "raw": 95.85,
+     "ok": true
+    },
+    "barCountMatches": {
+     "api": 2579,
+     "raw": 2579,
+     "ok": true
+    },
+    "ema20": {
+     "api": 94.46,
+     "indep": 94.458,
+     "ok": true
+    },
+    "ema50": {
+     "api": 96.01,
+     "indep": 96.015,
+     "ok": true
+    },
+    "ema200": {
+     "api": 102.44,
+     "indep": 102.439,
+     "ok": true
+    },
+    "atr": {
+     "api": 1.92,
+     "indep": 1.916,
+     "ok": true
+    },
+    "plusDi": {
+     "api": 23.0,
+     "indep": 23.007,
+     "ok": true
+    },
+    "minusDi": {
+     "api": 17.9,
+     "indep": 17.854,
+     "ok": true
+    },
+    "adx(參考)": {
+     "api": 27.5,
+     "indep(Wilder 平滑)": 27.23,
+     "note": "既有 calc_adx 用最後 14 個 DX 的平均,獨立實作用 Wilder 平滑,數值略有差異是預期;兩者用同一份 DX",
+     "ok": true
+    }
+   },
+   "allOk": true
+  },
+  {
+   "symbol": "SOL/USDT",
+   "tf": "1h",
+   "quality": "ok",
+   "checks": {
+    "lastBarUtc": {
+     "api": "2026-11-05 09:00",
+     "raw": "2026-11-05 09:00",
+     "ok": true
+    },
+    "closeMatchesRaw": {
+     "api": 96.83,
+     "raw": 96.83,
+     "ok": true
+    },
+    "barCountMatches": {
+     "api": 3119,
+     "raw": 3119,
+     "ok": true
+    },
+    "ema20": {
+     "api": 95.59,
+     "indep": 95.594,
+     "ok": true
+    },
+    "ema50": {
+     "api": 94.64,
+     "indep": 94.64,
+     "ok": true
+    },
+    "ema200": {
+     "api": 96.02,
+     "indep": 96.015,
+     "ok": true
+    },
+    "atr": {
+     "api": 0.9493,
+     "indep": 0.949,
+     "ok": true
+    },
+    "plusDi": {
+     "api": 27.7,
+     "indep": 27.691,
+     "ok": true
+    },
+    "minusDi": {
+     "api": 14.1,
+     "indep": 14.089,
+     "ok": true
+    },
+    "adx(參考)": {
+     "api": 26.8,
+     "indep(Wilder 平滑)": 25.53,
+     "note": "既有 calc_adx 用最後 14 個 DX 的平均,獨立實作用 Wilder 平滑,數值略有差異是預期;兩者用同一份 DX",
+     "ok": true
+    }
+   },
+   "allOk": true
+  },
+  {
+   "symbol": "2330.TW",
+   "tf": "1w",
+   "quality": "ok",
+   "checks": {
+    "lastBarUtc": {
+     "api": "2026-10-26",
+     "raw": "2026-10-26",
+     "ok": true
+    },
+    "closeMatchesRaw": {
+     "api": 2370.0,
+     "raw": 2370.0,
+     "ok": true
+    },
+    "barCountMatches": {
+     "api": 314,
+     "raw": 314,
+     "ok": true
+    },
+    "ema20": {
+     "api": 2369.24,
+     "indep": 2369.244,
+     "ok": true
+    },
+    "ema50": {
+     "api": 2097.44,
+     "indep": 2097.441,
+     "ok": true
+    },
+    "ema200": {
+     "api": 1334.35,
+     "indep": 1334.346,
+     "ok": true
+    },
+    "atr": {
+     "api": 101.47,
+     "indep": 101.472,
+     "ok": true
+    },
+    "plusDi": {
+     "api": 25.2,
+     "indep": 25.158,
+     "ok": true
+    },
+    "minusDi": {
+     "api": 24.3,
+     "indep": 24.292,
+     "ok": true
+    },
+    "adx(參考)": {
+     "api": 16.1,
+     "indep(Wilder 平滑)": 27.37,
+     "note": "既有 calc_adx 用最後 14 個 DX 的平均,獨立實作用 Wilder 平滑,數值略有差異是預期;兩者用同一份 DX",
+     "ok": true
+    }
+   },
+   "allOk": true
+  },
+  {
+   "symbol": "2330.TW",
+   "tf": "1d",
+   "quality": "ok",
+   "checks": {
+    "lastBarUtc": {
+     "api": "2026-11-05",
+     "raw": "2026-11-05",
+     "ok": true
+    },
+    "closeMatchesRaw": {
+     "api": 2240.0,
+     "raw": 2240.0,
+     "ok": true
+    },
+    "barCountMatches": {
+     "api": 730,
+     "raw": 730,
+     "ok": true
+    },
+    "ema20": {
+     "api": 2382.73,
+     "indep": 2382.729,
+     "ok": true
+    },
+    "ema50": {
+     "api": 2407.9,
+     "indep": 2407.895,
+     "ok": true
+    },
+    "ema200": {
+     "api": 2166.24,
+     "indep": 2166.239,
+     "ok": true
+    },
+    "atr": {
+     "api": 43.21,
+     "indep": 43.214,
+     "ok": true
+    },
+    "plusDi": {
+     "api": 15.5,
+     "indep": 15.488,
+     "ok": true
+    },
+    "minusDi": {
+     "api": 37.1,
+     "indep": 37.06,
+     "ok": true
+    },
+    "adx(參考)": {
+     "api": 15.3,
+     "indep(Wilder 平滑)": 21.01,
+     "note": "既有 calc_adx 用最後 14 個 DX 的平均,獨立實作用 Wilder 平滑,數值略有差異是預期;兩者用同一份 DX",
+     "ok": true
+    }
+   },
+   "allOk": true
+  },
+  {
+   "symbol": "2330.TW",
+   "tf": "4h",
+   "result": "unsupported(符合預期)"
+  },
+  {
+   "symbol": "2330.TW",
+   "tf": "1h",
+   "quality": "ok",
+   "checks": {
+    "lastBarUtc": {
+     "api": "2026-11-05 05:00",
+     "raw": "2026-11-05 05:00",
+     "ok": true
+    },
+    "lastBarLocal": {
+     "api": "2026-11-05 13:00",
+     "raw": "2026-11-05 13:00",
+     "ok": true
+    },
+    "closeMatchesRaw": {
+     "api": 2235.0,
+     "raw": 2235.0,
+     "ok": true
+    },
+    "barCountMatches": {
+     "api": 3635,
+     "raw": 3635,
+     "ok": true
+    },
+    "ema20": {
+     "api": 2290.0,
+     "indep": 2289.997,
+     "ok": true
+    },
+    "ema50": {
+     "api": 2343.73,
+     "indep": 2343.733,
+     "ok": true
+    },
+    "ema200": {
+     "api": 2413.76,
+     "indep": 2413.757,
+     "ok": true
+    },
+    "atr": {
+     "api": 22.55,
+     "indep": 22.553,
+     "ok": true
+    },
+    "plusDi": {
+     "api": 10.6,
+     "indep": 10.601,
+     "ok": true
+    },
+    "minusDi": {
+     "api": 36.0,
+     "indep": 35.979,
+     "ok": true
+    },
+    "adx(參考)": {
+     "api": 52.4,
+     "indep(Wilder 平滑)": 43.82,
+     "note": "既有 calc_adx 用最後 14 個 DX 的平均,獨立實作用 Wilder 平滑,數值略有差異是預期;兩者用同一份 DX",
+     "ok": true
+    }
+   },
+   "allOk": true
+  },
+  {
+   "symbol": "AAPL",
+   "tf": "1w",
+   "quality": "ok",
+   "checks": {
+    "lastBarUtc": {
+     "api": "2026-10-26",
+     "raw": "2026-10-26",
+     "ok": true
+    },
+    "closeMatchesRaw": {
+     "api": 344.63,
+     "raw": 344.63,
+     "ok": true
+    },
+    "barCountMatches": {
+     "api": 314,
+     "raw": 314,
+     "ok": true
+    },
+    "ema20": {
+     "api": 323.87,
+     "indep": 323.866,
+     "ok": true
+    },
+    "ema50": {
+     "api": 297.03,
+     "indep": 297.033,
+     "ok": true
+    },
+    "ema200": {
+     "api": 233.38,
+     "indep": 233.384,
+     "ok": true
+    },
+    "atr": {
+     "api": 16.13,
+     "indep": 16.132,
+     "ok": true
+    },
+    "plusDi": {
+     "api": 23.3,
+     "indep": 23.265,
+     "ok": true
+    },
+    "minusDi": {
+     "api": 13.6,
+     "indep": 13.607,
+     "ok": true
+    },
+    "adx(參考)": {
+     "api": 21.8,
+     "indep(Wilder 平滑)": 23.89,
+     "note": "既有 calc_adx 用最後 14 個 DX 的平均,獨立實作用 Wilder 平滑,數值略有差異是預期;兩者用同一份 DX",
+     "ok": true
+    }
+   },
+   "allOk": true
+  },
+  {
+   "symbol": "AAPL",
+   "tf": "1d",
+   "quality": "ok",
+   "checks": {
+    "lastBarUtc": {
+     "api": "2026-11-04",
+     "raw": "2026-11-04",
+     "ok": true
+    },
+    "closeMatchesRaw": {
+     "api": 349.51,
+     "raw": 349.51,
+     "ok": true
+    },
+    "barCountMatches": {
+     "api": 755,
+     "raw": 755,
+     "ok": true
+    },
+    "ema20": {
+     "api": 341.74,
+     "indep": 341.739,
+     "ok": true
+    },
+    "ema50": {
+     "api": 334.85,
+     "indep": 334.846,
+     "ok": true
+    },
+    "ema200": {
+     "api": 304.0,
+     "indep": 304.0,
+     "ok": true
+    },
+    "atr": {
+     "api": 8.53,
+     "indep": 8.527,
+     "ok": true
+    },
+    "plusDi": {
+     "api": 31.7,
+     "indep": 31.736,
+     "ok": true
+    },
+    "minusDi": {
+     "api": 25.0,
+     "indep": 25.034,
+     "ok": true
+    },
+    "adx(參考)": {
+     "api": 20.2,
+     "indep(Wilder 平滑)": 18.56,
+     "note": "既有 calc_adx 用最後 14 個 DX 的平均,獨立實作用 Wilder 平滑,數值略有差異是預期;兩者用同一份 DX",
+     "ok": true
+    }
+   },
+   "allOk": true
+  },
+  {
+   "symbol": "AAPL",
+   "tf": "4h",
+   "result": "unsupported(符合預期)"
+  },
+  {
+   "symbol": "AAPL",
+   "tf": "1h",
+   "quality": "ok",
+   "checks": {
+    "lastBarUtc": {
+     "api": "2026-11-04 20:30",
+     "raw": "2026-11-04 20:30",
+     "ok": true
+    },
+    "lastBarLocal": {
+     "api": "2026-11-04 15:30",
+     "raw": "2026-11-04 15:30",
+     "ok": true
+    },
+    "closeMatchesRaw": {
+     "api": 349.62,
+     "raw": 349.62,
+     "ok": true
+    },
+    "barCountMatches": {
+     "api": 5077,
+     "raw": 5077,
+     "ok": true
+    },
+    "ema20": {
+     "api": 344.55,
+     "indep": 344.553,
+     "ok": true
+    },
+    "ema50": {
+     "api": 343.7,
+     "indep": 343.698,
+     "ok": true
+    },
+    "ema200": {
+     "api": 340.22,
+     "indep": 340.22,
+     "ok": true
+    },
+    "atr": {
+     "api": 3.71,
+     "indep": 3.707,
+     "ok": true
+    },
+    "plusDi": {
+     "api": 32.8,
+     "indep": 32.818,
+     "ok": true
+    },
+    "minusDi": {
+     "api": 26.2,
+     "indep": 26.163,
+     "ok": true
+    },
+    "adx(參考)": {
+     "api": 40.0,
+     "indep(Wilder 平滑)": 32.17,
+     "note": "既有 calc_adx 用最後 14 個 DX 的平均,獨立實作用 Wilder 平滑,數值略有差異是預期;兩者用同一份 DX",
+     "ok": true
+    }
+   },
+   "allOk": true
+  },
+  {
+   "symbol": "NVDA",
+   "tf": "1w",
+   "quality": "ok",
+   "checks": {
+    "lastBarUtc": {
+     "api": "2026-10-26",
+     "raw": "2026-10-26",
+     "ok": true
+    },
+    "closeMatchesRaw": {
+     "api": 204.64,
+     "raw": 204.64,
+     "ok": true
+    },
+    "barCountMatches": {
+     "api": 314,
+     "raw": 314,
+     "ok": true
+    },
+    "ema20": {
+     "api": 214.14,
+     "indep": 214.141,
+     "ok": true
+    },
+    "ema50": {
+     "api": 200.27,
+     "indep": 200.267,
+     "ok": true
+    },
+    "ema200": {
+     "api": 136.51,
+     "indep": 136.514,
+     "ok": true
+    },
+    "atr": {
+     "api": 15.69,
+     "indep": 15.694,
+     "ok": true
+    },
+    "plusDi": {
+     "api": 20.2,
+     "indep": 20.238,
+     "ok": true
+    },
+    "minusDi": {
+     "api": 22.9,
+     "indep": 22.906,
+     "ok": true
+    },
+    "adx(參考)": {
+     "api": 17.7,
+     "indep(Wilder 平滑)": 19.86,
+     "note": "既有 calc_adx 用最後 14 個 DX 的平均,獨立實作用 Wilder 平滑,數值略有差異是預期;兩者用同一份 DX",
+     "ok": true
+    }
+   },
+   "allOk": true
+  },
+  {
+   "symbol": "NVDA",
+   "tf": "1d",
+   "quality": "ok",
+   "checks": {
+    "lastBarUtc": {
+     "api": "2026-11-04",
+     "raw": "2026-11-04",
+     "ok": true
+    },
+    "closeMatchesRaw": {
+     "api": 200.13,
+     "raw": 200.13,
+     "ok": true
+    },
+    "barCountMatches": {
+     "api": 755,
+     "raw": 755,
+     "ok": true
+    },
+    "ema20": {
+     "api": 214.21,
+     "indep": 214.209,
+     "ok": true
+    },
+    "ema50": {
+     "api": 217.59,
+     "indep": 217.591,
+     "ok": true
+    },
+    "ema200": {
+     "api": 205.3,
+     "indep": 205.299,
+     "ok": true
+    },
+    "atr": {
+     "api": 6.47,
+     "indep": 6.472,
+     "ok": true
+    },
+    "plusDi": {
+     "api": 13.8,
+     "indep": 13.817,
+     "ok": true
+    },
+    "minusDi": {
+     "api": 36.3,
+     "indep": 36.252,
+     "ok": true
+    },
+    "adx(參考)": {
+     "api": 25.8,
+     "indep(Wilder 平滑)": 23.7,
+     "note": "既有 calc_adx 用最後 14 個 DX 的平均,獨立實作用 Wilder 平滑,數值略有差異是預期;兩者用同一份 DX",
+     "ok": true
+    }
+   },
+   "allOk": true
+  },
+  {
+   "symbol": "NVDA",
+   "tf": "4h",
+   "result": "unsupported(符合預期)"
+  },
+  {
+   "symbol": "NVDA",
+   "tf": "1h",
+   "quality": "ok",
+   "checks": {
+    "lastBarUtc": {
+     "api": "2026-11-04 20:30",
+     "raw": "2026-11-04 20:30",
+     "ok": true
+    },
+    "lastBarLocal": {
+     "api": "2026-11-04 15:30",
+     "raw": "2026-11-04 15:30",
+     "ok": true
+    },
+    "closeMatchesRaw": {
+     "api": 200.29,
+     "raw": 200.29,
+     "ok": true
+    },
+    "barCountMatches": {
+     "api": 5077,
+     "raw": 5077,
+     "ok": true
+    },
+    "ema20": {
+     "api": 205.05,
+     "indep": 205.049,
+     "ok": true
+    },
+    "ema50": {
+     "api": 208.56,
+     "indep": 208.56,
+     "ok": true
+    },
+    "ema200": {
+     "api": 217.0,
+     "indep": 217.002,
+     "ok": true
+    },
+    "atr": {
+     "api": 2.31,
+     "indep": 2.307,
+     "ok": true
+    },
+    "plusDi": {
+     "api": 13.4,
+     "indep": 13.414,
+     "ok": true
+    },
+    "minusDi": {
+     "api": 35.3,
+     "indep": 35.326,
+     "ok": true
+    },
+    "adx(參考)": {
+     "api": 18.4,
+     "indep(Wilder 平滑)": 26.23,
+     "note": "既有 calc_adx 用最後 14 個 DX 的平均,獨立實作用 Wilder 平滑,數值略有差異是預期;兩者用同一份 DX",
+     "ok": true
+    }
+   },
+   "allOk": true
+  }
+ ]
+}

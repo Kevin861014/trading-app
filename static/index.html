@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="/static/css/app.css">
 <link rel="stylesheet" href="/static/css/ui.css">
 <link rel="stylesheet" href="/static/css/research-core.css">
+<link rel="stylesheet" href="/static/css/c1.css">
 <link rel="stylesheet" href="/static/css/mobile.css">
 <script src="/static/vendor/lightweight-charts/lightweight-charts.standalone.production.js"></script>
 <script src="/static/stocks_data.js"></script>
@@ -148,14 +149,24 @@
       <span><span class="rtag oos">樣本外測試</span> 排名時沒用到的後段資料</span>
       <span><span class="rtag live">即時技術訊號</span> 策略「目前」的狀態，不是預測</span>
       <span><span class="rtag na">紙上交易</span> 尚未提供</span></div>
-    <div class="vb-note">尚未提供（將於後續階段加入）：不同市場環境下的歷史表現、多週期趨勢、資料品質檢查。這些功能完成前，畫面上不會出現假資料。</div>
+    <div class="vb-note">尚未提供（將於後續階段加入）：不同市場環境下的歷史表現。多週期技術狀態與資料品質檢查在「市場環境」頁。這些功能完成前，畫面上不會出現假資料。</div>
   </div></div>
   <div id="labBody"><div class="empty-state">選好標的後按「開始深度分析」。</div></div>
 </section>
 
 <!-- ============ 視圖 5:市場環境 ============ -->
 <section id="view-market" class="view">
-  <div class="view-head"><h2>市場環境</h2><p>自選清單中每個標的目前的 ADX 市場性格（趨勢／盤整）。這只是「現在」的環境描述，<b>不會</b>用來擋掉訊號，也不影響策略排名。大盤參考與多週期將於後續階段加入。</p></div>
+  <div class="view-head"><h2>市場環境</h2><p>多週期技術狀態與資料品質，以及自選清單中每個標的目前的 ADX 市場性格。這些都只是「現在」的環境描述，<b>不會</b>用來擋掉訊號，也不影響策略排名。大盤參考將於後續階段加入。</p></div>
+  <div class="panel" id="mtfPanel"><div class="panel-h">多週期技術狀態與資料品質 <span class="rtag na" title="只描述已收盤 K 棒上指標目前的位置，不是價格預測">技術指標描述</span></div><div class="panel-b">
+    <div class="ctrl-bar" style="padding:0 0 8px;border:0;">
+      <label>標的 <select id="mtfSel"></select></label>
+      <label>或輸入代號 <input type="text" id="mtfCustom" placeholder="例如 AAPL、2330.TW、SOL/USDT" size="18"></label>
+      <button class="btn-primary" id="mtfRun" onclick="runMtfView()">查看多週期</button>
+    </div>
+    <div class="vb-note">比較週線、日線，以及資料來源實際支援的 4H、1H。每個週期各自取資料、各自檢查資料品質；沒有資料或不支援就明說，不會用其他週期代替。最新一根未收盤的 K 棒一律排除。</div>
+    <div id="mtfProg" style="margin-top:8px;"></div>
+    <div id="mtfBody"><div class="empty-state">選好標的後按「查看多週期」。</div></div>
+  </div></div>
   <div class="ctrl-bar"><button class="btn-primary" onclick="loadMarketView(true)">重新整理</button><span id="mkStamp" style="font-size:12px;color:var(--text3);"></span></div>
   <div class="panel"><div class="panel-b" style="padding:0;overflow-x:auto;"><table class="mk-table" id="mkTable"><tbody><tr><td class="empty-state">載入中…</td></tr></tbody></table></div></div>
 </section>
@@ -226,6 +237,7 @@
 <script src="/static/js/50-analysis.js"></script>
 <script src="/static/js/60-views.js"></script>
 <script src="/static/js/65-research-lab.js"></script>
+<script src="/static/js/66-mtf.js"></script>
 <script src="/static/js/70-mobile.js"></script>
 <script src="/static/js/90-main.js"></script>
 </body>

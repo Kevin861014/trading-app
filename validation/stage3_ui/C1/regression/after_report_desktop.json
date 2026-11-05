@@ -1,0 +1,451 @@
+{
+ "desktop": {
+  "shots": [
+   "../C1/regression\\after_desktop_watchlist.png",
+   "../C1/regression\\after_desktop_firstscreen.png",
+   "../C1/regression\\after_desktop_card_expanded_2330.png",
+   "../C1/regression\\after_desktop_symbol_tw.png",
+   "../C1/regression\\after_desktop_symbol_us.png",
+   "../C1/regression\\after_desktop_symbol_crypto.png",
+   "../C1/regression\\after_desktop_market.png",
+   "../C1/regression\\after_desktop_best_modal.png",
+   "../C1/regression\\after_desktop_best_view_AAPL.png",
+   "../C1/regression\\after_desktop_lab_view_2330.png"
+  ],
+  "checks": [
+   {
+    "symbol": "2330.TW",
+    "mismatches": [],
+    "shown": {
+     "扣成本報酬": "-2.52%",
+     "淨 PF": "0.00",
+     "最大回撤": "3.1%",
+     "勝率": "0%",
+     "交易筆數": "7筆",
+     "年化": "-1.27%",
+     "買進持有報酬": "+117.52%",
+     "買進持有回撤": "30.51%"
+    },
+    "eqLast": -2.523,
+    "totalReturn": -2.52,
+    "validation": {
+     "isTrades": 5,
+     "oosTrades": 1,
+     "tier": "insufficient",
+     "split": {
+      "boundary": "2026-03-31",
+      "end": "2026-11-05",
+      "isBars": 337,
+      "oosBars": 148,
+      "windowStart": "2024-11-05"
+     }
+    },
+    "vtable": [
+     [
+      "",
+      "樣本內 IS 2024-11-05 → 2026-03-31",
+      "樣本外 OOS 2026-03-31 → 2026-11-05"
+     ],
+     [
+      "扣成本報酬",
+      "-2.07%",
+      "-0.46%"
+     ],
+     [
+      "淨 PF",
+      "0.00",
+      "0.00"
+     ],
+     [
+      "最大回撤",
+      "2.65%",
+      "1.55%"
+     ],
+     [
+      "勝率",
+      "0.0%",
+      "0.0%"
+     ],
+     [
+      "交易筆數",
+      "5",
+      "1"
+     ]
+    ],
+    "dataInfo": {
+     "bars": 945,
+     "firstBar": "2022-12-06",
+     "interval": "1d",
+     "lastBarClosed": true,
+     "lastBarLocal": "2026-11-05",
+     "lastBarUtc": "2026-11-05",
+     "market": "tw",
+     "source": "yfinance",
+     "tz": "Asia/Taipei",
+     "tzLabel": "台北時間 (UTC+8)"
+    },
+    "headerText": "資料至 2026-11-05 收盤 · 台北時間 (UTC+8) · Yahoo Finance ✓ 資料正常 · 共 945 根已收盤 K 棒（最後一根未收盤的已排除）"
+   },
+   {
+    "symbol": "AAPL",
+    "mismatches": [],
+    "shown": {
+     "扣成本報酬": "+10.71%",
+     "淨 PF": "6.59",
+     "最大回撤": "3.97%",
+     "勝率": "53.8%",
+     "交易筆數": "13筆",
+     "年化": "+5.24%",
+     "買進持有報酬": "+58.24%",
+     "買進持有回撤": "33.36%"
+    },
+    "eqLast": 10.711,
+    "totalReturn": 10.71,
+    "validation": {
+     "isTrades": 5,
+     "oosTrades": 7,
+     "tier": "insufficient",
+     "split": {
+      "boundary": "2026-03-31",
+      "end": "2026-11-05",
+      "isBars": 349,
+      "oosBars": 151,
+      "windowStart": "2024-11-05"
+     }
+    },
+    "vtable": [
+     [
+      "",
+      "樣本內 IS 2024-11-05 → 2026-03-31",
+      "樣本外 OOS 2026-03-31 → 2026-11-05"
+     ],
+     [
+      "扣成本報酬",
+      "+4.87%",
+      "+5.57%"
+     ],
+     [
+      "淨 PF",
+      "6.10",
+      "12.89"
+     ],
+     [
+      "最大回撤",
+      "3.97%",
+      "3.28%"
+     ],
+     [
+      "勝率",
+      "40.0%",
+      "71.4%"
+     ],
+     [
+      "交易筆數",
+      "5",
+      "7"
+     ]
+    ],
+    "dataInfo": {
+     "bars": 982,
+     "firstBar": "2022-12-06",
+     "interval": "1d",
+     "lastBarClosed": true,
+     "lastBarLocal": "2026-11-04",
+     "lastBarUtc": "2026-11-04",
+     "market": "us",
+     "source": "yfinance",
+     "tz": "America/New_York",
+     "tzLabel": "美東時間"
+    },
+    "headerText": "資料至 2026-11-04 收盤 · 美東時間 · Yahoo Finance ✓ 資料正常 · 共 982 根已收盤 K 棒（最後一根未收盤的已排除）"
+   },
+   {
+    "symbol": "SOL-USD",
+    "mismatches": [],
+    "shown": {
+     "扣成本報酬": "+4.81%",
+     "淨 PF": "1.05",
+     "最大回撤": "5.96%",
+     "勝率": "29.4%",
+     "交易筆數": "17筆",
+     "年化": "+4.83%",
+     "買進持有報酬": "-40.23%",
+     "買進持有回撤": "63.74%"
+    },
+    "eqLast": 4.808,
+    "totalReturn": 4.81,
+    "validation": {
+     "isTrades": 13,
+     "oosTrades": 4,
+     "tier": "insufficient",
+     "split": {
+      "boundary": "2026-07-18",
+      "end": "2026-11-05",
+      "isBars": 1533,
+      "oosBars": 656,
+      "windowStart": "2025-11-05"
+     }
+    },
+    "vtable": [
+     [
+      "",
+      "樣本內 IS 2025-11-05 → 2026-07-18",
+      "樣本外 OOS 2026-07-18 → 2026-11-05"
+     ],
+     [
+      "扣成本報酬",
+      "-3.22%",
+      "+8.29%"
+     ],
+     [
+      "淨 PF",
+      "0.35",
+      "7.72"
+     ],
+     [
+      "最大回撤",
+      "5.96%",
+      "2.97%"
+     ],
+     [
+      "勝率",
+      "23.1%",
+      "50.0%"
+     ],
+     [
+      "交易筆數",
+      "13",
+      "4"
+     ]
+    ],
+    "dataInfo": {
+     "bars": 4169,
+     "firstBar": "2024-12-10 12:00",
+     "interval": "4h",
+     "lastBarClosed": true,
+     "lastBarLocal": "2026-11-05 04:00",
+     "lastBarUtc": "2026-11-05 04:00",
+     "market": "crypto",
+     "source": "ccxt",
+     "tz": "UTC",
+     "tzLabel": "UTC"
+    },
+    "headerText": "最後已收盤 K 棒 2026-11-05 04:00 UTC · 幣安公開行情 ✓ 資料正常 · 共 4169 根已收盤 K 棒（最後一根未收盤的已排除）"
+   }
+  ],
+  "notes": [],
+  "cards_loaded": 7,
+  "card_vs_api": [
+   {
+    "sym": "2330.TW",
+    "strat": "diadx",
+    "tf": "1d",
+    "mismatches": [],
+    "oos": "樣本不足 1 筆 · 淨 PF 0.00 · -0.5% · 回撤 1.6%",
+    "apiOosTrades": 1,
+    "apiTier": "insufficient"
+   },
+   {
+    "sym": "2317.TW",
+    "strat": "diadx",
+    "tf": "1d",
+    "mismatches": [],
+    "oos": "樣本不足 1 筆 · 淨 PF 0.00 · -0.7% · 回撤 0.7%",
+    "apiOosTrades": 1,
+    "apiTier": "insufficient"
+   },
+   {
+    "sym": "2603.TW",
+    "strat": "diadx",
+    "tf": "1d",
+    "mismatches": [],
+    "oos": "樣本不足 2 筆 · 淨 PF 0.00 · -1.0% · 回撤 3.2%",
+    "apiOosTrades": 2,
+    "apiTier": "insufficient"
+   },
+   {
+    "sym": "0050.TW",
+    "strat": "sixline",
+    "tf": "1d",
+    "mismatches": [],
+    "oos": "樣本不足 2 筆 · 淨 PF 31.51 · +6.0% · 回撤 1.8%",
+    "apiOosTrades": 2,
+    "apiTier": "insufficient"
+   },
+   {
+    "sym": "PAXG-USD",
+    "strat": "supertrend",
+    "tf": "1d",
+    "mismatches": [],
+    "oos": "樣本不足 2 筆 · 淨 PF 0.21 · -0.8% · 回撤 2.3%",
+    "apiOosTrades": 2,
+    "apiTier": "insufficient"
+   },
+   {
+    "sym": "SOL-USD",
+    "strat": "keltner",
+    "tf": "4h",
+    "mismatches": [],
+    "oos": "樣本不足 10 筆 · 淨 PF 1.95 · +8.0% · 回撤 3.0%",
+    "apiOosTrades": 10,
+    "apiTier": "insufficient"
+   },
+   {
+    "sym": "ETH-USD",
+    "strat": "ttm",
+    "tf": "4h",
+    "mismatches": [],
+    "oos": "樣本不足 9 筆 · 淨 PF 4.54 · +17.5% · 回撤 4.3%",
+    "apiOosTrades": 9,
+    "apiTier": "insufficient"
+   }
+  ],
+  "best_modal_rows": [
+   [
+    "🥇",
+    "一目先行帶扭轉 綜合分數 9.16（僅樣本內）",
+    "4H",
+    "+31.9%",
+    "1.87",
+    "39",
+    "+4.6%",
+    "1.33",
+    "19",
+    "6.8%",
+    "+38.0%",
+    "1.70",
+    "12.2%",
+    "58",
+    "樣本不足 · OOS 19 筆 舊版技術門檻：達成（非可信度）",
+    "套用 詳細"
+   ],
+   [
+    "🥈",
+    "Donchian 40/20 雙向 綜合分數 8.79（僅樣本內）",
+    "4H",
+    "+37.9%",
+    "1.64",
+    "54",
+    "-1.1%",
+    "0.96",
+    "16",
+    "10.9%",
+    "+36.3%",
+    "1.47",
+    "14.7%",
+    "70",
+    "樣本不足 · OOS 16 筆 舊版技術門檻：未達成（非可信度）",
+    "套用 詳細"
+   ],
+   [
+    "🥉",
+    "前1週高低突破 綜合分數 8.79（僅樣本內）",
+    "4H",
+    "+37.9%",
+    "1.64",
+    "54",
+    "+4.1%",
+    "1.27",
+    "16",
+    "10.5%",
+    "+43.5%",
+    "1.55",
+    "14.7%",
+    "70",
+    "樣本不足 · OOS 16 筆 舊版技術門檻：達成（非可信度）",
+    "套用 詳細"
+   ],
+   [
+    "4",
+    "Williams Alligator 13/8/5 綜合分數 8.15（僅樣本內）",
+    "4H",
+    "+28.0%",
+    "1.40",
+    "85",
+    "-8.0%",
+    "0.68",
+    "35",
+    "13.3%",
+    "+17.8%",
+    "1.21",
+    "14.4%",
+    "120",
+    "初步觀察 · OOS 35 筆 舊版技術門檻：未達成（非可信度）",
+    "套用 詳細"
+   ],
+   [
+    "5",
+    "Force Index 力度(量能・加密4H) 均值回歸 綜合分數 8（僅樣本內）",
+    "4H",
+    "+14.7%",
+    "1.67",
+    "66",
+    "+0.8%",
+    "0.90",
+    "39",
+    "9.9%",
+    "+15.6%",
+    "1.36",
+    "13.0%",
+    "105",
+    "初步觀察 · OOS 39 筆 舊版技術門檻：未達成（非可信度）",
+    "套用 詳細"
+   ],
+   [
+    "6",
+    "TRIX(15) 零軸交叉雙向 綜合分數 7.85（僅樣本內）",
+    "4H",
+    "+22.6%",
+    "1.61",
+    "36",
+    "+9.0%",
+    "1.69",
+    "16",
+    "6.2%",
+    "+33.6%",
+    "1.63",
+    "12.8%",
+    "52",
+    "樣本不足 · OOS 16 筆 舊版技術門檻：達成（非可信度）",
+    "套用 詳細"
+   ],
+   [
+    "7",
+    "PVI 交叉 EMA40 綜合分數 7.83（僅樣本內）",
+    "4H",
+    "+28.5%",
+    "1.47",
+    "68",
+    "-11.3%",
+    "0.70",
+    "46",
+    "16.3%",
+    "+14.0%",
+    "1.18",
+    "25.4%",
+    "114",
+    "初步觀察 · OOS 46 筆 舊版技術門檻：未達成（非可信度）",
+    "套用 詳細"
+   ],
+   [
+    "8",
+    "OBV 量能趨勢(加密4H) 均值回歸 綜合分數 7.69（僅樣本內）",
+    "4H",
+    "+12.3%",
+    "1.49",
+    "91",
+    "+2.9%",
+    "1.07",
+    "57",
+    "6.6%",
+    "+15.6%",
+    "1.33",
+    "8.4%",
+    "148",
+    "可進一步評估 · OOS 57 筆 舊版技術門檻：達成（非可信度）",
+    "套用 詳細"
+   ]
+  ],
+  "console_errors": []
+ }
+}

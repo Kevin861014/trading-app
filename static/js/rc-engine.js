@@ -259,6 +259,7 @@
       refresh(); sync();
     }
     function begin() { model.begin(); particles.length = 0; pulses.length = 0; activity = 0; lastFrom = [-1, -1, -1, -1, -1, -1]; summaryText = ''; refresh(); sync(); }
+    function cancelling() { model.cancelling(); refresh(); sync(); }       // 已要求取消、後端尚未確認:不再當成『正在進行新工作』(動畫迴圈隨之停止)
     function reset() { model.reset(); particles.length = 0; pulses.length = 0; activity = 0; summaryText = ''; refresh(); sync(); }
 
     function refresh() {
@@ -272,6 +273,7 @@
       var run = model.running(), err = model.errored();
       if (model.state === 'idle') { title = '待機中'; body = '尚未開始分析。球體預設為靜態畫面;只有真實的分析事件才會讓路線與光點亮起。'; cls = 'idle'; }
       else if (err.length) { title = '失敗:' + err[0].label; body = model.stages[err[0].id].detail; cls = 'error'; }
+      else if (model.state === 'cancelling') { title = '正在取消…'; body = '已通知後端,等待它停止(下一個策略開始前);尚未確認前不宣稱已取消。'; cls = 'stopped'; }
       else if (model.state === 'cancelled') { title = '已取消'; body = '分析已停止,沒有產生結果。'; cls = 'stopped'; }
       else if (model.state === 'stopped') { title = '已中斷'; body = summaryText || '連線中斷,沒有收到完整結果。'; cls = 'stopped'; }
       else if (model.state === 'ok') { title = '完成'; body = summaryText; cls = 'done'; }
@@ -287,7 +289,7 @@
 
     resize(); refresh(); setStats(); sync();
     return {
-      model: model, begin: begin, event: event, end: end, reset: reset, select: select, resize: function () { resize(); sync(); },
+      model: model, begin: begin, event: event, end: end, cancelling: cancelling, reset: reset, select: select, resize: function () { resize(); sync(); },
       setAmbient: function (v) { ambientOn = !!v; cbAmb.checked = ambientOn; sync(); }, setMotion: function (v) { motionOn = !!v; cbMotion.checked = motionOn; sync(); },
       stats: function () { return { loopOn: loopOn, fps: fps, frameCost: frameCost, particles: particles.length, pulses: pulses.length, events: model.eventCount, state: model.state, lowPower: lowPower, forced: forced, static: staticMode(), ambient: ambientOn, motion: motionOn }; },
       _forceVisibility: function (hidden) { visible = !hidden; sync(); },

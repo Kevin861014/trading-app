@@ -86,8 +86,9 @@ function rankingHtml(key, data, ctx){
   }).join('');
 
   const note = `<div class="vb-note" style="padding:6px 2px;">排名前 ${results.length} 名（共測試 ${data.total_tested ?? '—'} 個策略）。<b>排名高不代表未來會賺</b>：我們從很多策略裡挑出歷史上表現最好的，本來就容易挑到湊巧的；請看樣本外的實際 PF、報酬、回撤與筆數，而不是只看分級。「舊版技術門檻」是程式內部舊條件（OOS ≥5 筆且 PF>1），不是研究可信度。</div>`;
-  if(!results.length) return splitBannerHtml(data) + `<div class="empty-state">此標的在目前設定下，沒有策略在樣本內通過篩選條件。<br>可以換更長的期間，或改用深度分析。</div>`;
-  return splitBannerHtml(data) + `<div class="cmp-wrap"><table class="cmp-table"><thead>${head}</thead><tbody>${rows}</tbody></table></div><div class="cmp-cards">${cards}</div>` + note;
+  const dqWarn = (data.dataQuality && data.dataQuality.blocking) ? `<div class="state-card warn"><b>資料品質警告：${esc(data.dataQuality.label)}</b>　${esc(data.dataQuality.detail||'')}　以下排名是根據這份資料算的，不代表目前行情。</div>` : '';
+  if(!results.length) return dqWarn + splitBannerHtml(data) + `<div class="empty-state">此標的在目前設定下，沒有策略在樣本內通過篩選條件。<br>可以換更長的期間，或改用深度分析。</div>`;
+  return dqWarn + splitBannerHtml(data) + `<div class="cmp-wrap"><table class="cmp-table"><thead>${head}</thead><tbody>${rows}</tbody></table></div><div class="cmp-cards">${cards}</div>` + note;
 }
 
 function applyRankRow(key, i){
@@ -116,12 +117,12 @@ async function rankingFlow(kind, key, ctx, ui){
   const buildUrl = jobId => isDeep
     ? `/api/deep_analysis?symbol=${encodeURIComponent(ctx.symbol)}&timeframe=${ctx.tf}&use_oos=${useOos?1:0}&job=${jobId}`
     : `/api/best_strategy?symbol=${encodeURIComponent(ctx.symbol)}&period=${ctx.period}&timeframe=${ctx.tf}&use_oos=${useOos?1:0}&job=${jobId}`;
-  const handle = RCJob.run({buildUrl, onEvent: e => ui.event(e), onTick: ms => ui.tick(ms)});
+  const handle = RCJob.run({buildUrl, onEvent: e => ui.event(e), onTick: ms => ui.tick(ms), onCancelling: () => ui.cancelling && ui.cancelling()});
   ui.begin(handle);
   try{
     const res = await handle.done;
     if(res.cancelled){
-      ui.end('cancelled', {note: '已取消：後端在下一個策略開始前停止，沒有產生半套結果。'});
+      ui.end('cancelled', {note: res.unconfirmed ? '已中斷連線，但 20 秒內沒有收到後端的停止確認（可能卡在行情下載）；後端會在下一個策略開始前停止。' : '已取消：後端確認已在下一個策略開始前停止，沒有產生半套結果。'});
       ui.setResults(`<div class="state-card warn">已取消分析。</div>`); return;
     }
     if(res.error){
@@ -134,7 +135,7 @@ async function rankingFlow(kind, key, ctx, ui){
       ui.setResults(`<div class="state-card err">❌ ${esc((data && data.error) || '分析失敗')}</div>`); return;
     }
     ui.end('ok', {data,
-      note: `${isDeep?'深度分析':'分析'}完成！共測試 ${data.total_tested ?? '—'} 個策略；排名只看樣本內（IS），樣本外（OOS）只用來驗證`,
+      note: (res.cancelRaced ? '你按了取消，但分析在後端收到取消前就已完成，以下是完整結果。　' : '') + `${isDeep?'深度分析':'分析'}完成！共測試 ${data.total_tested ?? '—'} 個策略；排名只看樣本內（IS），樣本外（OOS）只用來驗證`,
       summary: `共測試 ${data.total_tested ?? '—'} 個策略，入選 ${(data.results||[]).length} 名`});
     const ch = data.character;
     if(ch && ch.code && ch.code!=='na'){
@@ -159,6 +160,7 @@ function modalUi(){
     begin(h){ modalHandle = h; const el = $('analysisProgress'); el.style.display = 'block'; modalPv = RCJob.progressView(el); modalPv.begin(h); },
     event(e){ if(modalPv) modalPv.event(e); },
     tick(ms){ if(modalPv) modalPv.tick(ms); },
+    cancelling(){ if(modalPv) modalPv.cancelling(); },
     end(kind, o){ if(modalPv) modalPv.end(kind, o); modalHandle = null; },
     hideProgress(){ $('analysisProgress').style.display = 'none'; },
     setSub(html){ $('analysisSub').innerHTML = html; },

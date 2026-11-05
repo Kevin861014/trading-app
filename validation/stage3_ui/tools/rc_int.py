@@ -175,6 +175,21 @@ async def run(a):
             rep['server_after_cancel'] = [json.loads(j1), json.loads(j2)]
             rep['serverStoppedGrowing'] = json.loads(j1)['last'] == json.loads(j2)['last']
 
+        elif sc == 'cancel_phases':
+            await set_lab_target(c, a.symbol, a.tf)
+            await c.js("window.__ph=[]; window.__phT=setInterval(()=>{const m=labState.model; window.__ph.push([Math.round(performance.now()), m.state, document.querySelector('.rcp-now').textContent, document.querySelector('.rcp-cancel').textContent, labState.core.stats().loopOn])},30); runLabView(); 1")
+            await until(c, "(()=>{const k=labState.model.counted();return k && k.stage.id==='backtest' && k.i>=6})()", 180, 0.1)
+            await c.js("document.querySelector('.rcp-cancel').click(); 1")
+            await asyncio.sleep(0.12)
+            await shot(c, os.path.join(out, 'cancel_phase_cancelling.png'), '.rc-lab', scroll=False)
+            await until(c, "labState.model.state==='cancelled'", 30, 0.1); await asyncio.sleep(0.5)
+            ph = json.loads(await c.js("clearInterval(window.__phT); JSON.stringify(window.__ph)"))
+            seq = []
+            for t, st, txt, btn, loop in ph:
+                if not seq or seq[-1][0] != st: seq.append((st, txt, btn, loop))
+            rep['phase_sequence'] = seq
+            await shot(c, os.path.join(out, 'cancel_phase_cancelled.png'), '.rc-lab', scroll=False)
+
         elif sc == 'modal':
             await c.js("window.__tl=[];1")
             sid = await c.js("(()=>{const s=stocks[0]; s.symbol='SOL-USD'; s.name='Solana'; s.tf='4h'; s.period='2y'; return s.id})()")   # 只改記憶體中的測試資料,不存檔

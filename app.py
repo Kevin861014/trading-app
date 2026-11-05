@@ -55,6 +55,8 @@ app = Flask(__name__)
 # ── Research Core 事件(只記錄『真的發生的工作』;沒帶 job 代號就是空操作)──────────────
 import contextvars, functools, time as _time
 import research_events as _rev
+import data_quality as DQ
+import threading
 JOBS = _rev.JobEvents()
 _RC_JOB = contextvars.ContextVar('rc_job', default=_rev.NULL_JOB)
 
@@ -155,6 +157,15 @@ STRAT_LIST += [{"v": code, "l": meta.get("name", code)}
 _cache = {}
 _cache_time = {}
 CACHE_TTL = 3600
+_fetch_meta = {}                 # cache_key → 這份資料『怎麼來的』(C1):是否來自快取、資料來源、是否排除了未收盤 K 棒、合成報告。只描述,不影響資料本身。
+_tl = threading.local()          # fetch 過程中的旗標(每個請求執行緒各自一份)
+
+def fetch_meta(symbol, start_date, interval):
+    """最近一次 fetch_data(symbol, start_date, interval) 的來源資訊。沒有紀錄(例如測試中被取代)就回空 dict。"""
+    return dict(_fetch_meta.get(f"{symbol}_{start_date}_{interval}", {}))
+
+def _record_meta(cache_key, now, source, forming, synth=None):
+    _fetch_meta[cache_key] = {'cached': False, 'ageSec': 0.0, 'source': source, 'formingExcluded': bool(forming), 'synth': synth, 'fetchedAt': now}
 
 def is_crypto_symbol(symbol):
     """判斷是不是加密貨幣代碼。只看代碼本身,跟 sim.classify_market 是同一套規則(成本與資料路由才不會各判各的)。
@@ -197,6 +208,17 @@ def resample_ohlcv(rows, bucket_ms):
         out.append(cur)
     return out
 
+def resample_report(rows, bucket_ms, src='1h'):
+    """合成報告(只描述,不改資料):合成時有多少個區間是滿的、多少個『中間』區間因缺細 K 棒而被捨棄(資料有洞)、最後一個區間是否未走完。"""
+    if len(rows) < 2: return {'from': src, 'buckets': 0, 'full': 0, 'droppedInternal': 0, 'tailIncomplete': False}
+    per = min((rows[i+1][0] - rows[i][0]) for i in range(min(len(rows)-1, 50)) if rows[i+1][0] > rows[i][0]); need = int(bucket_ms // per)
+    counts = {}
+    for r in rows:
+        k = r[0] - (r[0] % bucket_ms); counts[k] = counts.get(k, 0) + 1
+    keys = sorted(counts); full = sum(1 for k in keys if counts[k] >= need)
+    tail = counts[keys[-1]] < need
+    return {'from': src, 'buckets': len(keys), 'full': full, 'droppedInternal': len(keys) - full - (1 if tail else 0), 'tailIncomplete': tail}
+
 def fetch_ccxt_ohlcv(symbol, interval, days):
     """用 ccxt 從幣安抓加密貨幣 K 棒（本機專用）"""
     try:
@@ -213,7 +235,7 @@ def fetch_ccxt_ohlcv(symbol, interval, days):
             ccxt_sym = f"{sym}/USDT"
 
         # 時框轉換
-        tf_map = {'1d':'1d', '1h':'1h', '4h':'4h'}
+        tf_map = {'1d':'1d', '1h':'1h', '4h':'4h', '1w':'1w'}
         ccxt_tf = tf_map.get(interval, '1d')
 
         ex = ccxt.binanceusdm({'enableRateLimit': True,
@@ -227,9 +249,10 @@ def fetch_ccxt_ohlcv(symbol, interval, days):
             if len(batch) < 1000: break
             since = batch[-1][0] + 1
         # 機器人只用『已收盤』的 K 棒；日內時框把還在走的最後一根拿掉，訊號才會跟機器人一致
-        _ms = {'1h': 3600000, '4h': 14400000, '1d': 86400000}.get(ccxt_tf)
+        _ms = {'1h': 3600000, '4h': 14400000, '1d': 86400000, '1w': 604800000}.get(ccxt_tf)
         if _ms and all_ohlcv and all_ohlcv[-1][0] + _ms > ex.milliseconds():
             all_ohlcv = all_ohlcv[:-1]
+            _tl.forming_dropped = True
         # 格式：[ts, o, h, l, c, v]
         return [[r[0],r[1],r[2],r[3],r[4],r[5]] for r in all_ohlcv if r[4] > 0]
     except Exception as e:
@@ -245,6 +268,14 @@ def _is_forming(ts, symbol, interval, now=None):
             now = datetime.datetime.now(tz) if tz else datetime.datetime.now()
         if interval == '1h':
             return ts + datetime.timedelta(hours=1) > now
+        if interval == '1w':
+            # ts = 該週週一(交易所當地)。週線要等該週『最後一個交易日收盤』才算收盤:加密是週日 24:00,股市保守算週五收盤。
+            m = classify_market(symbol)
+            if m == 'crypto':
+                return ts + datetime.timedelta(days=7) > now
+            hh, mm = (13, 30) if m == 'tw' else (16, 0)
+            fri = (ts + datetime.timedelta(days=4)).replace(hour=hh, minute=mm, second=0, microsecond=0)
+            return fri > now
         if interval == '1d':
             if ts.date() != now.date():
                 return False
@@ -261,10 +292,12 @@ def fetch_data(symbol, start_date, interval='1d'):
     cache_key = f"{symbol}_{start_date}_{interval}"
     now = time.time()
     if cache_key in _cache and (now - _cache_time.get(cache_key, 0)) < CACHE_TTL:
+        m = dict(_fetch_meta.get(cache_key, {})); m.update(cached=True, ageSec=round(now - _cache_time.get(cache_key, now), 1)); _fetch_meta[cache_key] = m
         return _cache[cache_key]
+    _tl.forming_dropped = False
 
     # 本機 + 加密貨幣 + ccxt 可用 → 用 ccxt（可抓真正 4H 和更長歷史）
-    if CCXT_AVAILABLE and is_crypto_symbol(symbol) and interval in ('1h','4h','1d'):
+    if CCXT_AVAILABLE and is_crypto_symbol(symbol) and interval in ('1h','4h','1d','1w'):
         days = max(int((datetime.datetime.now() -
                         datetime.datetime.strptime(start_date, '%Y-%m-%d')).days) + 30, 100)
         # 4H 用真正的 4h 時框，不用 1H 替代
@@ -273,7 +306,9 @@ def fetch_data(symbol, start_date, interval='1d'):
         if result and len(result) > 100:
             _cache[cache_key] = result
             _cache_time[cache_key] = now
+            _record_meta(cache_key, now, 'ccxt', _tl.forming_dropped)
             return result
+        _tl.forming_dropped = False
 
     # 沒有 ccxt（連不上幣安、或股票市場）：yfinance 沒有 4H，改抓 1H 再合成真正的 4H
     if interval == '4h':
@@ -282,6 +317,7 @@ def fetch_data(symbol, start_date, interval='1d'):
         if out:
             _cache[cache_key] = out
             _cache_time[cache_key] = now
+            _record_meta(cache_key, now, 'yfinance(1h→4h 合成)', fetch_meta(symbol, start_date, '1h').get('formingExcluded'), resample_report(base, 4 * 3600 * 1000))
         return out
 
     # 其他情況用 yfinance
@@ -296,7 +332,7 @@ def fetch_data(symbol, start_date, interval='1d'):
                 kw['period'] = '730d'
             else:
                 kw['start'] = start_date
-            df = ticker.history(interval=interval, **kw)
+            df = ticker.history(interval=('1wk' if interval == '1w' else interval), **kw)
             if df is not None and not df.empty:
                 out = []; out_ts = []
                 for ts, row in df.iterrows():
@@ -306,17 +342,20 @@ def fetch_data(symbol, start_date, interval='1d'):
                         v=float(row['Volume']) if 'Volume' in row else 0.0
                         if c > 0:
                             ms = int(ts.timestamp()*1000)
-                            if interval == '1d':
-                                # 日線時間戳統一成「交易所當地日期的 00:00 UTC」。不然台股(UTC+8)的 11/05 會被標成 11/04。
+                            if interval in ('1d', '1w'):
+                                # 日線(週線:該週週一)時間戳統一成「交易所當地日期的 00:00 UTC」。不然台股(UTC+8)的 11/05 會被標成 11/04。
                                 ms = int(datetime.datetime(ts.year, ts.month, ts.day, tzinfo=datetime.timezone.utc).timestamp()*1000)
                             out.append([ms, o, h, l, c, v]); out_ts.append(ts)
                     except Exception:
                         continue
-                if out and interval in ('1d', '1h') and _is_forming(out_ts[-1], symbol, interval):
+                _forming = False
+                if out and interval in ('1d', '1h', '1w') and _is_forming(out_ts[-1], symbol, interval):
                     out.pop()          # 還沒收盤的最後一根不用
+                    _forming = True
                 if out:
                     _cache[cache_key] = out
                     _cache_time[cache_key] = now
+                    _record_meta(cache_key, now, 'yfinance', _forming)
                     return out
         except Exception as e:
             if attempt == 2: raise e
@@ -644,7 +683,7 @@ def analyze():
         if len(ohlcv) < 220:
             _job.error('data', '資料不足以跑回測', bars=len(ohlcv))
             return jsonify({'error': f'資料不足以跑回測（{len(ohlcv)} 根），請選擇更長的時間範圍或改用日線'}), 400
-        _job.done('data', bars=len(ohlcv))
+        _job.done('data', bars=len(ohlcv), **_data_fields(symbol, start_date, yf_tf))
 
         _job.start('backtest', strategy=strategy)
         result = run_backtest(ohlcv, strategy=strategy, risk_pct=0.015, timeframe=yf_tf,
@@ -792,7 +831,7 @@ def analyze():
             _job.start('summary')
             _bt = build_backtest_viz(symbol, strategy, ohlcv, dates_dt, equity, stats, _disp_cut_dt, yf_tf, _disp_count)
             _job.done('summary', points=len(_bt.get('equity') or []), trades=_disp_count)
-            _extras = {'dataInfo': _di, 'validation': _val, 'backtest': _bt}
+            _extras = {'dataInfo': _di, 'dataQuality': quality_for_series(symbol, yf_tf, ohlcv, fetch_meta(symbol, start_date, yf_tf)), 'validation': _val, 'backtest': _bt}
         except Exception as _e:
             _job.error('validation', str(_e))
             _extras = {'extrasError': str(_e)}
@@ -832,6 +871,151 @@ def analyze():
     except Exception as e:
         import traceback
         return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500
+
+# ── C1:資料品質與多週期技術狀態 ─────────────────────────────────────────
+# 原則:(1) 只描述『已收盤 K 棒』上的技術指標位置,不是價格預測;(2) 某個週期沒有資料/不支援,就明說,絕不用別的週期代替;
+# (3) 最新一根未收盤的 K 棒一律排除;(4) 資料過期/異常要明確標示,不可顯示成最新狀態;(5) 每個週期的資料都走既有的 fetch_data(有快取),
+# 不為了顯示或動畫重複下載;來自快取就如實標示。
+MTF_ORDER = ('1w', '1d', '4h', '1h')
+MTF_LABEL = {'1w': '週線', '1d': '日線', '4h': '4 小時', '1h': '1 小時'}
+MTF_DISCLAIMER = '多週期狀態只是「已收盤 K 棒上技術指標目前的位置」的描述,不是價格預測,也不是買賣建議。'
+
+
+def _data_fields(symbol, start, interval):
+    """資料事件要附的『是否來自快取』資訊(給 Research Core 顯示:使用快取,而不是假裝重新下載)。"""
+    m = fetch_meta(symbol, start, interval)
+    return {k: m[k] for k in ('cached', 'ageSec', 'formingExcluded') if k in m}
+
+
+def _benchmark_dates(market):
+    """大盤基準(台股 ^TWII、美股 SPY)最近的日線日期集合,當作『市場有沒有開盤』的證據。走既有 fetch_data(有快取);失敗回 None。"""
+    try:
+        sym = DQ.BENCHMARK.get(market)
+        if not sym: return None
+        start = (datetime.datetime.now() - datetime.timedelta(days=60)).strftime('%Y-%m-%d')
+        rows = fetch_data(sym, start, '1d')
+        return {datetime.datetime.utcfromtimestamp(r[0] / 1000.0).strftime('%Y-%m-%d') for r in rows} or None
+    except Exception:
+        return None
+
+
+def quality_for_series(symbol, interval, rows, meta=None, now=None, min_bars=60):
+    """單一時框資料的品質評估(給卡片/訊號用)。永不丟例外;評估本身失敗時回 None(畫面當作『未檢查』,不顯示成正常)。"""
+    try:
+        market = classify_market(symbol); meta = meta or {}
+        bench = (lambda: _benchmark_dates(market)) if market in DQ.SESSION else None
+        q = DQ.assess(rows, interval, market, now or _utcnow(), synth=meta.get('synth'), forming_excluded=meta.get('formingExcluded'),
+                      min_bars=min_bars, benchmark_dates=bench)
+        q['cached'] = meta.get('cached'); q['ageSec'] = meta.get('ageSec'); q['source'] = meta.get('source')
+        return q
+    except Exception:
+        return None
+
+
+def tf_indicators(rows):
+    """一個週期的技術狀態(只用已收盤 K 棒):EMA20/50/200、ADX 與 ±DI、ATR。全部沿用既有的指標函式(sim.ema / sim.atr / calc_adx)。"""
+    import sim as _sim
+    n = len(rows); C = [r[4] for r in rows]; H = [r[2] for r in rows]; L = [r[3] for r in rows]
+    e20 = _sim.ema(C, 20)[-1]; e50 = _sim.ema(C, 50)[-1]; e200 = _sim.ema(C, 200)[-1] if n >= 220 else None
+    at = _sim.atr(H, L, C, 14)[-1]; adx = calc_adx(rows) or {}; mc = market_character(rows)
+    close = C[-1]; pdi, mdi = adx.get('plus_di'), adx.get('minus_di')
+    if e200 is not None:
+        align = 'bull' if e20 > e50 > e200 else ('bear' if e20 < e50 < e200 else 'mixed')
+        align_txt = {'bull': 'EMA20 > EMA50 > EMA200(多頭排列)', 'bear': 'EMA20 < EMA50 < EMA200(空頭排列)', 'mixed': '均線未排列(糾結)'}[align]
+    else:
+        align = 'bull' if e20 > e50 else 'bear'
+        align_txt = ('EMA20 > EMA50(短期偏多)' if e20 > e50 else 'EMA20 < EMA50(短期偏空)') + ';K 棒不足 220 根,沒有 EMA200'
+    up = close > e50 and e20 > e50 and pdi is not None and pdi > mdi
+    down = close < e50 and e20 < e50 and pdi is not None and pdi < mdi
+    bias = 'bull' if up else ('bear' if down else 'neutral')
+    f2 = lambda v: None if v is None else round(v, 4 if v < 1 else 2)
+    return {'close': f2(close), 'ema20': f2(e20), 'ema50': f2(e50), 'ema200': f2(e200),
+            'above': {'ema20': close > e20, 'ema50': close > e50, 'ema200': (close > e200) if e200 is not None else None},
+            'emaAlign': align, 'emaAlignText': align_txt,
+            'adx': adx.get('adx'), 'plusDi': pdi, 'minusDi': mdi, 'trendCode': mc.get('code'), 'trendLabel': mc.get('label'),
+            'atr': f2(at), 'atrPct': round(at / close * 100, 2) if at and close else None,
+            'bias': bias, 'biasText': {'bull': '偏多(收盤 > EMA50、EMA20 > EMA50、+DI > -DI)', 'bear': '偏空(收盤 < EMA50、EMA20 < EMA50、+DI < -DI)', 'neutral': '中性/分歧(上述條件未同時成立)'}[bias]}
+
+
+def _mtf_start(symbol, tf):
+    ccxt = uses_ccxt(symbol)
+    days = {'1w': 2200, '1d': 1100, '4h': 400 if ccxt else 680, '1h': 100 if ccxt else 680}[tf]
+    return (datetime.datetime.now() - datetime.timedelta(days=days)).strftime('%Y-%m-%d')
+
+
+def _mtf_unsupported(symbol, tf):
+    if tf == '4h' and classify_market(symbol) != 'crypto':
+        return '資料來源沒有這個市場的原生 4H。由 1H 合成的 4H 區間對不上交易時段(會跨過收盤與休市),結果不可靠,所以不提供,也不用其他週期代替。'
+    return None
+
+
+@app.route('/api/mtf')
+@_job_endpoint('mtf')
+def api_mtf():
+    """多週期技術狀態 + 每個週期的資料品質。只讀既有行情(fetch_data,有快取),不跑回測。"""
+    symbol = request.args.get('symbol', '2330.TW')
+    want = [t for t in (request.args.get('tfs') or ','.join(MTF_ORDER)).split(',') if t in MTF_ORDER]
+    _job = _RC_JOB.get(); now = _utcnow(); market = classify_market(symbol)
+    tz, tz_label = _MARKET_TZ.get(market, ('UTC', 'UTC'))
+    plan = [(tf, _mtf_unsupported(symbol, tf)) for tf in MTF_ORDER if tf in want]
+    fetch_list = [tf for tf, why in plan if not why]
+    n = len(fetch_list); entries = {}; fetched = {}
+    _job.start('data', symbol=symbol, n=n, source='ccxt' if uses_ccxt(symbol) else 'yfinance')
+    for k, tf in enumerate(fetch_list, 1):
+        _job.check()                                                         # 合作式取消點
+        start = _mtf_start(symbol, tf); t0 = _time.perf_counter(); err = None; rows = []
+        try:
+            rows = fetch_data(symbol, start, interval=tf)
+        except Exception as e:
+            err = str(e)[:160]
+        meta = fetch_meta(symbol, start, tf)
+        fetched[tf] = (rows, meta, err)
+        _job.progress('data', i=k, n=n, tf=tf, bars=len(rows or []), ms=round((_time.perf_counter() - t0) * 1000.0, 1),
+                      cached=meta.get('cached'), ageSec=meta.get('ageSec'), error=err)
+    _job.done('data', fetched=n, cachedCount=sum(1 for v in fetched.values() if v[1].get('cached')))
+
+    _job.start('indicators', n=n)
+    bench_cache = {}
+    def bench():
+        if 'v' not in bench_cache:
+            _t = _time.perf_counter(); bench_cache['v'] = _benchmark_dates(market)
+            _job.progress('data', benchmark=DQ.BENCHMARK.get(market), bars=len(bench_cache['v'] or []), ms=round((_time.perf_counter() - _t) * 1000.0, 1),
+                          note='查證是否休市(大盤基準日線,走快取)')
+        return bench_cache['v']
+    for k, tf in enumerate(fetch_list, 1):
+        _job.check()
+        rows, meta, err = fetched[tf]
+        q = DQ.assess(rows, tf, market, now, fetch_error=err, synth=meta.get('synth'), forming_excluded=meta.get('formingExcluded'),
+                      min_bars=60, benchmark_dates=(bench if market in DQ.SESSION else None))
+        closed, _ = DQ.trim_unclosed(rows or [], tf, market, now)
+        ind = None
+        if closed and q['status'] in ('ok', 'forming', 'stale') and len(closed) >= 60:
+            ind = tf_indicators(closed)
+        info = None
+        if closed:
+            di = build_data_info(symbol, tf, closed); info = {'bars': len(closed), 'firstBar': di['firstBar'], 'lastBarUtc': di['lastBarUtc'], 'lastBarLocal': di['lastBarLocal'], 'tzLabel': di['tzLabel']}
+        entries[tf] = {'tf': tf, 'label': MTF_LABEL[tf], 'supported': True, 'data': {**(info or {}), 'source': meta.get('source'), 'cached': meta.get('cached'), 'ageSec': meta.get('ageSec'),
+                       'formingExcluded': bool(meta.get('formingExcluded')) or 'forming_trimmed' in q['flags'], 'synth': meta.get('synth')},
+                       'quality': q, 'usable': (not q['blocking']) and ind is not None, 'indicators': ind}
+        _job.progress('indicators', i=k, n=n, tf=tf, quality=q['status'])
+    _job.done('indicators', n=n)
+    for tf, why in plan:
+        if why: entries[tf] = {'tf': tf, 'label': MTF_LABEL[tf], 'supported': False, 'reason': why, 'data': None, 'quality': None, 'usable': False, 'indicators': None}
+
+    _job.start('summary')
+    usable = [e for e in entries.values() if e['usable']]
+    bias = [e['indicators']['bias'] for e in usable]
+    if len(usable) < 2: agree, agree_txt = 'insufficient', '可用的週期少於 2 個,無法比較。'
+    elif all(b == 'bull' for b in bias): agree, agree_txt = 'bull', '所有可用週期的技術指標都偏多(一致)。'
+    elif all(b == 'bear' for b in bias): agree, agree_txt = 'bear', '所有可用週期的技術指標都偏空(一致)。'
+    else: agree, agree_txt = 'mixed', '各週期的技術指標方向分歧(%s)。' % '、'.join('%s%s' % (MTF_LABEL[e['tf']], {'bull': '偏多', 'bear': '偏空', 'neutral': '中性'}[e['indicators']['bias']]) for e in usable)
+    _job.done('summary', usable=len(usable), agreement=agree)
+    for st in ('signal', 'backtest', 'validation'): _job.skip(st, reason='多週期分析不產生進出場訊號,也不跑回測')
+    return jsonify({'symbol': symbol, 'market': market, 'tz': tz, 'tzLabel': tz_label, 'asOfUtc': now.strftime('%Y-%m-%d %H:%M:%S'),
+                    'marketState': DQ.market_state(now, market), 'disclaimer': MTF_DISCLAIMER,
+                    'timeframes': [entries[tf] for tf in MTF_ORDER if tf in entries],
+                    'summary': {'agreement': agree, 'text': agree_txt, 'usableCount': len(usable), 'note': MTF_DISCLAIMER}})
+
 
 @app.route('/api/job_events')
 def job_events():
@@ -1131,7 +1315,7 @@ def best_strategy():
         if not ohlcv or len(ohlcv) < 220:
             _job.error('data', '資料不足', bars=len(ohlcv) if ohlcv else 0)
             return jsonify({'error': f'資料不足（{len(ohlcv) if ohlcv else 0} 根），4H 策略建議選 2 年以內'}), 400
-        _job.done('data', bars=len(ohlcv))
+        _job.done('data', bars=len(ohlcv), **_data_fields(symbol, start_date, yf_tf))
 
         market = classify_market(symbol)
         top, split, tested = rank_strategies(ohlcv, symbol, yf_tf, strategy_pool(market),
@@ -1139,7 +1323,8 @@ def best_strategy():
         mc = market_character(ohlcv) if ohlcv else {'code': 'na', 'label': '資料不足', 'adx': None}
         for _st in ('indicators', 'signal', 'summary'): _job.skip(_st, reason='排名流程不含此階段')
         return jsonify({'results': top, 'total_tested': tested, 'character': mc,
-                        'split': split, 'oosAvailable': bool(split), 'oosRequested': use_oos})
+                        'split': split, 'oosAvailable': bool(split), 'oosRequested': use_oos,
+                        'dataQuality': quality_for_series(symbol, yf_tf, ohlcv, fetch_meta(symbol, start_date, yf_tf))})
     except Exception as e:
         import traceback
         return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500
@@ -1180,13 +1365,14 @@ def deep_analysis():
             allowed = strategy_pool(market)
             min_trades = min_trades_for(market, deep=True)
 
-        _job.done('data', bars=len(ohlcv))
+        _job.done('data', bars=len(ohlcv), **_data_fields(symbol, start, yf_tf))
         top, split, tested = rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=use_oos)
         for _st in ('indicators', 'signal', 'summary'): _job.skip(_st, reason='排名流程不含此階段')
         for r in top:
             r['trust'] = 2 if r.get('oosStatus') == 'pass' else 1     # 只代表 OOS 是否通過,不影響排序
         return jsonify({'results': top, 'hasOos': use_oos, 'isDeep': True, 'isCrypto': intraday,
-                        'total_tested': tested, 'split': split, 'oosAvailable': bool(split)})
+                        'total_tested': tested, 'split': split, 'oosAvailable': bool(split),
+                        'dataQuality': quality_for_series(symbol, yf_tf, ohlcv, fetch_meta(symbol, start, yf_tf))})
     except Exception as e:
         import traceback
         return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500
@@ -1270,12 +1456,20 @@ def signal():
             return jsonify({'error': '資料不足', 'state': 'unknown'})
 
         # 補暖機資料不夠就拉長
+        _sd = start_date
         if len(ohlcv) < 220:
             start_date2 = (datetime.datetime.now() - datetime.timedelta(days=700)).strftime('%Y-%m-%d')
             ohlcv = fetch_data(symbol, start_date2, interval=yf_tf)
+            _sd = start_date2
 
         if not ohlcv or len(ohlcv) < 100:
             return jsonify({'error': '資料不足', 'state': 'unknown'})
+
+        # C1:資料品質。過期/異常的資料不可以被顯示成『最新』交易訊號(只改顯示狀態,不動任何策略或回測計算)
+        _dq = quality_for_series(symbol, yf_tf, ohlcv, fetch_meta(symbol, _sd, yf_tf))
+        if _dq and _dq.get('blocking'):
+            return jsonify({'state': 'stale', 'label': '⚠ 資料過期，不顯示最新訊號', 'dot': 'expired', 'floatPnl': None,
+                            'lastBuyDate': None, 'lastSellDate': None, 'dataQuality': _dq})
 
         O=[r[1] for r in ohlcv]; H=[r[2] for r in ohlcv]
         L=[r[3] for r in ohlcv]; C=[r[4] for r in ohlcv]
@@ -1376,6 +1570,7 @@ def signal():
             'floatPnl': float_pnl,
             'lastBuyDate': last_buy_date,
             'lastSellDate': last_sell_date,
+            'dataQuality': _dq,
         })
 
     except Exception as e:

@@ -12,6 +12,7 @@
 .rcp .progress-bar.ok{background:var(--green);}
 .rcp .progress-bar.err{background:var(--red);}
 .rcp .progress-bar.warn{width:0 !important;}
+.rcp .progress-bar.warn.cancelling{width:100% !important;background:rgba(245,166,35,.45);}
 /* 『處理中』:後端知道正在做、但不知道完成比例 → 不顯示百分比,只用一段來回滑動的亮條表示工作仍在進行。
    只動 transform(由合成器處理,不會讓主執行緒反覆重繪);減少動態時改成靜態斜紋。 */
 .rcp .progress-bar.indet{position:relative;overflow:hidden;background:rgba(55,138,221,.28);}

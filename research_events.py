@@ -9,6 +9,7 @@
     不含任何 API 金鑰、持倉、帳號、機器人狀態。
   * 記憶體有上限:最多保留 40 個工作、每個最多 600 筆事件;執行中的工作閒置 10 分鐘清除,已結束(完成/失敗/取消)的工作只保留 2 分鐘
     (足夠前端取走最後一批事件),清除只發生在有人建立/讀取工作的當下,沒有計時器。
+  * 事件超過上限時只丟最舊的『進度』事件(i/n 是絕對計數);開始/完成/略過/失敗事件永遠保留,並回報 dropped 數量。
   * 取消是『合作式』的:cancel() 只設一個旗標,分析流程在每個策略開始前呼叫 check(),看到旗標就停止後續運算(不做半套結果)。
 """
 import re, threading, time
@@ -46,6 +47,7 @@ class _Job:
         self.wall0 = time.time()
         self.events = []
         self.seq = 0
+        self.dropped = 0                 # 因超過保存上限而丟掉的『進度』事件數(開始/完成/略過/失敗事件永遠保留)
         self.status = 'running'          # running | ok | error | cancelled
         self.cancelled = False
         self.finished_at = None
@@ -60,8 +62,15 @@ class _Job:
             detail['ms'] = round((now - self._starts[stage]) * 1000.0, 1)
         with self.store._lock:
             self.seq += 1
-            if len(self.events) < MAX_EVENTS:
-                self.events.append({'seq': self.seq, 't': round((now - self.t0) * 1000.0, 1), 'stage': stage, 'status': status, **detail})
+            ev = {'seq': self.seq, 't': round((now - self.t0) * 1000.0, 1), 'stage': stage, 'status': status, **detail}
+            # 保存上限:只丟『進度』事件(i/n 是絕對計數,最新的一筆就足以代表目前進度);
+            # 開始/完成/略過/失敗事件永遠保留,所以事件再多,各階段的狀態與最終結果也不會錯亂。
+            if len(self.events) >= MAX_EVENTS:
+                for k, old in enumerate(self.events):
+                    if old['status'] == 'progress':
+                        del self.events[k]; self.dropped += 1; break
+                # 沒有可丟的進度事件(全是開始/完成…,數量本來就有限)→ 照樣保留新事件,上限是『軟』的
+            self.events.append(ev)
             self.last_touch = time.time()
 
     def start(self, stage, **d): self._emit(stage, 'start', **d)
@@ -76,7 +85,7 @@ class _Job:
 
     def finish(self, ok=True, cancelled=False):
         with self.store._lock:
-            self.status = 'cancelled' if cancelled else ('ok' if ok else 'error')
+            self.status = 'cancelled' if cancelled else ('ok' if ok else 'error')    # 注意:取消『被要求』時狀態是 cancelling(見 get()),真的停下來才是 cancelled
             self.last_touch = self.finished_at = time.time()
             self.total_ms = round((time.perf_counter() - self.t0) * 1000.0, 1)
 
@@ -118,7 +127,8 @@ class JobEvents:
             j = self._jobs.get(job_id)
             if not j: return None
             evs = [e for e in j.events if e['seq'] > after]
-            return {'job': job_id, 'kind': j.kind, 'meta': j.meta, 'status': j.status, 'events': evs,
+            status = 'cancelling' if (j.status == 'running' and j.cancelled) else j.status      # 已要求取消、但後端還沒停下來
+            return {'job': job_id, 'kind': j.kind, 'meta': j.meta, 'status': status, 'events': evs, 'dropped': j.dropped,
                     'lastSeq': j.seq, 'startedAt': j.wall0, 'totalMs': getattr(j, 'total_ms', None)}
 
     def count(self):

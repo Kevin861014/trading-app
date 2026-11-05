@@ -1,0 +1,28 @@
+{
+ "phase_sequence": [
+  [
+   "running",
+   "連線中…",
+   "取消",
+   true
+  ],
+  [
+   "cancelling",
+   "正在取消…(等待後端確認停止)",
+   "取消中…",
+   true
+  ],
+  [
+   "cancelled",
+   "已取消",
+   "取消",
+   false
+  ]
+ ],
+ "console": [
+  [
+   "log-error",
+   "Failed to load resource: the server responded with a status of 499 (UNKNOWN) http://127.0.0.1:5055/api/deep_analysis?symbol=SOL-USD&timeframe=1h&use_oos=1&job=rc-b74ebba9c6e1b72783"
+  ]
+ ]
+}

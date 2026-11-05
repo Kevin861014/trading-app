@@ -25,6 +25,7 @@
   ];
   var IDX = {}; STAGES.forEach(function (s, i) { IDX[s.id] = i; });
   var STATUS_LABEL = { idle: '待機', running: '執行中', done: '完成', skip: '未涉及', error: '失敗', stopped: '已中止' };
+  var QUALITY_LABEL = { ok: '資料正常', forming: 'K 棒尚未收盤(已排除)', insufficient: '資料不足', stale: '資料過期', incomplete_resample: '合成時間週期不完整', bad_timestamps: '時間戳異常或重複', fetch_failed: '資料取得失敗' };
   var TIER_LABEL = { insufficient: '樣本不足', preliminary: '初步觀察', evaluable: '可進一步評估', unavailable: '尚未驗證' };
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -41,8 +42,14 @@
   /* 把一筆事件寫成人看得懂的一行(全部是事件裡的真實欄位) */
   function describe(e) {
     var d = [];
-    if (e.stage === 'data') { if (e.bars != null) d.push(e.bars + ' 根 K 棒'); if (e.source) d.push(e.source); if (e.interval) d.push(e.interval); }
-    if (e.stage === 'indicators' && e.bars != null) d.push(e.bars + ' 根');
+    if (e.stage === 'data') {
+      if (e.i != null) d.push(e.i + ' / ' + e.n); if (e.tf) d.push(e.tf); if (e.benchmark) d.push('查證是否休市:大盤基準 ' + e.benchmark);
+      if (e.bars != null) d.push(e.bars + ' 根 K 棒'); if (e.source) d.push(e.source); if (e.interval) d.push(e.interval);
+      if (e.cached === true) d.push('使用快取' + (e.ageSec != null ? '(' + (e.ageSec >= 90 ? Math.round(e.ageSec / 60) + ' 分鐘' : Math.round(e.ageSec) + ' 秒') + '前取得)' : ''));
+      else if (e.cached === false) d.push('重新取得');
+      if (e.cachedCount != null) d.push('其中 ' + e.cachedCount + ' 個來自快取'); if (e.error) d.push('失敗:' + e.error);
+    }
+    if (e.stage === 'indicators') { if (e.i != null) d.push(e.i + ' / ' + e.n); if (e.tf) d.push(e.tf); if (e.quality) d.push(QUALITY_LABEL[e.quality] || e.quality); if (e.bars != null) d.push(e.bars + ' 根'); }
     if (e.stage === 'backtest') {
       if (e.i != null) d.push(e.i + ' / ' + e.n); if (e.strat) d.push(e.strat);
       if (e.tested != null) d.push('測試 ' + e.tested + ' 個、入選 ' + e.kept);
@@ -54,6 +61,7 @@
       if (e.oosTrades != null) d.push('樣本外 ' + e.oosTrades + ' 筆'); if (e.tier) d.push(TIER_LABEL[e.tier] || e.tier);
       if (e.available === false) d.push('資料不足,切不出樣本外');
     }
+    if (e.stage === 'summary' && e.usable != null) d.push('可用週期 ' + e.usable + ' 個');
     if (e.stage === 'summary' && e.points != null) d.push(e.points + ' 個權益點、' + e.trades + ' 筆');
     if (e.reason) d.push(e.reason); if (e.message) d.push(e.message);
     return d.join(' · ');
@@ -86,6 +94,8 @@
     var self = this;
     STAGES.forEach(function (s) { var st = self.stages[s.id]; if (st.status === 'running') st.status = (kind === 'ok') ? 'done' : 'stopped'; });
   };
+  /* 已要求取消、後端尚未確認:各階段維持原狀(不宣稱已停止),只是整個工作不再被視為『正在進行新工作』 */
+  Model.prototype.cancelling = function () { if (this.state === 'running') this.state = 'cancelling'; };
   Model.prototype.running = function () { var self = this; return STAGES.filter(function (s) { return self.stages[s.id].status === 'running'; }); };
   Model.prototype.errored = function () { var self = this; return STAGES.filter(function (s) { return self.stages[s.id].status === 'error'; }); };
   /* 目前『有計數』的階段(後端知道 i / n)。沒有就回傳 null,顯示端必須顯示「處理中」而不是編百分比 */
@@ -133,21 +143,28 @@
     var req = root.fetch(base + opts.buildUrl(id), ac ? { signal: ac.signal } : undefined)
       .then(function (r) { return r.json().then(function (d) { return { status: r.status, data: d }; }); });
     handle.done = req.then(function (res) {
-      stop();
+      stop(); clearTimeout(cancelTimer);
       return poll(true).then(function () {                                                      // 最後再取一次,確保尾端事件都收到
         settled = true;
-        return { ok: res.status < 400 && !(res.data && res.data.error), status: res.status, data: res.data, cancelled: !!(res.data && res.data.cancelled) };
+        var cancelledByServer = !!(res.data && res.data.cancelled);
+        // 若按下取消時分析剛好已經完成(沒被取消),照實回傳結果,並標記 cancelRaced
+        return { ok: res.status < 400 && !(res.data && res.data.error), status: res.status, data: res.data, cancelled: cancelledByServer, cancelRaced: handle.cancelling && !cancelledByServer };
       });
     }).catch(function (err) {
-      stop();
-      if (handle.cancelled) return { ok: false, cancelled: true };
+      stop(); clearTimeout(cancelTimer);
+      if (handle.cancelled) return { ok: false, cancelled: true, unconfirmed: true };
       return { ok: false, error: (err && err.message) || '連線失敗' };
     });
+    /* 取消分兩段:
+     *   1) 『正在取消』:已通知後端(POST /api/job_cancel),但後端還沒停下來——連線與輪詢保持,等後端真的回報「已取消」(HTTP 499)。
+     *   2) 『已取消』:後端確認停止。若 20 秒內都沒有確認(例如卡在行情下載),才中斷連線並標示『未收到後端確認』。 */
+    var cancelTimer = 0;
     handle.cancel = function () {
-      if (settled || handle.cancelled) return;
-      handle.cancelled = true; stop();
-      try { if (ac) ac.abort(); } catch (e) { /* ignore */ }
+      if (settled || handle.cancelling) return;
+      handle.cancelling = true;
+      if (opts.onCancelling) opts.onCancelling();
       try { root.fetch(base + '/api/job_cancel?job=' + id, { method: 'POST', keepalive: true }); } catch (e) { /* ignore */ }
+      cancelTimer = setTimeout(function () { if (settled) return; handle.cancelled = true; stop(); try { if (ac) ac.abort(); } catch (e) { /* ignore */ } }, 20000);
     };
     return handle;
   }
@@ -161,15 +178,16 @@
    * 沒有球體、沒有動畫迴圈;只在事件到達時更新文字與寬度。                                                      */
   function progressView(el, opts) {
     opts = opts || {};
+    var labels = opts.labels || {}, lab = function (s) { return labels[s.id] || s.label; };      // 其他功能(例如多週期)可以改階段的顯示名稱,事件本身不變
     var model = opts.model || new Model(), handle = null, t0 = 0, endInfo = null;
     el.classList.add('rcp'); el.innerHTML =
       '<div class="rcp-top"><span class="rcp-now" role="status" aria-live="polite">準備中…</span><span class="rcp-el"></span>' +
       '<button type="button" class="rcp-cancel btn-sm" hidden>取消</button></div>' +
       '<div class="progress-bar-wrap"><div class="progress-bar rcp-bar" style="width:0%"></div></div>' +
-      '<ol class="rcp-stages">' + STAGES.map(function (s) { return '<li data-stage="' + s.id + '" class="idle"><i></i><span>' + s.label + '</span><em></em></li>'; }).join('') + '</ol>' +
+      '<ol class="rcp-stages">' + STAGES.map(function (s) { return '<li data-stage="' + s.id + '" class="idle"><i></i><span>' + esc(lab(s)) + '</span><em></em></li>'; }).join('') + '</ol>' +
       '<div class="rcp-note"></div>';
     var q = function (s) { return el.querySelector(s); }, now = q('.rcp-now'), elp = q('.rcp-el'), bar = q('.rcp-bar'), cancel = q('.rcp-cancel'), note = q('.rcp-note');
-    cancel.addEventListener('click', function () { if (handle) { cancel.disabled = true; handle.cancel(); } });
+    cancel.addEventListener('click', function () { if (handle) handle.cancel(); });
 
     function setW(w) { if (bar.style.width !== w) bar.style.width = w; }
     function render() {
@@ -180,16 +198,18 @@
         li.querySelector('em').textContent = st.status === 'running' && st.prog && st.prog.n ? st.prog.i + '/' + st.prog.n : (st.status === 'done' && st.ms != null ? fmtMs(st.ms) : (st.status === 'idle' ? '' : STATUS_LABEL[st.status]));
       });
       var c = model.counted(), run = model.running(), err = model.errored();
-      bar.classList.remove('indet', 'err', 'warn', 'ok');
+      bar.classList.remove('indet', 'err', 'warn', 'ok', 'cancelling');
       if (model.state === 'running') {
-        if (c) { now.textContent = c.stage.label + ' ' + c.i + ' / ' + c.n; setW((c.n ? c.i / c.n * 100 : 0) + '%'); }
-        else if (run.length) { now.textContent = run[run.length - 1].label + ':處理中'; setW('100%'); bar.classList.add('indet'); }
+        if (c) { now.textContent = lab(c.stage) + ' ' + c.i + ' / ' + c.n; setW((c.n ? c.i / c.n * 100 : 0) + '%'); }
+        else if (run.length) { now.textContent = lab(run[run.length - 1]) + ':處理中'; setW('100%'); bar.classList.add('indet'); }
         else { now.textContent = model.eventCount ? '等待下一個階段…' : '連線中…'; setW('100%'); bar.classList.add('indet'); }
       } else if (model.state === 'ok') { now.textContent = '完成'; setW('100%'); bar.classList.add('ok'); }
+      else if (model.state === 'cancelling') { now.textContent = '正在取消…(等待後端確認停止)'; setW('100%'); bar.classList.add('warn', 'cancelling'); }
       else if (model.state === 'cancelled') { now.textContent = '已取消'; bar.classList.add('warn'); }
-      else if (model.state === 'error') { now.textContent = err.length ? '失敗:' + err[0].label : '失敗'; setW('100%'); bar.classList.add('err'); }
+      else if (model.state === 'error') { now.textContent = err.length ? '失敗:' + lab(err[0]) : '失敗'; setW('100%'); bar.classList.add('err'); }
       else if (model.state === 'stopped') { now.textContent = '已中斷'; bar.classList.add('warn'); }
-      cancel.hidden = model.state !== 'running'; if (model.state === 'running') cancel.disabled = false;
+      cancel.hidden = model.state !== 'running' && model.state !== 'cancelling';
+      cancel.disabled = model.state === 'cancelling'; cancel.textContent = model.state === 'cancelling' ? '取消中…' : '取消';
     }
     function tick(ms) { elp.textContent = (model.state === 'running' ? '已 ' : '共 ') + fmtSec(ms); }
     var view = {
@@ -198,6 +218,7 @@
       event: function (e) { model.apply(e); render(); },
       tick: function (ms) { tick(ms); },
       end: function (kind, o) { model.end(kind); render(); tick((root.performance || Date).now() - t0); if (o && o.note) note.textContent = o.note; handle = null; },
+      cancelling: function () { model.cancelling(); render(); },
       hide: function () { el.style.display = 'none'; }
     };
     render();
@@ -221,7 +242,7 @@
     var results = data && data.results ? data.results : null;
     if (stageId === 'data') {
       var done = st.events.filter(function (e) { return e.status === 'done'; })[0], sp = data && data.split;
-      if (done) h.push('<ul class="rcd-ul"><li>K 棒數:<b>' + done.bars + '</b></li></ul>');
+      if (done) h.push('<ul class="rcd-ul"><li>K 棒數:<b>' + done.bars + '</b></li>' + (done.cached === true ? '<li>資料來源:<b>使用快取</b>(' + (done.ageSec >= 90 ? Math.round(done.ageSec / 60) + ' 分鐘' : Math.round(done.ageSec || 0) + ' 秒') + '前取得,沒有重新下載)</li>' : (done.cached === false ? '<li>資料來源:<b>重新取得</b></li>' : '')) + (done.formingExcluded ? '<li>已排除尚未收盤的最新 K 棒</li>' : '') + '</ul>');
       if (sp) h.push('<ul class="rcd-ul"><li>樣本內:' + esc(sp.windowStart) + ' → ' + esc(sp.boundary) + '(' + sp.isBars + ' 根)</li><li>樣本外:' + esc(sp.boundary) + ' → ' + esc(sp.end) + '(' + sp.oosBars + ' 根)</li></ul>');
     }
     if (stageId === 'backtest') {
@@ -251,6 +272,6 @@
     return h.join('');
   }
 
-  root.RCJob = { STAGES: STAGES, IDX: IDX, STATUS_LABEL: STATUS_LABEL, TIER_LABEL: TIER_LABEL, Model: Model, run: run, newJobId: newJobId,
+  root.RCJob = { STAGES: STAGES, IDX: IDX, STATUS_LABEL: STATUS_LABEL, TIER_LABEL: TIER_LABEL, QUALITY_LABEL: QUALITY_LABEL, Model: Model, run: run, newJobId: newJobId,
     describe: describe, fmtMs: fmtMs, fmtSec: fmtSec, esc: esc, progressView: progressView, stageDetail: stageDetail };
 })(typeof window !== 'undefined' ? window : this);

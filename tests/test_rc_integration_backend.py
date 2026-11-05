@@ -145,5 +145,72 @@ class TestCancelAndCleanup(_Base):
         self.assertEqual(s.count(), 1)
 
 
+class TestCancellingThenCancelled(_Base):
+    def test_status_is_cancelling_until_the_backend_really_stops(self):
+        orig = A.run_backtest; n = [0]; started = threading.Event(); gate = threading.Event(); out = {}
+        def slow(*a, **k):
+            n[0] += 1
+            if n[0] == 2: started.set(); gate.wait(10)
+            return orig(*a, **k)
+        def worker():
+            out["r"] = A.app.test_client().get("/api/best_strategy", query_string=dict(symbol=self.SYMBOL, period=self.PERIOD, timeframe=self.TF, job="job-cancelling-1"))
+        with mock.patch.object(A, "run_backtest", slow):
+            th = threading.Thread(target=worker); th.start(); self.assertTrue(started.wait(10))
+            self.assertEqual(poll(self.client, "job-cancelling-1")["status"], "running")
+            self.client.post("/api/job_cancel", query_string=dict(job="job-cancelling-1"))
+            mid = poll(self.client, "job-cancelling-1")
+            self.assertEqual(mid["status"], "cancelling")                       # 已要求,但後端還卡在第 2 個策略,尚未真的停下
+            self.assertNotIn("r", out)
+            gate.set(); th.join(10)
+        self.assertEqual(poll(self.client, "job-cancelling-1")["status"], "cancelled")   # 真的停下來之後才是 cancelled
+        self.assertEqual(out["r"].status_code, 499)
+
+    def test_cancel_request_after_completion_does_not_change_the_result(self):
+        r = self.client.get("/api/best_strategy", query_string=dict(symbol=self.SYMBOL, period=self.PERIOD, timeframe=self.TF, job="job-race-0001"))
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(self.client.post("/api/job_cancel", query_string=dict(job="job-race-0001")).get_json()["found"])
+        self.assertEqual(poll(self.client, "job-race-0001")["status"], "ok")
+
+
+class TestEventCap(_Base):
+    def test_cap_drops_only_old_progress_events_and_keeps_stage_states(self):
+        s = R.JobEvents(); j = s.begin("job-cap-00001", "best")
+        j.start("data"); j.done("data", bars=10); j.start("backtest", n=1500)
+        for i in range(1, 1501): j.progress("backtest", i=i, n=1500)
+        j.done("backtest", tested=1500); j.start("validation", n=8)
+        for i in range(1, 9): j.progress("validation", i=i, n=8)
+        j.done("validation", n=8); j.finish(True)
+        out = s.get("job-cap-00001")
+        self.assertLessEqual(len(out["events"]), R.MAX_EVENTS)
+        self.assertGreater(out["dropped"], 800)
+        pairs_ = [(e["stage"], e["status"]) for e in out["events"]]
+        for p in (("data", "start"), ("data", "done"), ("backtest", "start"), ("backtest", "done"), ("validation", "start"), ("validation", "done")):
+            self.assertIn(p, pairs_)                                         # 開始/完成事件一個都沒丟
+        prog = [e["i"] for e in out["events"] if e["stage"] == "backtest" and e["status"] == "progress"]
+        self.assertEqual(prog[-1], 1500)                                      # 最新的進度計數還在,不會停在舊數字
+        self.assertEqual([e["i"] for e in out["events"] if e["stage"] == "validation" and e["status"] == "progress"], list(range(1, 9)))
+        self.assertEqual([e["seq"] for e in out["events"]], sorted(e["seq"] for e in out["events"]))
+        self.assertEqual(out["status"], "ok")
+
+    def test_polling_client_loses_nothing_when_it_keeps_up(self):
+        s = R.JobEvents(); j = s.begin("job-cap-00002", "best"); got = []; after = 0
+        for i in range(1, 1201):
+            j.progress("backtest", i=i, n=1200)
+            if i % 100 == 0:                                                 # 每 100 筆輪詢一次(遠小於上限)
+                r = s.get("job-cap-00002", after); got += r["events"]; after = r["lastSeq"]
+        self.assertEqual([e["i"] for e in got], list(range(1, 1201)))        # 跟得上的客戶端一筆都沒少
+
+    def test_real_ranking_with_tiny_cap_keeps_result_and_final_states(self):
+        q = dict(symbol=self.SYMBOL, period=self.PERIOD, timeframe=self.TF)
+        base = self.client.get("/api/best_strategy", query_string=q).get_json()
+        with mock.patch.object(R, "MAX_EVENTS", 6):
+            r = self.client.get("/api/best_strategy", query_string=dict(q, job="job-cap-real-1")); ev = poll(self.client, "job-cap-real-1")
+        self.assertEqual(r.get_json(), base)                                  # 事件被截斷不影響分析結果
+        self.assertEqual(ev["status"], "ok"); self.assertGreater(ev["dropped"], 0)
+        pairs_ = [(e["stage"], e["status"]) for e in ev["events"]]
+        for p in (("data", "done"), ("backtest", "done"), ("validation", "done")): self.assertIn(p, pairs_)
+        done_bt = next(e for e in ev["events"] if e["stage"] == "backtest" and e["status"] == "done")
+        self.assertEqual(done_bt["tested"], base["total_tested"])              # 完成事件帶的是最終的絕對計數,不依賴被丟掉的進度事件
+
 if __name__ == "__main__":
     unittest.main()

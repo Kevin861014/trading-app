@@ -27,7 +27,7 @@ function route(){
   if(name === 'symbol'){ refreshViewSelects(); consumeSymbolPending(); }
   if(name === 'best' || name === 'lab') refreshViewSelects();
   if(name === 'lab') labEnsure();
-  if(name === 'market') loadMarketView(false);
+  if(name === 'market'){ refreshViewSelects(); loadMarketView(false); }
 }
 window.addEventListener('hashchange', route);
 
@@ -71,6 +71,7 @@ function refreshViewSelects(){
   fillSelect($id('symSel'), byId, true);
   fillSelect($id('bestSel'), bySym, true);
   fillSelect($id('labSel'), bySym, true);
+  fillSelect($id('mtfSel'), bySym, true);
   fillSelect($id('symStrat'), strategies.map(s => [s.v, s.l]), true);
   fillSelect($id('symPeriod'), PERIODS.map(p => [p, PERIOD_LABELS[p]]), true);
   fillSelect($id('symTf'), TFS.map(t => [t, TF_LABELS[t]]), true);
@@ -177,7 +178,7 @@ function renderSymbolBody(body, data, ctx){
 
   const head = `<div class="sym-head">
       <div class="sym-title">${esc(ctx.name)} <span class="mk-badge">${MARKET_LABEL[mk]||mk}</span> <span style="font-size:13px;color:var(--text2);font-weight:400;">${esc(ctx.symbol)} · ${esc(getStratName(ctx.strat))} · ${TF_LABELS[ctx.tf]||ctx.tf} · ${PERIOD_LABELS[ctx.period]||ctx.period}</span></div>
-      <div class="sym-meta">${esc(dataTimeText(di))}${di?` · 共 ${di.bars} 根已收盤 K 棒（最後一根未收盤的已排除）`:''}</div>
+      <div class="sym-meta">${esc(dataTimeText(di))} ${dqBadge(data.dataQuality)}${di?` · 共 ${di.bars} 根已收盤 K 棒（最後一根未收盤的已排除）`:''}</div>
       <div class="sym-chips">
         <span class="chip"><span class="rtag live">即時技術訊號</span> ${esc(sig.label)}${sig.sub?`　<span style="color:var(--text3)">${esc(sig.sub)}</span>`:''}</span>
         <span class="chip" id="symRegime">市場性格：載入中…</span>
@@ -252,6 +253,7 @@ function viewUi(bodyId, btnId){
     begin(h){ pv.begin(h); },
     event(e){ pv.event(e); },
     tick(ms){ pv.tick(ms); },
+    cancelling(){ pv.cancelling(); },
     end(kind, o){ pv.end(kind, o); },
     hideProgress(){ q('[data-prog]').style.display = 'none'; },
     setSub(html){ q('[data-sub]').innerHTML = html; },

@@ -49,6 +49,7 @@ function labUi(){
       S.pv.begin(h); S.core.begin(); labRenderDetail(); },
     event(e){ S.pv.event(e); S.core.event(e); labScheduleDetail(e.stage); },
     tick(ms){ S.pv.tick(ms); },
+    cancelling(){ S.pv.cancelling(); S.core.cancelling(); labRenderDetail(); },
     end(kind, o){ o = o || {}; S.data = o.data || null; S.pv.end(kind, o); S.core.end(kind, o.summary); S.handle = null; labRenderDetail(); },
     hideProgress(){},
     setSub(html){ $id('labSub').innerHTML = html; },

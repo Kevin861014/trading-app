@@ -247,7 +247,7 @@ async function loadCharacter(id){
 
 function updateSignalBanner(card,data){
   const sig=getSignalState(data);
-  const typeClass={'buy':'buy','sell':'sell','holding':'buy','expired':'hold','exited':'sell','wait':'buy','bear':'sell','neutral':'hold'}[sig.type]||'hold';
+  const typeClass={'buy':'buy','sell':'sell','holding':'buy','expired':'hold','stale':'hold','exited':'sell','wait':'buy','bear':'sell','neutral':'hold'}[sig.type]||'hold';
   let html=`<span class="signal-big ${typeClass}">${sig.label}</span>`;
   if(sig.sub) html+=`<span class="sig-sub">${esc(sig.sub)}</span>`;
   html+=`<span class="rtag live" style="margin-left:auto;" title="策略『目前』的技術狀態,不是預測,也不是買賣建議">即時技術訊號</span>`;
@@ -284,7 +284,7 @@ function resetCardExtras(card){
 // 資料時間、樣本外驗證、買進持有、成本:來自 /api/analyze 的 dataInfo / validation / backtest 區塊
 function setCardExtras(card,data){
   const q=s=>card.querySelector(s);
-  q('.card-datatime').textContent=dataTimeText(data.dataInfo);
+  q('.card-datatime').innerHTML=esc(dataTimeText(data.dataInfo))+' '+dqBadge(data.dataQuality);
   if(data.extrasError){
     q('[data-oos]').innerHTML=vbadge('unavailable')+'<span class="vb-sub">進階資訊暫時無法取得</span>';
     q('[data-vtable]').innerHTML=`<div class="vb-note">進階資訊暫時無法取得(${esc(data.extrasError)}),基本績效不受影響。</div>`;

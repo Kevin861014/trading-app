@@ -54,7 +54,7 @@ function updateNavDrawer(){
   stocks.forEach(s => { const m = getMarket(s.symbol); (groups[m]=groups[m]||[]).push(s); });
   const colorMap = {buy:'#26a69a', sell:'#ef5350', expired:'#f5a623', hold:'#555a6e'};
   const sigMap = {buy:'▲ 買進！', sell:'▼ 賣出！', holding:'▲ 持有中',
-    expired:'⚠ 已過期', exited:'▼ 已出場', wait:'多頭等待', bear:'▼ 空頭', neutral:'— 中立'};
+    expired:'⚠ 已過期', stale:'⚠ 資料過期', exited:'▼ 已出場', wait:'多頭等待', bear:'▼ 空頭', neutral:'— 中立'};
   let html = '';
   ['tw','us','crypto','metal','other'].forEach(market => {
     const group = groups[market];

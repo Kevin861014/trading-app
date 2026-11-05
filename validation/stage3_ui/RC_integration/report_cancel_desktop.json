@@ -1,7 +1,7 @@
 {
  "reachedBacktest": true,
  "before": {
-  "i": 10,
+  "i": 6,
   "n": 166
  },
  "afterClick": {
@@ -22,13 +22,18 @@
  "server_after_cancel": [
   {
    "status": "cancelled",
-   "last": 23
+   "last": 15
   },
   {
    "status": "cancelled",
-   "last": 23
+   "last": 15
   }
  ],
  "serverStoppedGrowing": true,
- "console": []
+ "console": [
+  [
+   "log-error",
+   "Failed to load resource: the server responded with a status of 499 (UNKNOWN) http://127.0.0.1:5055/api/deep_analysis?symbol=SOL-USD&timeframe=1h&use_oos=1&job=rc-bc890622698b14bf52"
+  ]
+ ]
 }

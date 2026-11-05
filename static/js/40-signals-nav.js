@@ -1,6 +1,10 @@
 // ── 訊號狀態判斷 ──────────────────────────────────────────
 function getSignalState(data){
   const ps = data.posState || {};
+  // C1:資料過期/異常時,不可以把舊資料顯示成『最新』交易訊號(只改顯示;策略與回測的計算完全不變)
+  if(data.dataQuality && data.dataQuality.blocking){
+    return {type:'stale', label:'⚠ 資料過期，不顯示最新訊號', sub:`${data.dataQuality.label}：${data.dataQuality.detail||''}`.slice(0,90), dot:'expired'};
+  }
   const lastDiff = data.diff[data.diff.length-1];
   const hasBuyNow = data.buyPoints[data.buyPoints.length-1] !== null;
   const hasSellNow = data.sellPoints[data.sellPoints.length-1] !== null;

@@ -1,0 +1,255 @@
+{
+ "device": "iphone14",
+ "viewport": [
+  390,
+  844
+ ],
+ "shots": [
+  "b2_iphone14_01_watchlist_top.png",
+  "b2_iphone14_02_watchlist_full.png",
+  "b2_iphone14_03_tip_sheet.png",
+  "b2_iphone14_04_card_expanded_chart.png",
+  "b2_iphone14_05_chart_modal.png",
+  "b2_iphone14_06_nav_drawer.png",
+  "b2_iphone14_07_search.png",
+  "b2_iphone14_08_analysis_sheet.png",
+  "b2_iphone14_09_symbol_view_top.png",
+  "b2_iphone14_10_symbol_view_full.png",
+  "b2_iphone14_11_symbol_us.png",
+  "b2_iphone14_11_symbol_crypto.png",
+  "b2_iphone14_12_market.png",
+  "b2_iphone14_13_lab_top.png",
+  "b2_iphone14_14_best_top.png",
+  "b2_iphone14_15_best_view_AAPL.png"
+ ],
+ "touch": {
+  "dbg": [
+   [
+    "start",
+    "0000000"
+   ],
+   [
+    "after tabs",
+    "0000000"
+   ],
+   [
+    "after kpi tap",
+    "0000000"
+   ]
+  ],
+  "tab_symbol_hash": "#/symbol",
+  "tab_watchlist_hash": "#/watchlist",
+  "bottom_tabs_box": {
+   "top": 785,
+   "h": 59,
+   "bottom": 844,
+   "vh": 844
+  },
+  "tip_after_tap": {
+   "shown": true,
+   "text": "這段期間策略的總報酬,已扣除手續費、滑價(台股另含賣出證交稅)。單看報酬不夠,要"
+  },
+  "tip_after_tap_elsewhere": true,
+  "before_expand": {
+   "exp": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "btn": "展開詳細 ▾",
+   "tipHidden": true
+  },
+  "expand_tap_hit": "card-expand|BUTTON",
+  "expanded_charts": {
+   "expanded": true,
+   "charts": 5,
+   "canvases": 35
+  },
+  "chart_vertical_swipe_scrolled_page": {
+   "before": 1551,
+   "after": 1851
+  },
+  "chart_horizontal_swipe_panned": {
+   "before": [
+    0,
+    484
+   ],
+   "after": [
+    -202.08333333333337,
+    281.91666666666663
+   ],
+   "changed": true
+  },
+  "chart_pinch": {
+   "span_before": 484.0,
+   "span_after": 232.2,
+   "zoomed_in": true
+  },
+  "longpress_indicator": {
+   "tip_shown": true,
+   "toggled": false
+  },
+  "tap_indicator_toggles": true,
+  "chart_modal": {
+   "open": true,
+   "w": 390,
+   "h": 844,
+   "vw": 390,
+   "vh": 844,
+   "bodyLocked": true,
+   "charts": 5
+  },
+  "chart_modal_closed": true,
+  "drawer_open": true,
+  "drawer_item_closes_and_scrolls": {
+   "closed": true,
+   "scrollY": 4114
+  },
+  "search_dropdown_items": 1,
+  "analysis_sheet": {
+   "open": true,
+   "w": 390,
+   "h": 793,
+   "bottom": 844,
+   "vh": 844,
+   "bodyLocked": true,
+   "cards": 6,
+   "tableVisible": "none"
+  },
+  "detail_button_opens_symbol_view": "#/symbol",
+  "sheet_closed_after_detail": true,
+  "symbol_us_panels": "5/49",
+  "symbol_crypto_panels": "5/49"
+ },
+ "audit": {
+  "watchlist": {
+   "smallTargets": [],
+   "nSmall": 0,
+   "textNodes": 226,
+   "lt14": 128,
+   "lt12": [],
+   "nLt12": 0,
+   "inputsUnder16": [],
+   "overflowX": false,
+   "scrollW": 390,
+   "innerW": 390
+  },
+  "card_expanded": {
+   "smallTargets": [],
+   "nSmall": 0,
+   "textNodes": 310,
+   "lt14": 174,
+   "lt12": [],
+   "nLt12": 0,
+   "inputsUnder16": [],
+   "overflowX": false,
+   "scrollW": 390,
+   "innerW": 390
+  },
+  "chart_modal": {
+   "smallTargets": [],
+   "nSmall": 0,
+   "textNodes": 321,
+   "lt14": 178,
+   "lt12": [],
+   "nLt12": 0,
+   "inputsUnder16": [],
+   "overflowX": false,
+   "scrollW": 390,
+   "innerW": 390
+  },
+  "drawer": {
+   "smallTargets": [],
+   "nSmall": 0,
+   "textNodes": 328,
+   "lt14": 183,
+   "lt12": [],
+   "nLt12": 0,
+   "inputsUnder16": [],
+   "overflowX": false,
+   "scrollW": 390,
+   "innerW": 390
+  },
+  "analysis_sheet": {
+   "smallTargets": [],
+   "nSmall": 0,
+   "textNodes": 485,
+   "lt14": 250,
+   "lt12": [],
+   "nLt12": 0,
+   "inputsUnder16": [],
+   "overflowX": false,
+   "scrollW": 390,
+   "innerW": 390
+  },
+  "symbol_view": {
+   "smallTargets": [],
+   "nSmall": 0,
+   "textNodes": 157,
+   "lt14": 92,
+   "lt12": [],
+   "nLt12": 0,
+   "inputsUnder16": [],
+   "overflowX": false,
+   "scrollW": 390,
+   "innerW": 390
+  },
+  "best_view": {
+   "smallTargets": [],
+   "nSmall": 0,
+   "textNodes": 32,
+   "lt14": 16,
+   "lt12": [],
+   "nLt12": 0,
+   "inputsUnder16": [],
+   "overflowX": false,
+   "scrollW": 390,
+   "innerW": 390
+  }
+ },
+ "cards_loaded": 7,
+ "media": {
+  "coarse": true,
+  "hoverNone": true,
+  "touchPoints": 5,
+  "mobileBP": true
+ },
+ "parity": {
+  "tableRows": 6,
+  "cards": 6,
+  "mismatches": []
+ },
+ "pwa": {
+  "manifestLink": true,
+  "appleIcon": true,
+  "metaCapable": true,
+  "themeColor": "#0f1117",
+  "viewport": "width=device-width, initial-scale=1.0, viewport-fit=cover",
+  "serviceWorkers": 0,
+  "hasSWScript": false,
+  "manifestStatus": 200,
+  "manifestType": "application/manifest+json; charset=utf-8",
+  "manifest": {
+   "name": "順勢策略分析",
+   "display": "standalone",
+   "start_url": "/",
+   "icons": [
+    "192x192 any",
+    "512x512 any",
+    "512x512 maskable"
+   ]
+  },
+  "icons": {
+   "/apple-touch-icon.png": "200 image/png",
+   "/static/pwa/icon-192.png": "200 image/png",
+   "/static/pwa/icon-512.png": "200 image/png",
+   "/static/pwa/icon-maskable-512.png": "200 image/png",
+   "/favicon.ico": "200 image/png"
+  }
+ },
+ "console_errors": []
+}

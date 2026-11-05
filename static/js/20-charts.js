@@ -343,7 +343,8 @@ function updateModalSignal(data){
   const hasBuy=data.buyPoints[data.buyPoints.length-1]!==null;
   const hasSell=data.sellPoints[data.sellPoints.length-1]!==null;
   let html='';
-  if(hasBuy) html='<span style="color:#26a69a;">▲ 現在有買進訊號！</span>';
+  if(data.dataQuality && data.dataQuality.blocking) html='<span style="color:#f5a623;">⚠ 資料過期，不顯示最新訊號</span>';
+  else if(hasBuy) html='<span style="color:#26a69a;">▲ 現在有買進訊號！</span>';
   else if(hasSell) html='<span style="color:#ef5350;">▼ 現在有賣出訊號！</span>';
   else if(lastDiff>0.1) html='<span style="color:#26a69a;">▲ 多頭趨勢 · 等待訊號</span>';
   else if(lastDiff<-0.1) html='<span style="color:#ef5350;">▼ 空頭趨勢 · 觀望</span>';

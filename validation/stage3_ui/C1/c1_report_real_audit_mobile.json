@@ -1,0 +1,10 @@
+{
+ "audit": {
+  "smallTargets": [],
+  "minFont": 12,
+  "overflowX": false,
+  "tableVisible": "none",
+  "cardsVisible": "block"
+ },
+ "console": []
+}

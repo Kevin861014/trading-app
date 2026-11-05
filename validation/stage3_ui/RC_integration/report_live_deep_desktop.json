@@ -1,20 +1,20 @@
 {
- "elapsedSec": 21.2,
- "gifFrames": 215,
- "final": "{\"state\":\"ok\",\"stages\":{\"data\":{\"status\":\"done\",\"ms\":0,\"events\":2,\"prog\":null},\"indicators\":{\"status\":\"skip\",\"ms\":null,\"events\":1,\"prog\":null},\"backtest\":{\"status\":\"done\",\"ms\":19892.8,\"events\":168,\"prog\":{\"i\":166,\"n\":166}},\"signal\":{\"status\":\"skip\",\"ms\":null,\"events\":1,\"prog\":null},\"validation\":{\"status\":\"done\",\"ms\":1176.8,\"events\":10,\"prog\":{\"i\":8,\"n\":8}},\"summary\":{\"status\":\"skip\",\"ms\":null,\"events\":1,\"prog\":null}},\"stats\":{\"loopOn\":false,\"fps\":14,\"frameCost\":0.5363058320125107,\"particles\":0,\"pulses\":0,\"events\":183,\"state\":\"ok\",\"lowPower\":false,\"forced\":false,\"static\":false,\"ambient\":false,\"motion\":true}}",
- "timeline_samples": 106,
+ "elapsedSec": 27.5,
+ "gifFrames": 264,
+ "final": "{\"state\":\"ok\",\"stages\":{\"data\":{\"status\":\"done\",\"ms\":0.1,\"events\":2,\"prog\":null},\"indicators\":{\"status\":\"skip\",\"ms\":null,\"events\":1,\"prog\":null},\"backtest\":{\"status\":\"done\",\"ms\":25758.9,\"events\":168,\"prog\":{\"i\":166,\"n\":166}},\"signal\":{\"status\":\"skip\",\"ms\":null,\"events\":1,\"prog\":null},\"validation\":{\"status\":\"done\",\"ms\":1532.9,\"events\":10,\"prog\":{\"i\":8,\"n\":8}},\"summary\":{\"status\":\"skip\",\"ms\":null,\"events\":1,\"prog\":null}},\"stats\":{\"loopOn\":false,\"fps\":14,\"frameCost\":0.7619744942141817,\"particles\":0,\"pulses\":0,\"events\":183,\"state\":\"ok\",\"lowPower\":false,\"forced\":false,\"static\":false,\"ambient\":false,\"motion\":true}}",
+ "timeline_samples": 137,
  "timeline": {
-  "first_event_ms": 754,
-  "last_ms": 26510,
-  "increments": 54,
+  "first_event_ms": 762,
+  "last_ms": 34264,
+  "increments": 70,
   "total_events": 183,
-  "ec_at_25pct": 51,
+  "ec_at_25pct": 56,
   "ec_at_50pct": 112,
-  "ec_at_75pct": 164
+  "ec_at_75pct": 163
  },
- "detail_data": "行情資料\n完成\n耗時 0 ms\n事件 2 筆\n\n27839 根 K 棒\n\nK 棒數:27839\n樣本內:2024-11-05 → 2026-03-31(12264 根)\n樣本外:2026-03-31 → 2026-11-05(5254 根)\n此階段最近 2 筆事件",
- "detail_backtest": "策略回測\n完成\n耗時 19.89 秒\n事件 168 筆\n\n測試 166 個、入選 10\n\n已回測 166 個策略,合計 19.89 秒。耗時最長的 5 個:\n\nhma_cross · 451 ms\nprojection_osc · 234 ms\nkst_cross · 217 ms\nhma · 205 ms\nwma_cross · 202 ms\n\n入選前 8 名(只看樣本內排名):\n\n#\t策略\t樣本內報酬\t樣本內淨 PF\t筆數\n1\tSMA50/200 黃金／死亡交叉雙向\t+21.4%\t1.57\t39\n2\t六條線 多頭排列(課程核心・最強)\t+10.4%\t1.22\t87\n3\tDEMA20/50 交叉\t+12.5%\t1.07\t199\n4\t一目先行帶扭轉\t+13.0%\t1.12\t154\n5\tLaguerre RSI(0.2) 0.2/0.8 衰竭\t+12.2%\t1.07\t198\n6\tKeltner 通道突破(跨市場突破)\t+8.3%\t1.13\t123\n7\tTillson T3 8/21 交叉\t+7.7%\t1.06\t246\n8\tDual Thrust 4日 Range k=0.5\t+1.8%\t1.04\t137\n此階段最近 8 筆事件\n跳到完整結果表",
- "detail_validation": "樣本外驗證\n完成\n耗時 1.18 秒\n事件 10 筆\n\n8 / 8 · dual_thrust · 樣本外 67 筆\n\n#\t策略\t樣本外報酬\t樣本外淨 PF\t筆數\t展示分級\n1\tSMA50/200 黃金／死亡交叉雙向\t+3.6%\t1.23\t19\t樣本不足\n2\t六條線 多頭排列(課程核心・最強)\t+17.9%\t1.95\t43\t初步觀察\n3\tDEMA20/50 交叉\t-24.1%\t0.63\t96\t可進一步評估\n4\t一目先行帶扭轉\t-4.8%\t0.86\t81\t可進一步評估\n5\tLaguerre RSI(0.2) 0.2/0.8 衰竭\t-6.6%\t0.89\t75\t可進一步評估\n6\tKeltner 通道突破(跨市場突破)\t+3.6%\t1.08\t44\t初步觀察\n7\tTillson T3 8/21 交叉\t+2.0%\t1.02\t111\t可進一步評估\n8\tDual Thrust 4日 Range k=0.5\t+0.6%\t1.02\t67\t可進一步評估\n\n分級只依樣本外筆數(少於 20 筆=樣本不足,20–49=初步觀察,50 以上=可進一步評估),不是統計顯著性,也不代表策略有效。\n\n此階段最近 8 筆事件\n跳到完整結果表",
+ "detail_data": "行情資料\n完成\n耗時 0 ms\n事件 2 筆\n\n27839 根 K 棒 · 使用快取(9 分鐘前取得)\n\nK 棒數:27839\n資料來源:使用快取(9 分鐘前取得,沒有重新下載)\n已排除尚未收盤的最新 K 棒\n樣本內:2024-11-05 → 2026-03-31(12264 根)\n樣本外:2026-03-31 → 2026-11-05(5254 根)\n此階段最近 2 筆事件",
+ "detail_backtest": "策略回測\n完成\n耗時 25.76 秒\n事件 168 筆\n\n測試 166 個、入選 10\n\n已回測 166 個策略,合計 25.76 秒。耗時最長的 5 個:\n\nhma_cross · 674 ms\ntsf_cross · 326 ms\nprojection_osc · 305 ms\nhma · 283 ms\nstoch_rsi · 280 ms\n\n入選前 8 名(只看樣本內排名):\n\n#\t策略\t樣本內報酬\t樣本內淨 PF\t筆數\n1\tSMA50/200 黃金／死亡交叉雙向\t+21.4%\t1.57\t39\n2\t六條線 多頭排列(課程核心・最強)\t+10.4%\t1.22\t87\n3\tDEMA20/50 交叉\t+12.0%\t1.07\t199\n4\tLaguerre RSI(0.2) 0.2/0.8 衰竭\t+11.8%\t1.07\t198\n5\t一目先行帶扭轉\t+12.6%\t1.09\t153\n6\tKeltner 通道突破(跨市場突破)\t+8.3%\t1.13\t123\n7\tTillson T3 8/21 交叉\t+7.3%\t1.04\t245\n8\tDual Thrust 4日 Range k=0.5\t+1.8%\t1.04\t137\n此階段最近 8 筆事件\n跳到完整結果表",
+ "detail_validation": "樣本外驗證\n完成\n耗時 1.53 秒\n事件 10 筆\n\n8 / 8 · dual_thrust · 樣本外 67 筆\n\n#\t策略\t樣本外報酬\t樣本外淨 PF\t筆數\t展示分級\n1\tSMA50/200 黃金／死亡交叉雙向\t+3.6%\t1.23\t19\t樣本不足\n2\t六條線 多頭排列(課程核心・最強)\t+17.9%\t1.95\t43\t初步觀察\n3\tDEMA20/50 交叉\t-24.1%\t0.63\t96\t可進一步評估\n4\tLaguerre RSI(0.2) 0.2/0.8 衰竭\t-6.6%\t0.89\t75\t可進一步評估\n5\t一目先行帶扭轉\t-4.8%\t0.86\t81\t可進一步評估\n6\tKeltner 通道突破(跨市場突破)\t+3.6%\t1.08\t44\t初步觀察\n7\tTillson T3 8/21 交叉\t+2.1%\t1.02\t111\t可進一步評估\n8\tDual Thrust 4日 Range k=0.5\t+0.7%\t1.02\t67\t可進一步評估\n\n分級只依樣本外筆數(少於 20 筆=樣本不足,20–49=初步觀察,50 以上=可進一步評估),不是統計顯著性,也不代表策略有效。\n\n此階段最近 8 筆事件\n跳到完整結果表",
  "detail_indicators": "指標計算\n未涉及\n事件 1 筆\n\n這次分析的流程不含此階段(未涉及):排名流程不含此階段。\n\n此階段最近 1 筆事件",
  "equalToNoJobRun": {
   "sameResults": true,
@@ -22,9 +22,9 @@
   "n": 8
  },
  "pollRequests": {
-  "count": 55,
-  "transferBytes": 49452,
-  "avgMs": 82.9
+  "count": 71,
+  "transferBytes": 59410,
+  "avgMs": 86.2
  },
  "percentTextSeen": false,
  "console": []
