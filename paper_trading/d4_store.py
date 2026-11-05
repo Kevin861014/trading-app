@@ -30,7 +30,8 @@ def read_jsonl(path, corrupt_path=None):
     """讀取 JSONL。若最後一行因程式中斷而殘缺(沒有換行或無法解析):把殘缺片段另存到 corrupt_path,並從原檔移除它(避免下次附加時接在殘缺行後面)。
     中間的壞行只跳過並記錄,不改動原檔。回傳 (records, problems)。"""
     if not os.path.exists(path): return [], []
-    raw = open(path, 'rb').read(); recs = []; problems = []; pos = 0; good_end = 0
+    with open(path, 'rb') as f: raw = f.read()
+    recs = []; problems = []; pos = 0; good_end = 0
     for line in raw.split(b'\n'):
         end = pos + len(line) + 1
         if line.strip():

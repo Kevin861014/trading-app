@@ -74,7 +74,14 @@ def build_report(exp_dir):
                      'ticks': len(ticks), 'last_tick_utc': last['wall_utc'] if last else None}
     rep['A'] = scen_stats(ex, 'A', init, ev, mk['A']); rep['B'] = scen_stats(ex, 'B', init, ev, mk['B'])
     rep['regime'] = regime_table(ex, snap, mk['A'], mk['B'], ev) if hrs else None
-    div = _ro(ex.diverge)
+    div = _ro(ex.diverge); flags = _ro(ex.flags); taint = E.current_taint(ex)
+    cnt = collections.Counter(e.get('evidence', 'UNKNOWN') for e in ev); mcnt = collections.Counter(m.get('evidence', 'UNKNOWN') for s_ in mk.values() for m in s_)
+    clean_ev = [e for e in ev if e.get('evidence') == 'LIVE_FORWARD']; clean_mk = {k: [m for m in v if m.get('evidence') == 'LIVE_FORWARD'] for k, v in mk.items()}
+    mixed = bool(taint is not None)
+    rep['evidence'] = {'mixed': mixed, 'taint_utc': E.iso(taint) if taint is not None else None, 'live_max_lag_hours': snap['rules']['live_max_lag_ms'] / HOUR, 'event_counts': dict(cnt), 'mark_counts': dict(mcnt),
+                       'flags': [{'type': f['type'], 'taint_from_utc': E.iso(f['taint_from_ts']), 'recorded_utc': f['recorded_utc']} for f in flags],
+                       'clean_through_utc': E.iso(clean_mk['A'][-1]['h']) if clean_mk['A'] else None, 'A_clean': scen_stats(ex, 'A', init, clean_ev, clean_mk['A']) if mixed else None, 'B_clean': scen_stats(ex, 'B', init, clean_ev, clean_mk['B']) if mixed else None,
+                       'backfill_events': sum(1 for e in ev if e.get('is_backfill')), 'max_record_lag_s': max([e['record_lag_s'] for e in ev if e.get('record_lag_s') is not None] or [0])}
     rep['limits'] = {'tick_runs': len(ticks), 'ticks_with_errors': sum(1 for t in ticks if t['errors']), 'ticks_with_gaps': sum(1 for t in ticks if t['gaps']), 'lock_takeovers': sum(1 for t in ticks if t.get('lock_takeover')),
                      'bar_mismatches': sum(len(t['bar_mismatches']) for t in ticks), 'divergences_logged': len(div), 'corrupt_lines_isolated': len(_ro(ex.corrupt)),
                      'wall_gap_hours_between_ticks_max': round(max([(_ts(b['wall_utc']) - _ts(a['wall_utc'])) / 3600 for a, b in zip(ticks, ticks[1:])] or [0]), 1)}
@@ -88,12 +95,19 @@ def render(r):
     A, B, p = r['A'], r['B'], r['period']; L = []
     L.append('# D4 前向紙上交易 A/B 觀察報告(模擬,非實盤)'); L.append('實驗 `%s`|固定開始 %s UTC|只呈現觀察結果,不自動調整實盤。' % (r['experiment_id'], r['start_utc']))
     if r['manifest_mismatch']: L.append('**警告:實驗雜湊不符 → %s;此紀錄不可再續跑,需建立新實驗版本。**' % ', '.join(r['manifest_mismatch']))
-    L.append('\n## 1 觀察期間\n- 已處理:%s → %s(%d 個小時;各幣已完成 1H 棒最少 %d 根;BTC 參考 4H 已完成 %d 根)\n- tick 次數 %d,最後一次 %s UTC' % (p['first_mark_utc'], p['processed_through_utc'], p['hours_processed'], p['completed_1h_bars_min_per_symbol'], p['completed_4h_bars_ref'], p['ticks'], p['last_tick_utc']))
+    ev_ = r['evidence']
+    L.append('\n## 1 觀察期間\n- **已處理到 %s UTC**(之後的行情尚未處理;處理範圍固定落後現在約 2 小時以上)\n- 已處理:%s → %s(%d 個小時;各幣已完成 1H 棒最少 %d 根;BTC 參考 4H 已完成 %d 根)\n- tick 次數 %d,最後一次 %s UTC' % (p['processed_through_utc'], p['first_mark_utc'], p['processed_through_utc'], p['hours_processed'], p['completed_1h_bars_min_per_symbol'], p['completed_4h_bars_ref'], p['ticks'], p['last_tick_utc']))
     if p['hours_processed'] < 24 * 14: L.append('- ⚠ 觀察期不足 14 天,統計意義很低,只當進度檢查。')
     rows = [('已平倉交易筆數', 'trades_closed'), ('目前持倉數', 'open_positions_now'), ('被拒絕的進場', 'rejected_entries'), ('淨報酬 %(含未平倉浮動)', 'net_return_pct'), ('已平倉淨損益 USD', 'closed_net_usd'), ('淨 PF(已平倉)', 'net_pf'), ('勝率 %', 'win_pct'),
             ('最大回撤 %(每小時權益)', 'max_dd_pct'), ('最差單日損益 USD', 'worst_day_usd'), ('手續費 USD', 'fees_usd'), ('資金費率 USD(+收/−付)', 'funding_usd'), ('滑價成本估計 USD', 'slippage_cost_usd_est'),
             ('平均/最大同時持倉', None), ('平均/最大暴露(倍權益)', None), ('進場/市價出場成交 vs 當根開盤:平均/最大 bp', None), ('停損成交 vs 觸發價:筆數 / 平均 bp', None)]
-    L.append('\n## 2 A / B 對照(起始權益 %.0f USD)\n| 項目 | A 全部 23 組 | B 排除 TRX、XRP 1H |\n|---|---|---|' % r['initial_equity'])
+    L.append('\n## 2 證據分類(即時前向 vs 補跑)')
+    if ev_['mixed']:
+        L.append('- ⚠ **這個實驗已不是「未中斷的即時前向」**:汙染起點 %s UTC。下表「全部」包含補跑/中斷之後的紀錄(混合);**只有第 2b 表(截至汙染起點、僅 LIVE_FORWARD)才可當作未中斷的即時前向證據。**' % ev_['taint_utc'])
+        L.append('- 旗標:' + '、'.join('%s(%s)' % (f['type'], f['taint_from_utc']) for f in ev_['flags']) if ev_['flags'] else '- 旗標:無(補跑來自記帳延遲超過 %g 小時)' % ev_['live_max_lag_hours'])
+    else: L.append('- 目前全部紀錄皆為 LIVE_FORWARD(記帳延遲 ≤ %g 小時、無中斷/缺口/修訂/補跑)。' % ev_['live_max_lag_hours'])
+    L.append('- 事件:%s|每小時權益點:%s|補跑事件 %d 筆|最大記帳延遲 %.1f 小時' % (dict(ev_['event_counts']), dict(ev_['mark_counts']), ev_['backfill_events'], ev_['max_record_lag_s'] / 3600))
+    L.append('\n## 2a A / B 對照(起始權益 %.0f USD;%s)\n| 項目 | A 全部 23 組 | B 排除 TRX、XRP 1H |\n|---|---|---|' % (r['initial_equity'], '全部,含補跑/中斷之後 = 混合' if ev_['mixed'] else '全部為即時前向'))
     for lab, k in rows:
         if k: a, b = A[k], B[k]
         elif '持倉' in lab: a, b = '%s / %s' % (A['avg_concurrent'], A['max_concurrent']), '%s / %s' % (B['avg_concurrent'], B['max_concurrent'])
@@ -102,6 +116,10 @@ def render(r):
         else: a, b = '%s / %s' % (A['fill_vs_market_open_bp_mean'], A['fill_vs_market_open_bp_max']), '%s / %s' % (B['fill_vs_market_open_bp_mean'], B['fill_vs_market_open_bp_max'])
         L.append('| %s | %s | %s |' % (lab, a, b))
     L.append('\n最差單日:A %s(%s)、B %s(%s)。' % (A['worst_day_usd'], A['worst_day'], B['worst_day_usd'], B['worst_day']))
+    if ev_['mixed']:
+        Ac, Bc_ = ev_['A_clean'], ev_['B_clean']
+        L.append('\n## 2b 未中斷即時前向(僅 LIVE_FORWARD,截至 %s)\n| 項目 | A | B |\n|---|---|---|' % ((ev_['clean_through_utc'] + ' UTC') if ev_['clean_through_utc'] else '— 尚無任何未中斷的即時前向紀錄'))
+        for lab, k in (('已平倉交易筆數', 'trades_closed'), ('淨報酬 %', 'net_return_pct'), ('淨 PF', 'net_pf'), ('最大回撤 %', 'max_dd_pct'), ('最差單日損益 USD', 'worst_day_usd'), ('手續費 USD', 'fees_usd'), ('資金費率 USD', 'funding_usd')): L.append('| %s | %s | %s |' % (lab, Ac[k], Bc_[k]))
     L.append('\n## 3 BTC 環境下的差異(C2 規則:ADX/DI,區間開始時已知的 4H 分類;每小時權益變化歸到當時環境)')
     if r['regime']:
         L.append('| 環境 | 小時數 | A 損益 | B 損益 | B−A |\n|---|---|---|---|---|')

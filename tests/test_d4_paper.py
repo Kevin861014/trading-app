@@ -244,6 +244,124 @@ class TestTick(Base):
         for sc in ('A', 'B'): self.assertTrue(any(e['scenario'] == sc and e['type'] == 'ENTRY' for e in evs), sc)
 
 
+class PoisonFeed(FakeFeed):
+    """決策時點 C 之後『還不可能知道』的行情全部換成垃圾值:收盤時間 > C 的 K 棒只保留開盤價(若它在 C 之前已開盤),更晚的整根換掉;C 之後的資金費率也換掉。"""
+    def __init__(self, now, cutoff):
+        super().__init__(now); self.cut = cutoff
+    def klines(self, sid, tf, start_ms):
+        step = E.STEP[tf]; out = []
+        for r in super().klines(sid, tf, start_ms):
+            t, o, h, l, c, v = r
+            if t + step <= self.cut: out.append(r)
+            elif t <= self.cut: out.append([t, o, o * 3, o * 0.2, o * 2.7, v])            # 這根在 C 時剛開盤:只有開盤價是已知的
+            else: out.append([t, o * 2.5, o * 3, o * 0.2, o * 2.7, v])                    # 尚未開盤:整根都是未來
+        return out
+    def funding(self, sid, start_ms): return [(t, (x if t <= self.cut else 0.05)) for t, x in super().funding(sid, start_ms)]
+
+
+class TestEvidenceLabels(Base):
+    FINAL = T0 + 9 * DAY + 3 * HOUR + 40000
+
+    def live(self, d=None, from_h=2, to_h=24 * 3 + 6, every=4, hook=None):
+        out = []
+        for k in range(from_h, to_h + 1, every):
+            f = FakeFeed(T0 + k * HOUR + 30000)
+            if hook: hook(f, k)
+            out.append(E.tick(d or self.dir, f))
+        return out
+
+    def marks(self, sc, d=None): return read_jsonl(os.path.join(d or self.dir, 'ledger', 'marks_%s.jsonl' % sc))[0]
+    def flags(self, d=None): return read_jsonl(os.path.join(d or self.dir, 'ledger', 'data_flags.jsonl'))[0]
+
+    def test_snapshot_fixes_the_live_lag_limit(self):
+        self.init(); s = json.load(open(os.path.join(self.dir, 'config_snapshot.json'), encoding='utf-8'))
+        self.assertEqual(s['rules']['live_max_lag_ms'], 8 * HOUR); self.assertEqual(set(s['rules']['evidence_classes']), {'LIVE_FORWARD', 'BACKFILL', 'AFTER_INTERRUPTION'})
+
+    def test_every_decision_keeps_close_time_fetch_time_tick_time_and_backfill_flag(self):
+        self.init(); self.live(); evs = self.events(); self.assertTrue(evs); kinds = {e['type'] for e in evs}; self.assertTrue({'ENTRY', 'EXIT', 'FUNDING'} <= kinds, kinds)
+        for e in evs:
+            for k in ('bar_close_ts', 'bar_close_utc', 'inputs_fetched_utc', 'tick_wall_utc', 'is_backfill', 'evidence', 'record_lag_s', 'ref_close_ts', 'tick_id', 'recorded_utc'): self.assertIn(k, e, (e['id'], k))
+            self.assertFalse(e['is_backfill']); self.assertEqual(e['evidence'], 'LIVE_FORWARD', e['id'])
+            self.assertLessEqual(e['bar_close_ts'], e['ref_close_ts']); self.assertGreaterEqual(e['inputs_fetched_utc'], e['bar_close_utc']); self.assertGreaterEqual(e['tick_wall_utc'], e['inputs_fetched_utc'])
+            self.assertGreaterEqual(e['record_lag_s'], 0); self.assertLessEqual(e['record_lag_s'], 8 * 3600)
+            if e['type'] == 'ENTRY': self.assertEqual(e['bar_close_ts'], e['decision_bar_open'] + E.STEP[e['tf']]); self.assertLessEqual(e['bar_close_ts'], e['decision_ts'])      # 決策在訊號棒收盤之後
+        for sc in ('A', 'B'):
+            for m in self.marks(sc):
+                for k in ('bar_close_ts', 'tick_wall_utc', 'is_backfill', 'evidence'): self.assertIn(k, m)
+                self.assertEqual(m['evidence'], 'LIVE_FORWARD', (sc, m['h']))
+        self.assertEqual(self.flags(), []); rep = R.build_report(self.dir); self.assertFalse(rep['evidence']['mixed']); self.assertIn('全部紀錄皆為 LIVE_FORWARD', R.render(rep))
+
+    def test_late_first_tick_is_labelled_backfill_not_live(self):
+        self.init(); E.tick(self.dir, FakeFeed(self.FINAL)); fl = self.flags()
+        self.assertEqual([f['type'] for f in fl], ['LATE_START']); self.assertEqual(fl[0]['taint_from_ts'], T0)
+        evs = self.events(); self.assertTrue(evs); self.assertFalse([e for e in evs if e['evidence'] == 'LIVE_FORWARD'])
+        self.assertTrue([e for e in evs if e['evidence'] == 'BACKFILL' and 'record_lag_exceeds_limit' in e['backfill_reasons'] and e['is_backfill']])
+        ms = self.marks('A'); self.assertEqual({m['evidence'] for m in ms}, {'BACKFILL', 'AFTER_INTERRUPTION'})
+        rep = R.build_report(self.dir); txt = R.render(rep); self.assertTrue(rep['evidence']['mixed']); self.assertEqual(rep['evidence']['A_clean']['trades_closed'], 0)
+        for s in ('已處理到', '不是「未中斷的即時前向」', '混合', 'LATE_START'): self.assertIn(s, txt)
+
+    def test_long_interruption_marks_later_records_and_never_rewrites_earlier_ones(self):
+        self.init(); tk = self.live(to_h=24 + 4); path = os.path.join(self.dir, 'ledger', 'events.jsonl'); before = open(path, 'rb').read(); last_wall = tk[-1]['wall_ms']
+        self.assertEqual(self.flags(), []); E.tick(self.dir, FakeFeed(T0 + 5 * DAY + 30000))                       # 4 天沒跑
+        self.assertTrue(open(path, 'rb').read().startswith(before), 'earlier records must be byte-identical')
+        fl = self.flags(); self.assertEqual([f['type'] for f in fl], ['INTERRUPTION']); taint = fl[0]['taint_from_ts']; self.assertEqual(taint, last_wall)
+        old_ids = {json.loads(l)['id'] for l in before.decode('utf-8').splitlines()}
+        for e in self.events():
+            if e['id'] in old_ids: self.assertEqual(e['evidence'], 'LIVE_FORWARD')
+            elif e['ref_close_ts'] > taint: self.assertIn(e['evidence'], ('BACKFILL', 'AFTER_INTERRUPTION'), e['id'])
+        self.assertTrue([e for e in self.events() if e['evidence'] == 'BACKFILL'])
+        rep = R.build_report(self.dir); live_exits = [e for e in self.events() if e['scenario'] == 'A' and e['type'] == 'EXIT' and e['evidence'] == 'LIVE_FORWARD']
+        self.assertEqual(rep['evidence']['A_clean']['trades_closed'], len(live_exits)); self.assertLessEqual(rep['evidence']['A_clean']['trades_closed'], rep['A']['trades_closed'])
+        self.assertLessEqual(rep['evidence']['taint_utc'], E.iso(taint))                                   # 汙染起點 = 最早的補跑輸入或旗標,不會晚於中斷旗標
+
+    def test_data_gap_is_flagged_and_post_gap_records_are_not_live(self):
+        self.init(); gap_t = T0 + 2 * DAY + 5 * HOUR
+        def hook(f, k):
+            if T0 + 2 * DAY + 5 * HOUR <= f.now < T0 + 3 * DAY + 4 * HOUR: f.drop.add(('TRXUSDT', '1h', gap_t))                # 缺棒持續一段時間,之後行情補齊
+        self.live(to_h=24 * 4 + 2, hook=hook); fl = self.flags(); gaps = [f for f in fl if f['type'] == 'DATA_GAP']
+        self.assertEqual(len(gaps), 1); self.assertEqual(gaps[0]['taint_from_ts'], gap_t)
+        for e in self.events(): self.assertTrue(e['evidence'] != 'LIVE_FORWARD' if e['ref_close_ts'] > gap_t else True, e['id'])
+        self.assertTrue([e for e in self.events() if e['ref_close_ts'] > gap_t])
+        self.assertTrue(all(e['evidence'] == 'LIVE_FORWARD' for e in self.events() if e['ref_close_ts'] <= gap_t))
+
+    def test_bar_revision_is_flagged_and_later_records_are_not_live(self):
+        self.init(); self.live(to_h=24 + 2); p = os.path.join(self.dir, 'bars', 'TRX-USDT_1h.jsonl'); stored = {b['t']: b['c'] for b in read_jsonl(p)[0]}; t = max(stored)
+        def hook(f, k): f.tamper[('TRXUSDT', '1h', t)] = stored[t] * 1.1
+        E.tick(self.dir, (lambda f: (hook(f, 0), f)[1])(FakeFeed(T0 + (24 + 6) * HOUR + 30000)))
+        self.live(from_h=24 + 10, to_h=24 * 3)
+        rv = [f for f in self.flags() if f['type'] == 'BAR_REVISION']; self.assertTrue(rv); tt = min(f['taint_from_ts'] for f in rv)
+        self.assertEqual({b['t']: b['c'] for b in read_jsonl(p)[0]}[t], stored[t])                                  # 原始 K 棒不被覆蓋
+        for e in self.events(): self.assertTrue(e['evidence'] != 'LIVE_FORWARD' if e['ref_close_ts'] > tt else True, e['id'])
+
+    def test_decisions_use_only_data_observable_at_decision_time(self):
+        d2 = os.path.join(self.tmp, 'poison'); self.init(); self.init(d=d2); E.tick(self.dir, FakeFeed(self.FINAL))
+        ents = sorted([e for e in self.events() if e['scenario'] == 'A' and e['type'] == 'ENTRY'], key=lambda e: e['decision_ts']); self.assertGreater(len(ents), 4)
+        C = ents[len(ents) // 2]['decision_ts']
+        E.tick(d2, PoisonFeed(self.FINAL, C))
+        def observable(e):
+            if e['type'] == 'FUNDING': return e['ts'] <= C
+            if e['type'] == 'EXIT' and e['why'] == '交易所保護停損': return e['bar_close_ts'] <= C
+            return e['decision_ts'] <= C
+        a = {e['id']: e for e in self.events() if observable(e)}; b = {e['id']: e for e in self.events(d2) if observable(e)}
+        self.assertGreater(len(a), 10); self.assertEqual(set(a), set(b), 'decisions made at or before C changed when the future was poisoned')
+        for i in a:
+            for k in E.COMPARE_KEYS:
+                if k in a[i]: self.assertTrue(E._close(a[i][k], b[i].get(k)), (i, k, a[i][k], b[i].get(k)))
+        self.assertTrue([e for e in self.events() if not observable(e) and e['decision_ts' if 'decision_ts' in e else 'ts'] > C], 'there must be later events that the poison could affect')
+
+    def test_hash_mismatch_never_resets_the_baseline(self):
+        self.init(); mp = os.path.join(self.dir, 'MANIFEST.json'); sp = os.path.join(self.dir, 'MANIFEST.sha256'); h = (self.sha(mp), self.sha(sp)); orig = E.tracked_hashes
+        try:
+            bad = orig(); bad['sim.py'] = '0' * 64; E.tracked_hashes = lambda: bad
+            for _ in range(2):
+                with self.assertRaises(E.ManifestMismatch): E.tick(self.dir, FakeFeed(self.FINAL))
+        finally: E.tracked_hashes = orig
+        self.assertEqual((self.sha(mp), self.sha(sp)), h); self.assertFalse(os.path.exists(os.path.join(self.dir, 'ledger')) and os.listdir(os.path.join(self.dir, 'ledger')))
+        eng = open(os.path.join(P4, 'd4_engine.py'), encoding='utf-8').read(); self.assertEqual(eng.count("open(ex.manifest, 'wb')"), 1); self.assertEqual(eng.count("open(ex.snapshot, 'wb')"), 1)       # 只有 init_experiment 寫入基準檔
+        ini = open(os.path.join(P4, 'd4_init.py'), encoding='utf-8').read(); self.assertNotIn('--force', ini); self.assertNotIn('--reset', ini); self.assertNotIn('--rebaseline', ini)
+        for f in glob.glob(os.path.join(P4, 'd4_*.py')): self.assertNotIn('S_IWRITE', open(f, encoding='utf-8').read(), f)
+
+
 class TestReport(Base):
     def test_report_is_read_only_and_has_required_sections(self):
         self.init(); E.tick(self.dir, FakeFeed(T0 + 9 * DAY + 3 * HOUR + 40000)); before = self.ledger_hashes()

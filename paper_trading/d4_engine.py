@@ -14,6 +14,7 @@ from d4_store import FileLock, append_jsonl, dumps, read_jsonl, read_jsonl_ro, s
 HOUR = 3600000; STEP = {'1h': HOUR, '4h': 4 * HOUR}
 WARMUP_BARS = 420                                  # 策略每輪用最近 400 根;多留一點
 FUNDING_LAG_MS = 2 * HOUR                          # 處理範圍落後 2 小時,確保該段資金費率已公布
+LIVE_MAX_LAG_MS = 8 * HOUR                         # 即時前向的容許延遲(2 小時結構性延遲 + 6 小時 tick 間隔);超過 = 補跑(BACKFILL)。寫進快照、受雜湊保護
 REF_SYMBOL = 'BTC/USDT'                            # 只用來分類市場環境,不交易
 INTEGRATION_FILES = ['extra_strats.py', 'extra_strats_v3.py', 'extra_strats_v4.py', 'extra_strats_v5.py', 'extra_strats_v6.py', 'extra_strats_v7.py', 'extra_strats_v8.py', 'extra_strats_v9.py', 'extra_strats_loop.py']
 TRACKED_FILES = ['sim.py'] + ['integration/' + f for f in INTEGRATION_FILES] + ['validation/d2_portfolio/d2_sim.py', 'paper_trading/d4_store.py', 'paper_trading/d4_feed.py', 'paper_trading/d4_engine.py', 'paper_trading/d4_tick.py']
@@ -74,7 +75,7 @@ class Exp:
         self.manifest = j('MANIFEST.json'); self.manifest_sha = j('MANIFEST.sha256'); self.snapshot = j('config_snapshot.json')
         self.bars = j('bars'); self.funding = j('funding'); self.signals = j('signals'); self.ledger = j('ledger'); self.reports = j('reports')
         self.events = j('ledger', 'events.jsonl'); self.ticks = j('ledger', 'ticks.jsonl'); self.diverge = j('ledger', 'divergences.jsonl'); self.corrupt = j('ledger', 'corrupt_lines.jsonl')
-        self.lock = j('tick.lock'); self.status = j('status.json')
+        self.lock = j('tick.lock'); self.status = j('status.json'); self.flags = j('ledger', 'data_flags.jsonl')
 
     def marks(self, scen): return os.path.join(self.ledger, 'marks_%s.jsonl' % scen)
     def bar_file(self, sym, tf): return os.path.join(self.bars, '%s_%s.jsonl' % (sym.replace('/', '-'), tf))
@@ -115,7 +116,7 @@ def build_snapshot(exp_id, start_ms, combos, markets, created_ms, source_info):
                           'B': {'label': 'B 排除 TRX 1H、XRP 1H(其餘 21 組配置/風險參數/資金分配公式不變;Σ權重沿用 A 的 16,與 D3 相同)', 'combos': Bc, 'sumw': sum(c['weight'] for c in A), 'excluded': B_EXCLUDED}},
             'params': dict(PARAMS), 'exit_params': exit_params(STR, {c['strategy'] for c in A}), 'symbols': syms, 'reference_symbol': REF_SYMBOL, 'markets': markets,
             'data_source': {'exchange': 'Binance USDT-M perpetual (fapi, public endpoints only)', 'klines': '/fapi/v1/klines', 'funding': '/fapi/v1/fundingRate', 'closed_bars_only': True, 'safety_ms': 5000, 'funding_lag_ms': FUNDING_LAG_MS, 'warmup_bars': WARMUP_BARS},
-            'rules': {'warmup_not_counted': '開始時間之前的 K 棒只用於指標暖機,所有績效從 start_ts 起算;開始時全部空手。', 'same_bars_for_A_and_B': True, 'no_live_connection': True, 'fills': 'SIMULATED(下一根 1H 開盤價 × (1+滑價));與市場實際價的差異另行記錄'},
+            'rules': {'live_max_lag_ms': LIVE_MAX_LAG_MS, 'evidence_classes': {'LIVE_FORWARD': '即時前向:記帳時距離最後輸入 K 棒收盤 ≤ live_max_lag_ms,且之前沒有中斷/缺口/修訂/補跑', 'BACKFILL': '補跑:記帳或取得行情時已超過 live_max_lag_ms', 'AFTER_INTERRUPTION': '中斷/缺口/修訂/補跑之後才記的決策(路徑已受影響,不是未中斷的即時證據)'}, 'warmup_not_counted': '開始時間之前的 K 棒只用於指標暖機,所有績效從 start_ts 起算;開始時全部空手。', 'same_bars_for_A_and_B': True, 'no_live_connection': True, 'fills': 'SIMULATED(下一根 1H 開盤價 × (1+滑價));與市場實際價的差異另行記錄'},
             'config_source': source_info}
 
 
@@ -127,7 +128,8 @@ def init_experiment(exp_dir, exp_id, start_ms, combos, markets, created_ms, sour
     if not allow_past and start_ms < created_ms: raise ValueError('start must not be in the past for a forward experiment (use a later --start)')
     snap = build_snapshot(exp_id, start_ms, combos, markets, created_ms, source_info)
     for d in (ex.dir, ex.bars, ex.funding, ex.signals, ex.ledger, ex.reports): os.makedirs(d)
-    sb = dumps(snap).encode('utf-8'); open(ex.snapshot, 'wb').write(sb)
+    sb = dumps(snap).encode('utf-8')
+    with open(ex.snapshot, 'wb') as f: f.write(sb)
     man = {'experiment_id': exp_id, 'version': 1, 'created_utc': iso(created_ms), 'start_utc': iso(start_ms), 'snapshot_sha256': sha256_bytes(sb), 'markets_sha256': sha256_bytes(dumps(markets).encode('utf-8')),
            'files_sha256': tracked_hashes(), 'python': platform.python_version(), 'git': git_info(), 'rule': '任何一個雜湊不符,tick 會拒絕執行;要修改必須建立新的實驗版本(新目錄),不得覆蓋本紀錄。'}
     mb = json.dumps(man, ensure_ascii=False, indent=1, sort_keys=True).encode('utf-8'); open(ex.manifest, 'wb').write(mb); open(ex.manifest_sha, 'w').write(sha256_bytes(mb) + '\n')
@@ -236,7 +238,7 @@ def derive_events(scen, res, M, snap):
         e.update(fill_info(sym, ts, fill, sig)); return e
     for t in res['trades']:
         ev.append(entry(t['key'], t['sym'], t['tf'], t['entry_ts'], t['qty'], t['entry_fill'], t['sig_px'], t['qty'] * t['entry_fill'] * taker))
-        x = {'type': 'EXIT', 'scenario': scen, 'key': t['key'], 'sym': t['sym'], 'tf': t['tf'], 'entry_ts': int(t['entry_ts']), 'decision_ts': int(t['exit_ts']), 'qty': _r(t['qty']), 'why': t['why'], 'gross': _r(t['gross']), 'fees': _r(t['fees']), 'funding': _r(t['funding']), 'net': _r(t['net']),
+        x = {'type': 'EXIT', 'scenario': scen, 'key': t['key'], 'sym': t['sym'], 'tf': t['tf'], 'entry_ts': int(t['entry_ts']), 'decision_ts': int(t['exit_ts']), 'qty': _r(t['qty']), 'why': t['why'], 'decision_bar_open': (int(t['exit_bar_ts']) if t.get('exit_bar_ts') is not None else None), 'gross': _r(t['gross']), 'fees': _r(t['fees']), 'funding': _r(t['funding']), 'net': _r(t['net']),
              'id': '%s|EXIT|%s|%d' % (scen, t['key'], t['entry_ts'])}
         x.update(fill_info(t['sym'], t['exit_ts'], t['exit_fill'], t.get('exit_exp_px'))); ev.append(x)
     for p in res['open_detail']:
@@ -251,14 +253,91 @@ def derive_events(scen, res, M, snap):
 COMPARE_KEYS = ('decision_ts', 'qty', 'sim_fill', 'expected_px', 'net', 'fees', 'amount', 'rate', 'why', 'reason', 'ts')
 
 
-def reconcile_events(ex, events, tick_id, now_ms):
-    """把『新』事件 append 到帳本;既有 id 只做比對。回傳 (新增, 相同, 不一致)。不覆蓋、不刪除任何既有紀錄。"""
+# ───────────────── 證據分類:即時前向 / 補跑 / 中斷之後 ─────────────────
+def fetch_map(ex, syms, need4):
+    """(幣, 週期或 'fund', 開盤/結算時間) → 實際取得時間(ms)。來自 bars/、funding/ 內每筆記錄的 fetched_at。"""
+    fm = {}
+    for s in syms:
+        for tf in ('1h', '4h'):
+            if tf == '4h' and s not in need4: continue
+            for r in read_jsonl_ro(ex.bar_file(s, tf)): fm[(s, tf, r['t'])] = r['fetched_at']
+        for r in read_jsonl_ro(ex.fund_file(s)): fm[(s, 'fund', r['t'])] = r['fetched_at']
+    return fm
+
+
+def _inputs(e):
+    """這個決策用到的已收盤行情:(幣, 週期, 開盤時間);資金費率用 'fund'。進場/出場的成交參考價 = 決策當下剛開盤那一根的開盤價,另列為第二個輸入。"""
+    t = e['type']; sym = e.get('sym') or e['key'].split('|')[0]
+    if t == 'ENTRY': tau = e['decision_ts']; return [(sym, e['tf'], e['decision_bar_open']), (sym, '1h', tau - tau % HOUR)]
+    if t == 'EXIT':
+        if e['why'] == '交易所保護停損': return [(sym, '1h', e['decision_bar_open'])]
+        tau = e['decision_ts']; return [(sym, e['tf'], e['decision_bar_open']), (sym, '1h', tau - tau % HOUR)]
+    if t == 'FUNDING': ts = e['ts']; return [(sym, 'fund', ts), (sym, '1h', ts - ts % HOUR)]
+    tau = e['decision_ts']; tf = e['key'].split('|')[1]; return [(sym, tf, tau - tau % STEP[tf] - STEP[tf])]           # REJECT
+
+
+def _close_of(tf, t): return t if tf == 'fund' else t + STEP[tf]
+
+
+def annotate(e, fm, live_ms):
+    ins = [x for x in _inputs(e) if x[2] is not None]; closes = []; fetched = []; late = False; missing = not ins
+    for (s, tf, t) in ins:
+        f = fm.get((s, tf, t)); c = _close_of(tf, t)
+        if f is None: missing = True; continue
+        closes.append(c); fetched.append(f); late = late or (f - c > live_ms)
+    return {'bar_close_ts': (_close_of(ins[0][1], ins[0][2]) if ins else None), 'ref_close_ts': max(closes) if closes else None, 'inputs_fetched_ms': max(fetched) if fetched else None, 'late': late, 'missing': missing}
+
+
+def annotate_mark(h, fm, syms, live_ms):
+    f = [fm[(s, '1h', h - HOUR)] for s in syms if (s, '1h', h - HOUR) in fm]
+    return {'bar_close_ts': int(h), 'ref_close_ts': int(h), 'inputs_fetched_ms': max(f) if f else None, 'late': bool(f) and max(f) - h > live_ms, 'missing': not f}
+
+
+def classify(meta, now, taint, live_ms):
+    """回傳要寫進紀錄的欄位。決定於『第一次記帳』當下,之後永遠不改。"""
+    reasons = []
+    if meta['ref_close_ts'] is None or meta['missing']: reasons.append('input_fetch_time_missing')
+    else:
+        if now - meta['ref_close_ts'] > live_ms: reasons.append('record_lag_exceeds_limit')
+        if meta['late']: reasons.append('input_bar_fetched_late')
+    bf = bool(reasons)
+    ev = 'BACKFILL' if bf else ('AFTER_INTERRUPTION' if (taint is not None and meta['ref_close_ts'] > taint) else 'LIVE_FORWARD')
+    return {'bar_close_ts': meta['bar_close_ts'], 'bar_close_utc': iso(meta['bar_close_ts']) if meta['bar_close_ts'] else None, 'ref_close_ts': meta['ref_close_ts'], 'inputs_fetched_utc': iso(meta['inputs_fetched_ms']) if meta['inputs_fetched_ms'] else None,
+            'tick_wall_utc': iso(now), 'record_lag_s': (round((now - meta['ref_close_ts']) / 1000) if meta['ref_close_ts'] else None), 'is_backfill': bf, 'evidence': ev, 'backfill_reasons': reasons}
+
+
+def current_taint(ex):
+    """最早的『汙染』時間:任何資料旗標,或任何補跑紀錄的輸入收盤時間。沒有就回傳 None。"""
+    ts = [f['taint_from_ts'] for f in read_jsonl_ro(ex.flags)]
+    for p in [ex.events, ex.marks('A'), ex.marks('B')]:
+        ts += [r['ref_close_ts'] for r in read_jsonl_ro(p) if r.get('is_backfill') and r.get('ref_close_ts') is not None]
+    return min(ts) if ts else None
+
+
+def detect_flags(ex, rec, snap, now, tick_id, prev_wall):
+    """中斷/缺口/修訂都另存為不可覆寫的旗標(ledger/data_flags.jsonl)。回傳『新』旗標。"""
+    T0 = snap['start_ts']; live = snap['rules']['live_max_lag_ms']; fl = []
+    prev = T0 if prev_wall is None else max(prev_wall, T0)
+    if now > T0 and now - prev > live:
+        fl.append({'id': 'INTERRUPTION|%d' % prev, 'type': 'LATE_START' if (prev_wall is None or prev_wall < T0) else 'INTERRUPTION', 'taint_from_ts': int(prev), 'detail': {'from_utc': iso(prev), 'to_utc': iso(now), 'hours': round((now - prev) / HOUR, 1)}})
+    for g in rec['gaps']:
+        if 'sym' in g: fl.append({'id': 'GAP|%s|%d' % (g['sym'], g['first_missing_ts']), 'type': 'DATA_GAP', 'taint_from_ts': int(g['first_missing_ts']), 'detail': g})
+    for m in rec['bar_mismatches']: fl.append({'id': 'REV|%s|%s|%d' % (m['sym'], m['tf'], m['t']), 'type': 'BAR_REVISION', 'taint_from_ts': int(max(m['t'], T0)), 'detail': m})
+    have = {r['id'] for r in read_jsonl(ex.flags, ex.corrupt)[0]}; new = []
+    for f in fl:
+        if f['id'] in have: continue
+        have.add(f['id']); f['recorded_utc'] = iso(now); f['tick_id'] = tick_id; new.append(f)
+    append_jsonl(ex.flags, new); return new
+
+
+def reconcile_events(ex, events, tick_id, now_ms, fm=None, live_ms=LIVE_MAX_LAG_MS, taint=None):
+    """把『新』事件 append 到帳本(附上證據分類);既有 id 只做比對。回傳 (新增, 相同, 不一致)。不覆蓋、不刪除任何既有紀錄。"""
     have, _ = read_jsonl(ex.events, ex.corrupt); idx = {r['id']: r for r in have}; new = []; same = 0; div = []; seen = set()
     for e in events:
         if e['id'] in seen: continue
         seen.add(e['id']); old = idx.get(e['id'])
         if old is None:
-            e = dict(e); e['recorded_utc'] = iso(now_ms); e['tick_id'] = tick_id; new.append(e)
+            e = dict(e); e.update(classify(annotate(e, fm or {}, live_ms), now_ms, taint, live_ms)); e['recorded_utc'] = iso(now_ms); e['tick_id'] = tick_id; new.append(e)
         else:
             diff = {k: (old.get(k), e.get(k)) for k in COMPARE_KEYS if k in e and not _close(old.get(k), e.get(k))}
             if diff: div.append({'id': e['id'], 'diff': diff, 'tick_id': tick_id, 'at': iso(now_ms)})
@@ -272,15 +351,36 @@ def _close(a, b):
     return a == b
 
 
-def reconcile_marks(ex, scen, marks, T0, tick_id, now_ms):
-    have, _ = read_jsonl(ex.marks(scen), ex.corrupt); idx = {r['h']: r for r in have}; new = []; div = []
+def reconcile_marks(ex, scen, marks, T0, tick_id, now_ms, fm=None, syms=(), live_ms=LIVE_MAX_LAG_MS, taint=None):
+    have, _ = read_jsonl(ex.marks(scen), ex.corrupt); idx = {r['h']: r for r in have}; new = []; div = []; h0 = T0 - T0 % HOUR
     for h, e, w, x, n in marks:
-        if h < T0 - T0 % HOUR: continue
+        if h < h0: continue
         if h in idx:
             if not _close(idx[h]['equity'], e): div.append({'id': '%s|MARK|%d' % (scen, h), 'diff': {'equity': (idx[h]['equity'], e)}, 'tick_id': tick_id, 'at': iso(now_ms)})
-        else: new.append({'h': int(h), 'equity': _r(e), 'wallet': _r(w), 'exposure': _r(x), 'n_open': int(n), 'recorded_utc': iso(now_ms), 'tick_id': tick_id})
+        else:
+            meta = annotate_mark(h, fm or {}, syms, live_ms)
+            if h == h0: meta['missing'] = False                                   # 起始那一點沒有行情輸入(空手、起始資金)
+            r = {'h': int(h), 'equity': _r(e), 'wallet': _r(w), 'exposure': _r(x), 'n_open': int(n), 'recorded_utc': iso(now_ms), 'tick_id': tick_id}
+            r.update(classify(meta, now_ms, taint, live_ms)); new.append(r)
     append_jsonl(ex.marks(scen), new); append_jsonl(ex.diverge, div)
     return len(new), len(div)
+
+
+def pending_backfill_min(ex, ev_by, runs_marks, T0, fm, syms, now, live_ms):
+    """這次 tick『將要新增』的紀錄中,最早的補跑輸入收盤時間(用來決定同一 tick 內之後的紀錄是否算『中斷之後』)。"""
+    have_ids = {r['id'] for r in read_jsonl_ro(ex.events)}; ts = []
+    for evs in ev_by.values():
+        for e in evs:
+            if e['id'] in have_ids: continue
+            m = annotate(e, fm, live_ms)
+            if classify(m, now, None, live_ms)['is_backfill'] and m['ref_close_ts'] is not None: ts.append(m['ref_close_ts'])
+    h0 = T0 - T0 % HOUR
+    for scen, marks in runs_marks.items():
+        have_h = {r['h'] for r in read_jsonl_ro(ex.marks(scen))}
+        for h, *_ in marks:
+            if h in have_h or h <= h0: continue
+            if classify(annotate_mark(h, fm, syms, live_ms), now, None, live_ms)['is_backfill']: ts.append(h)
+    return min(ts) if ts else None
 
 
 # ───────────────── 一次 tick ─────────────────
@@ -290,7 +390,8 @@ def tick(exp_dir, feed, now_ms=None, stale_lock_s=1800):
     snap = ex.load_snapshot(); T0 = snap['start_ts']; now = int(now_ms if now_ms is not None else feed.now_ms()); tick_id = '%s_%d' % (iso(now).replace(' ', 'T').replace(':', ''), os.getpid())
     A = snap['scenarios']['A']['combos']; Bc = snap['scenarios']['B']['combos']
     with FileLock(ex.lock, stale_lock_s) as lk:
-        rec = {'tick_id': tick_id, 'wall_utc': iso(now), 'lock_takeover': lk.took_over, 'errors': [], 'gaps': [], 'bar_mismatches': [], 'new_bars': 0}
+        prev_ticks = read_jsonl_ro(ex.ticks); prev_wall = prev_ticks[-1].get('wall_ms') if prev_ticks else None
+        rec = {'tick_id': tick_id, 'wall_utc': iso(now), 'wall_ms': now, 'lock_takeover': lk.took_over, 'errors': [], 'gaps': [], 'bar_mismatches': [], 'new_bars': 0}
         syms = snap['symbols'] + [snap['reference_symbol']]; need4 = {c['symbol'] for c in A if c['timeframe'] == '4h'} | {snap['reference_symbol']}
         mk = snap['markets']
         for s in syms:
@@ -306,14 +407,15 @@ def tick(exp_dir, feed, now_ms=None, stale_lock_s=1800):
                 fh = load_funding(ex, s); fr = feed.funding(sid, (fh[-1][0] + 1) if fh else T0 - 24 * HOUR); store_funding(ex, s, fr, now)
             except Exception as e: rec['errors'].append('funding %s: %s' % (s, str(e)[:100]))
         # 處理範圍 T1:所有幣的 1H 從 T0 所在小時起連續不缺的最後一根,且落後現在 ≥ 2 小時(資金費率已公布)
-        T0h = T0 - T0 % HOUR; lastclosed = now - now % HOUR - HOUR; T1 = lastclosed - FUNDING_LAG_MS + HOUR
+        T0h = T0 - T0 % HOUR; lastclosed = now - now % HOUR - HOUR; T1 = lastclosed - FUNDING_LAG_MS + HOUR; wanted = T1
         bars = {}; contig = {}
         for s in syms:
             r1 = load_bars(ex, s, '1h'); bars[(s, '1h')] = r1; lc = last_contiguous([r[0] for r in r1], HOUR, T0h); contig[s] = lc
-            if lc < T1 and lc >= T0h: rec['gaps'].append({'sym': s, 'last_contiguous_1h': iso(lc), 'wanted_through': iso(T1)})       # 缺棒:處理範圍停在缺口之前,不補造
+            if wanted >= T0h and lc < wanted: rec['gaps'].append({'sym': s, 'last_contiguous_1h': iso(lc), 'first_missing_ts': int(max(lc + HOUR, T0h)), 'wanted_through': iso(wanted)})       # 缺棒:處理範圍停在缺口之前,不補造
             T1 = min(T1, lc)
             if s in need4: bars[(s, '4h')] = load_bars(ex, s, '4h')
         rec['T1'] = int(T1); rec['T1_utc'] = iso(T1) if T1 > 0 else None
+        new_flags = detect_flags(ex, rec, snap, now, tick_id, prev_wall); rec['new_flags'] = [f['type'] for f in new_flags]
         if T1 < T0h:
             rec['note'] = 'warm-up only (no processing before the start)'; append_jsonl(ex.ticks, [rec]); _status(ex, rec, snap); return rec
         STR = load_strategies(); sigs = {}
@@ -325,10 +427,16 @@ def tick(exp_dir, feed, now_ms=None, stale_lock_s=1800):
                 if g: rec['gaps'].append({'signals_window_gap': key_of(c), 'bars_skipped': g})
         data = {'candles': {k: v for k, v in bars.items()}, 'markets': {s: m for s, m in mk.items()}, 'funding': {s: load_funding(ex, s) for s in syms}}
         M = S.Market(data); P = S.default_params({k: tuple(v) for k, v in snap['exit_params'].items()}, **snap['params'])
-        tot_new = tot_same = tot_div = 0
-        for scen_name, combos in (('A', A), ('B', Bc)):
-            res = S.run(M, sigs, [(T0, combos)], T0, T1, P, snap['initial_equity'])
-            n, same, dv = reconcile_events(ex, derive_events(scen_name, res, M, snap), tick_id, now); n2, d2 = reconcile_marks(ex, scen_name, res['marks'], T0, tick_id, now)
+        tot_new = tot_same = tot_div = 0; live = snap['rules']['live_max_lag_ms']
+        runs = {n: S.run(M, sigs, [(T0, cs)], T0, T1, P, snap['initial_equity']) for n, cs in (('A', A), ('B', Bc))}
+        ev_by = {n: derive_events(n, r, M, snap) for n, r in runs.items()}; need4s = need4
+        fm = fetch_map(ex, syms, need4s); taint = current_taint(ex)
+        pm = pending_backfill_min(ex, ev_by, {n: r['marks'] for n, r in runs.items()}, T0, fm, syms, now, live)                    # 這次新增的補跑紀錄也算汙染起點
+        ts_ = [x for x in (taint, pm) + tuple(f['taint_from_ts'] for f in new_flags) if x is not None]; taint = min(ts_) if ts_ else None
+        rec['taint_ts'] = taint; rec['taint_utc'] = iso(taint) if taint else None
+        for scen_name in ('A', 'B'):
+            res = runs[scen_name]
+            n, same, dv = reconcile_events(ex, ev_by[scen_name], tick_id, now, fm, live, taint); n2, d2 = reconcile_marks(ex, scen_name, res['marks'], T0, tick_id, now, fm, syms, live, taint)
             tot_new += n + n2; tot_same += same; tot_div += dv + d2
             rec[scen_name] = {'equity_end': _r(res['equity_end']), 'trades_closed': len(res['trades']), 'open': len(res['open_detail']), 'rejected': res['rejected']}
         rec.update(new_records=tot_new, unchanged_events=tot_same, divergences=tot_div)
