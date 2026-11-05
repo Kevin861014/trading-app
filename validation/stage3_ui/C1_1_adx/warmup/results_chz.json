@@ -1,0 +1,140 @@
+{
+ "windows_400": 5960,
+ "counts_vs_A": {
+  "B": {
+   "last_bar_signal_diff": 0,
+   "last10_signal_diff": 0,
+   "final_pos_diff": 0,
+   "adx_last_maxdiff": 8.570921750106208e-12
+  },
+  "C100": {
+   "last_bar_signal_diff": 0,
+   "last10_signal_diff": 0,
+   "final_pos_diff": 0,
+   "adx_last_maxdiff": 0.0
+  },
+  "C200": {
+   "last_bar_signal_diff": 0,
+   "last10_signal_diff": 0,
+   "final_pos_diff": 0,
+   "adx_last_maxdiff": 0.0
+  }
+ },
+ "current_window": {
+  "A": {
+   "adx_last": 27.931896782480585,
+   "el_last": false,
+   "xl_last": false,
+   "pos_state": false
+  },
+  "B": {
+   "adx_last": 27.93189678248087,
+   "el_last": false,
+   "xl_last": false,
+   "pos_state": false
+  },
+  "C100": {
+   "adx_last": 27.931896782480585,
+   "el_last": false,
+   "xl_last": false,
+   "pos_state": false
+  },
+  "C200": {
+   "adx_last": 27.931896782480585,
+   "el_last": false,
+   "xl_last": false,
+   "pos_state": false
+  }
+ },
+ "seed_900d": {
+  "A": {
+   "trades": 38,
+   "rets": [
+    -0.0796,
+    -0.0987,
+    -0.006,
+    0.0798,
+    -0.0631,
+    -0.049,
+    0.0731,
+    -0.0006
+   ],
+   "el_idx": [
+    15,
+    35,
+    41,
+    99,
+    158
+   ],
+   "n_entries": 38
+  },
+  "B": {
+   "trades": 38,
+   "rets": [
+    -0.0796,
+    -0.0987,
+    -0.006,
+    0.0798,
+    -0.0631,
+    -0.049,
+    0.0731,
+    -0.0006
+   ],
+   "el_idx": [
+    27,
+    35,
+    41,
+    99,
+    158
+   ],
+   "n_entries": 38
+  },
+  "C100": {
+   "trades": 35,
+   "rets": [
+    -0.0796,
+    -0.0987,
+    -0.006,
+    0.0798,
+    -0.0631,
+    -0.049,
+    0.0731,
+    -0.0006
+   ],
+   "el_idx": [
+    100,
+    158,
+    216,
+    931,
+    1011
+   ],
+   "n_entries": 35
+  },
+  "C200": {
+   "trades": 33,
+   "rets": [
+    -0.0796,
+    -0.0987,
+    -0.006,
+    0.0798,
+    -0.0631,
+    -0.049,
+    0.0731,
+    -0.0006
+   ],
+   "el_idx": [
+    216,
+    931,
+    1011,
+    1036,
+    1086
+   ],
+   "n_entries": 33
+  }
+ },
+ "seed_signal_diff_indexes_A_vs_B": [
+  15,
+  27
+ ],
+ "seed_bars": 5579
+}

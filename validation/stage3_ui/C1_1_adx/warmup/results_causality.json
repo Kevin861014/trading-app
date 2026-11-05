@@ -1,0 +1,462 @@
+{
+ "dmi": {
+  "BTC/USDT 4h A": {
+   "violations_by_prefix_len": {
+    "20": 5,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {
+    "20": [
+     15,
+     19
+    ]
+   }
+  },
+  "BTC/USDT 4h B": {
+   "violations_by_prefix_len": {
+    "20": 0,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {}
+  },
+  "BTC/USDT 4h C27": {
+   "violations_by_prefix_len": {
+    "20": 0,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {}
+  },
+  "BTC/USDT 4h C50": {
+   "violations_by_prefix_len": {
+    "20": 0,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {}
+  },
+  "BTC/USDT 4h C100": {
+   "violations_by_prefix_len": {
+    "20": 0,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {}
+  },
+  "BTC/USDT 4h C150": {
+   "violations_by_prefix_len": {
+    "20": 0,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {}
+  },
+  "BTC/USDT 4h C200": {
+   "violations_by_prefix_len": {
+    "20": 0,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {}
+  },
+  "2330.TW 1d A": {
+   "violations_by_prefix_len": {
+    "20": 5,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {
+    "20": [
+     15,
+     19
+    ]
+   }
+  },
+  "2330.TW 1d B": {
+   "violations_by_prefix_len": {
+    "20": 0,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {}
+  },
+  "2330.TW 1d C27": {
+   "violations_by_prefix_len": {
+    "20": 0,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {}
+  },
+  "2330.TW 1d C50": {
+   "violations_by_prefix_len": {
+    "20": 0,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {}
+  },
+  "2330.TW 1d C100": {
+   "violations_by_prefix_len": {
+    "20": 0,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {}
+  },
+  "2330.TW 1d C150": {
+   "violations_by_prefix_len": {
+    "20": 0,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {}
+  },
+  "2330.TW 1d C200": {
+   "violations_by_prefix_len": {
+    "20": 0,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {}
+  },
+  "CHZ/USDT 4h A": {
+   "violations_by_prefix_len": {
+    "20": 5,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {
+    "20": [
+     15,
+     19
+    ]
+   }
+  },
+  "CHZ/USDT 4h B": {
+   "violations_by_prefix_len": {
+    "20": 0,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {}
+  },
+  "CHZ/USDT 4h C27": {
+   "violations_by_prefix_len": {
+    "20": 0,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {}
+  },
+  "CHZ/USDT 4h C50": {
+   "violations_by_prefix_len": {
+    "20": 0,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {}
+  },
+  "CHZ/USDT 4h C100": {
+   "violations_by_prefix_len": {
+    "20": 0,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {}
+  },
+  "CHZ/USDT 4h C150": {
+   "violations_by_prefix_len": {
+    "20": 0,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {}
+  },
+  "CHZ/USDT 4h C200": {
+   "violations_by_prefix_len": {
+    "20": 0,
+    "28": 0,
+    "30": 0,
+    "35": 0,
+    "40": 0,
+    "60": 0,
+    "100": 0,
+    "150": 0,
+    "250": 0,
+    "400": 0
+   },
+   "bad_index_range": {}
+  }
+ },
+ "signals": {
+  "BTC/USDT 4h diadx A": 1,
+  "BTC/USDT 4h diadx B": 0,
+  "BTC/USDT 4h diadx C27": 0,
+  "BTC/USDT 4h diadx C50": 0,
+  "BTC/USDT 4h diadx C100": 0,
+  "BTC/USDT 4h diadx C150": 0,
+  "BTC/USDT 4h diadx C200": 0,
+  "BTC/USDT 4h ema50_200_adx A": 0,
+  "BTC/USDT 4h ema50_200_adx B": 0,
+  "BTC/USDT 4h ema50_200_adx C27": 0,
+  "BTC/USDT 4h ema50_200_adx C50": 0,
+  "BTC/USDT 4h ema50_200_adx C100": 0,
+  "BTC/USDT 4h ema50_200_adx C150": 0,
+  "BTC/USDT 4h ema50_200_adx C200": 0,
+  "BTC/USDT 4h adx_di A": 0,
+  "BTC/USDT 4h adx_di B": 0,
+  "BTC/USDT 4h adx_di C27": 0,
+  "BTC/USDT 4h adx_di C50": 0,
+  "BTC/USDT 4h adx_di C100": 0,
+  "BTC/USDT 4h adx_di C150": 0,
+  "BTC/USDT 4h adx_di C200": 0,
+  "BTC/USDT 4h dmi_cross A": 0,
+  "BTC/USDT 4h dmi_cross B": 0,
+  "BTC/USDT 4h dmi_cross C27": 0,
+  "BTC/USDT 4h dmi_cross C50": 0,
+  "BTC/USDT 4h dmi_cross C100": 0,
+  "BTC/USDT 4h dmi_cross C150": 0,
+  "BTC/USDT 4h dmi_cross C200": 0,
+  "BTC/USDT 4h adx_di_trend A": 2,
+  "BTC/USDT 4h adx_di_trend B": 0,
+  "BTC/USDT 4h adx_di_trend C27": 0,
+  "BTC/USDT 4h adx_di_trend C50": 0,
+  "BTC/USDT 4h adx_di_trend C100": 0,
+  "BTC/USDT 4h adx_di_trend C150": 0,
+  "BTC/USDT 4h adx_di_trend C200": 0,
+  "BTC/USDT 4h holy_grail A": 0,
+  "BTC/USDT 4h holy_grail B": 0,
+  "BTC/USDT 4h holy_grail C27": 0,
+  "BTC/USDT 4h holy_grail C50": 0,
+  "BTC/USDT 4h holy_grail C100": 0,
+  "BTC/USDT 4h holy_grail C150": 0,
+  "BTC/USDT 4h holy_grail C200": 0,
+  "2330.TW 1d diadx A": 0,
+  "2330.TW 1d diadx B": 0,
+  "2330.TW 1d diadx C27": 0,
+  "2330.TW 1d diadx C50": 0,
+  "2330.TW 1d diadx C100": 0,
+  "2330.TW 1d diadx C150": 0,
+  "2330.TW 1d diadx C200": 0,
+  "2330.TW 1d ema50_200_adx A": 0,
+  "2330.TW 1d ema50_200_adx B": 0,
+  "2330.TW 1d ema50_200_adx C27": 0,
+  "2330.TW 1d ema50_200_adx C50": 0,
+  "2330.TW 1d ema50_200_adx C100": 0,
+  "2330.TW 1d ema50_200_adx C150": 0,
+  "2330.TW 1d ema50_200_adx C200": 0,
+  "2330.TW 1d adx_di A": 3,
+  "2330.TW 1d adx_di B": 0,
+  "2330.TW 1d adx_di C27": 0,
+  "2330.TW 1d adx_di C50": 0,
+  "2330.TW 1d adx_di C100": 0,
+  "2330.TW 1d adx_di C150": 0,
+  "2330.TW 1d adx_di C200": 0,
+  "2330.TW 1d dmi_cross A": 0,
+  "2330.TW 1d dmi_cross B": 0,
+  "2330.TW 1d dmi_cross C27": 0,
+  "2330.TW 1d dmi_cross C50": 0,
+  "2330.TW 1d dmi_cross C100": 0,
+  "2330.TW 1d dmi_cross C150": 0,
+  "2330.TW 1d dmi_cross C200": 0,
+  "2330.TW 1d adx_di_trend A": 4,
+  "2330.TW 1d adx_di_trend B": 0,
+  "2330.TW 1d adx_di_trend C27": 0,
+  "2330.TW 1d adx_di_trend C50": 0,
+  "2330.TW 1d adx_di_trend C100": 0,
+  "2330.TW 1d adx_di_trend C150": 0,
+  "2330.TW 1d adx_di_trend C200": 0,
+  "2330.TW 1d holy_grail A": 5,
+  "2330.TW 1d holy_grail B": 0,
+  "2330.TW 1d holy_grail C27": 0,
+  "2330.TW 1d holy_grail C50": 0,
+  "2330.TW 1d holy_grail C100": 0,
+  "2330.TW 1d holy_grail C150": 0,
+  "2330.TW 1d holy_grail C200": 0,
+  "CHZ/USDT 4h diadx A": 0,
+  "CHZ/USDT 4h diadx B": 0,
+  "CHZ/USDT 4h diadx C27": 0,
+  "CHZ/USDT 4h diadx C50": 0,
+  "CHZ/USDT 4h diadx C100": 0,
+  "CHZ/USDT 4h diadx C150": 0,
+  "CHZ/USDT 4h diadx C200": 0,
+  "CHZ/USDT 4h ema50_200_adx A": 0,
+  "CHZ/USDT 4h ema50_200_adx B": 0,
+  "CHZ/USDT 4h ema50_200_adx C27": 0,
+  "CHZ/USDT 4h ema50_200_adx C50": 0,
+  "CHZ/USDT 4h ema50_200_adx C100": 0,
+  "CHZ/USDT 4h ema50_200_adx C150": 0,
+  "CHZ/USDT 4h ema50_200_adx C200": 0,
+  "CHZ/USDT 4h adx_di A": 0,
+  "CHZ/USDT 4h adx_di B": 0,
+  "CHZ/USDT 4h adx_di C27": 0,
+  "CHZ/USDT 4h adx_di C50": 0,
+  "CHZ/USDT 4h adx_di C100": 0,
+  "CHZ/USDT 4h adx_di C150": 0,
+  "CHZ/USDT 4h adx_di C200": 0,
+  "CHZ/USDT 4h dmi_cross A": 0,
+  "CHZ/USDT 4h dmi_cross B": 0,
+  "CHZ/USDT 4h dmi_cross C27": 0,
+  "CHZ/USDT 4h dmi_cross C50": 0,
+  "CHZ/USDT 4h dmi_cross C100": 0,
+  "CHZ/USDT 4h dmi_cross C150": 0,
+  "CHZ/USDT 4h dmi_cross C200": 0,
+  "CHZ/USDT 4h adx_di_trend A": 0,
+  "CHZ/USDT 4h adx_di_trend B": 0,
+  "CHZ/USDT 4h adx_di_trend C27": 0,
+  "CHZ/USDT 4h adx_di_trend C50": 0,
+  "CHZ/USDT 4h adx_di_trend C100": 0,
+  "CHZ/USDT 4h adx_di_trend C150": 0,
+  "CHZ/USDT 4h adx_di_trend C200": 0,
+  "CHZ/USDT 4h holy_grail A": 0,
+  "CHZ/USDT 4h holy_grail B": 0,
+  "CHZ/USDT 4h holy_grail C27": 0,
+  "CHZ/USDT 4h holy_grail C50": 0,
+  "CHZ/USDT 4h holy_grail C100": 0,
+  "CHZ/USDT 4h holy_grail C150": 0,
+  "CHZ/USDT 4h holy_grail C200": 0
+ }
+}
