@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import sys, os, datetime, time
 sys.path.insert(0, os.path.dirname(__file__))
-from sim import run_backtest, STRATS, market_cost
+from sim import run_backtest, STRATS, market_cost, cost_kwargs, classify_market
 from sim import ema as calc_ema
 
 EXTRA_STRAT_CODES = set()  # 擴充策略代碼（integration/ 研究產出，主要在幣安加密貨幣上驗證過）
@@ -43,6 +43,7 @@ def _register_extra_strats():
                 build=wrap(meta["build"]),
                 atr_stop=0.0, atr_trail=0.0, atr_tp=0.0,
                 pct_stop=0.025, pct_tp=0.075,
+                min_bars=int(meta.get("min_bars") or 0),    # 策略自己宣告需要的暖機根數;資料不夠時 run_backtest 會回報不足
             )
             EXTRA_STRAT_CODES.add(code)
     print(f'✅ 擴充策略載入完成，新增 {len(EXTRA_STRAT_CODES)} 個策略（策略庫共 {len(STRATS)} 個）')
@@ -125,11 +126,17 @@ _cache_time = {}
 CACHE_TTL = 3600
 
 def is_crypto_symbol(symbol):
-    """判斷是不是加密貨幣代碼"""
-    s = symbol.upper()
-    return (s.endswith('-USD') or '/USDT' in s or
-            any(c in s for c in ['BTC','ETH','BNB','SOL','XRP','DOGE','ADA',
-                                  'LINK','LTC','TRX','PAXG','DOT','XLM']))
+    """判斷是不是加密貨幣代碼。只看代碼本身,跟 sim.classify_market 是同一套規則(成本與資料路由才不會各判各的)。
+    以前用子字串比對(代碼裡含 BTC/ETH/SOL… 就算加密),像 GBTC、ETHE 這種美股會被誤判。"""
+    return classify_market(symbol) == 'crypto'
+
+def _utcnow():
+    """交易紀錄與權益曲線的日期都是『UTC 的 naive datetime』,切窗口也要用 UTC,不能用本機時間(台灣差 8 小時)。"""
+    return datetime.datetime.utcnow()
+
+def _fmt_px(x):
+    """價格顯示:>=1 取 2 位;小於 1(例如 1000PEPE、VET)取 6 位,避免被 round(,2) 變成 0。"""
+    return round(x, 2) if x >= 1 else round(x, 6)
 
 INTRADAY = ('1h', '4h')
 
@@ -189,7 +196,7 @@ def fetch_ccxt_ohlcv(symbol, interval, days):
             if len(batch) < 1000: break
             since = batch[-1][0] + 1
         # 機器人只用『已收盤』的 K 棒；日內時框把還在走的最後一根拿掉，訊號才會跟機器人一致
-        _ms = {'1h': 3600000, '4h': 14400000}.get(ccxt_tf)
+        _ms = {'1h': 3600000, '4h': 14400000, '1d': 86400000}.get(ccxt_tf)
         if _ms and all_ohlcv and all_ohlcv[-1][0] + _ms > ex.milliseconds():
             all_ohlcv = all_ohlcv[:-1]
         # 格式：[ts, o, h, l, c, v]
@@ -197,6 +204,27 @@ def fetch_ccxt_ohlcv(symbol, interval, days):
     except Exception as e:
         print(f"ccxt 失敗（{symbol}）: {e}，退回 yfinance")
         return None
+
+def _is_forming(ts, symbol, interval, now=None):
+    """yfinance 最後一根 K 棒是不是還沒收盤(盤中/當日)。沒收盤的 K 棒不能拿來算訊號,機器人也只用已收盤的。
+    now 只給測試注入時間用;None 就用目前時間(取該 K 棒所在交易所的時區)。"""
+    try:
+        tz = ts.tzinfo
+        if now is None:
+            now = datetime.datetime.now(tz) if tz else datetime.datetime.now()
+        if interval == '1h':
+            return ts + datetime.timedelta(hours=1) > now
+        if interval == '1d':
+            if ts.date() != now.date():
+                return False
+            m = classify_market(symbol)
+            if m == 'crypto':
+                return True
+            hh, mm = (13, 30) if m == 'tw' else (16, 0)     # 台股 13:30 收盤;美股/其他 16:00(當地時間)
+            return (now.hour, now.minute) < (hh, mm)
+    except Exception:
+        pass
+    return False
 
 def fetch_data(symbol, start_date, interval='1d'):
     cache_key = f"{symbol}_{start_date}_{interval}"
@@ -239,16 +267,22 @@ def fetch_data(symbol, start_date, interval='1d'):
                 kw['start'] = start_date
             df = ticker.history(interval=interval, **kw)
             if df is not None and not df.empty:
-                out = []
+                out = []; out_ts = []
                 for ts, row in df.iterrows():
                     try:
                         o=float(row['Open']); h=float(row['High'])
                         l=float(row['Low']);  c=float(row['Close'])
                         v=float(row['Volume']) if 'Volume' in row else 0.0
                         if c > 0:
-                            out.append([int(ts.timestamp()*1000), o, h, l, c, v])
+                            ms = int(ts.timestamp()*1000)
+                            if interval == '1d':
+                                # 日線時間戳統一成「交易所當地日期的 00:00 UTC」。不然台股(UTC+8)的 11/05 會被標成 11/04。
+                                ms = int(datetime.datetime(ts.year, ts.month, ts.day, tzinfo=datetime.timezone.utc).timestamp()*1000)
+                            out.append([ms, o, h, l, c, v]); out_ts.append(ts)
                     except Exception:
                         continue
+                if out and interval in ('1d', '1h') and _is_forming(out_ts[-1], symbol, interval):
+                    out.pop()          # 還沒收盤的最後一根不用
                 if out:
                     _cache[cache_key] = out
                     _cache_time[cache_key] = now
@@ -410,58 +444,28 @@ def calc_oos_pf(trade_log, split_date):
 
 
 def get_real_trades(ohlcv, el_full, xl_full, strat_info=None):
-    """
-    模擬 sim.py 的進出場邏輯，包含停損判斷，確保交易筆數與 run_backtest 一致。
-    """
-    from sim import atr as calc_atr
+    """圖上買賣標記與目前持倉狀態。
+    以前這裡自己另寫一套進出場模擬(不支援 pct_trail/pct_tp/atr_tp、停損時序也跟回測不同),
+    標記會跟回測績效對不起來。現在直接用 sim 同一個模擬器,標記 = 回測的實際進出場棒。"""
+    import sim as _sim
     N = len(ohlcv)
-    O=[r[1] for r in ohlcv]; H=[r[2] for r in ohlcv]
+    T=[r[0] for r in ohlcv]; O=[r[1] for r in ohlcv]; H=[r[2] for r in ohlcv]
     L=[r[3] for r in ohlcv]; C=[r[4] for r in ohlcv]
-    A = calc_atr(H, L, C, 14)
-
-    pos = False
+    A = _sim.atr(H, L, C, 14)
+    s = strat_info or STRATS['trend']
+    if s.get('pyramid'):
+        pp = s['pyramid']
+        _, _, _, tlog = _sim._simulate_pyramid(T,O,H,L,C, el_full, A, pp['init_atr'], pp['trail_atr'],
+                                               pp['add_atr'], pp['max_adds'], 0.015, 3.0, 10000.0)
+    else:
+        _, _, _, tlog = _sim._simulate(T,O,H,L,C, el_full, xl_full, A, s.get('atr_stop',0), s.get('atr_trail',0),
+                                       s.get('atr_tp',0), 0.015, 3.0, 10000.0,
+                                       s.get('pct_stop',0.0), s.get('pct_trail',0.0), s.get('pct_tp',0.0))
     buy_idx = [None] * N
     sell_idx = [None] * N
-    entry = 0.0
-    stop = None
-
-    # 取策略停損參數
-    atr_stop = strat_info.get('atr_stop', 0) if strat_info else 0
-    atr_trail = strat_info.get('atr_trail', 0) if strat_info else 0
-    pct_stop = strat_info.get('pct_stop', 0) if strat_info else 0
-    peak = None
-
-    for i in range(N - 1):
-        o2 = O[i+1]
-        if pos:
-            # 停損判斷
-            if stop is not None and L[i] <= stop:
-                pos = False
-                sell_idx[i] = True
-                stop = None; peak = None
-                continue
-            # 追蹤停損更新
-            if atr_trail > 0 and A[i] is not None:
-                peak = max(peak if peak else -1e18, H[i])
-                new_stop = peak - atr_trail * A[i]
-                stop = max(stop, new_stop) if stop else new_stop
-            # 一般出場訊號
-            if xl_full[i]:
-                pos = False
-                sell_idx[i+1] = True
-                stop = None; peak = None
-        if not pos and el_full[i]:
-            pos = True
-            entry = o2
-            buy_idx[i+1] = True
-            peak = H[i]
-            if atr_stop > 0 and A[i] is not None:
-                stop = C[i] - atr_stop * A[i]
-            elif pct_stop > 0:
-                stop = entry * (1 - pct_stop)
-            else:
-                stop = None
-
+    for t in tlog:
+        if t.get('entry_i') is not None: buy_idx[t['entry_i']] = True
+        if t.get('exit_i') is not None:  sell_idx[t['exit_i']] = True
     return buy_idx, sell_idx
 
 @app.route('/api/strategies')
@@ -490,8 +494,7 @@ def analyze():
 
     try:
         import sim as _sim
-        spec = ('yf', symbol)
-        _com, _slp = market_cost(spec, strategy)
+        _ck = cost_kwargs(symbol, strategy)    # 依代碼所屬市場計成本(加密/台股/美股...),所有 API 同一個入口
 
         ohlcv = fetch_data(symbol, start_date, interval=yf_tf)
 
@@ -504,7 +507,7 @@ def analyze():
             return jsonify({'error': f'資料不足以跑回測（{len(ohlcv)} 根），請選擇更長的時間範圍或改用日線'}), 400
 
         result = run_backtest(ohlcv, strategy=strategy, risk_pct=0.015, timeframe=yf_tf,
-                              commission=_com, slippage=_slp)
+                              **_ck)
         if not result:
             return jsonify({'error': '回測失敗，請選擇更長的時間範圍'}), 400
 
@@ -548,7 +551,7 @@ def analyze():
 
         # 交易紀錄：直接用 run_backtest() 的 trade_log（next-bar open 進出場），
         # 與 best_strategy 使用同一個價格基礎，確保 PF/總報酬一致。
-        _disp_cut_dt = datetime.datetime.now() - datetime.timedelta(days=days)
+        _disp_cut_dt = _utcnow() - datetime.timedelta(days=days)
         if strategy == 'rolltrend':
             trades_list = [{'buyPrice': None, 'sellPrice': None, 'buyDate': None, 'sellDate': None,
                            'ret': None, 'note': '此策略使用加碼引擎，交易紀錄請參考回測數據'}]
@@ -562,8 +565,8 @@ def analyze():
             fmt = '%Y-%m-%d %H:%M' if yf_tf in INTRADAY else '%Y-%m-%d'
             trades_list = [
                 {
-                    'buyPrice': round(t['entry_px'], 2) if t.get('entry_px') else None,
-                    'sellPrice': round(t['exit_px'], 2) if t.get('exit_px') else None,
+                    'buyPrice': _fmt_px(t['entry_px']) if t.get('entry_px') else None,
+                    'sellPrice': _fmt_px(t['exit_px']) if t.get('exit_px') else None,
                     'buyDate': t['entry_date'].strftime(fmt) if t.get('entry_date') else None,
                     'sellDate': t['exit_date'].strftime(fmt) if t.get('exit_date') else None,
                     'ret': round(t['ret'], 2) if t.get('ret') is not None else None,
@@ -766,12 +769,12 @@ def best_strategy():
                          'macd','psar','rsi50','sixline','donchian'}
 
         # 判斷市場
-        sym = symbol.upper()
-        if sym.endswith('.TW'):
+        _mkt = classify_market(symbol)
+        if _mkt == 'tw':
             allowed = tw_strats
-        elif any(sym.endswith(x) for x in ['-USD','/USDT']) or any(c in sym for c in ['BTC','ETH','BNB','SOL','XRP','PAXG']):
+        elif _mkt == 'crypto':
             allowed = crypto_strats
-        elif sym in {'GC=F','SI=F','PL=F','PA=F','GLD','SLV','PPLT','PALL'}:
+        elif _mkt in ('commodity', 'metal_etf'):
             allowed = metal_strats
         else:
             allowed = us_strats
@@ -783,18 +786,18 @@ def best_strategy():
             if strat_key in skip or strat_key not in allowed:
                 continue
             try:
-                _com, _slp = market_cost(('yf', symbol), strat_key)
+                _ck = cost_kwargs(symbol, strat_key)
 
                 # 用 IS 資料選策略
                 result_is = run_backtest(ohlcv_is, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf,
-                                         commission=_com, slippage=_slp)
+                                         **_ck)
                 if not result_is:
                     continue
                 dates_is, equity_is, stats_is = result_is
 
                 # 用顯示期間的交易計算 PF / 筆數 / 勝率（與套用後圖表一致）
                 import datetime as _dt
-                _disp_start = datetime.datetime.now() - datetime.timedelta(days=days)
+                _disp_start = _utcnow() - datetime.timedelta(days=days)
                 _disp_tlog = [
                     t for t in stats_is.get('trade_log', [])
                     if not t.get('open') and t.get('exit_date') and t['exit_date'] >= _disp_start
@@ -811,10 +814,9 @@ def best_strategy():
                 total, _add_mdd, _cagr_bs = equity_window_metrics(dates_is, equity_is, _disp_start)
 
                 # 依市場設定最低筆數門檻
-                sym_upper = symbol.upper()
-                if sym_upper.endswith('.TW'):
+                if _mkt == 'tw':
                     min_trades = 5   # 台股日線
-                elif any(sym_upper.endswith(x) for x in ['-USD','/USDT']) or any(c in sym_upper for c in ['BTC','ETH','BNB','SOL','XRP','PAXG']):
+                elif _mkt == 'crypto':
                     min_trades = 10  # 加密
                 else:
                     min_trades = 5   # 美股日線
@@ -848,6 +850,7 @@ def best_strategy():
                         'oosTotal': None,
                         'oosTrades': None,
                         'oosPass': None,
+                        'oosIndependent': False,   # 排名用的是全量資料,這個『後 30%』已包含在排名資料內,不是獨立樣本外
                     })
             except Exception:
                 continue
@@ -860,14 +863,16 @@ def best_strategy():
         if do_oos:
             for r in top:
                 try:
-                    _com, _slp = market_cost(('yf', symbol), r['strat'])
+                    _ck = cost_kwargs(symbol, r['strat'])
                     result_oos = run_backtest(ohlcv_oos, strategy=r['strat'], risk_pct=0.015, timeframe=yf_tf,
-                                              commission=_com, slippage=_slp)
+                                              **_ck)
                     if not result_oos:
                         continue
                     _, _, stats_oos = result_oos
                     _tlog_oos = [t for t in stats_oos.get('trade_log', []) if not t.get('open')]
                     if len(_tlog_oos) < 5:   # OOS 樣本太少，數字不可信，寧可留白
+                        r['oosTrades'] = len(_tlog_oos)
+                        r['oosInsufficient'] = True     # 證據不足(oosPf 維持 None,前端顯示「OOS 樣本不足」)
                         continue
                     r['oosPf'] = calc_pf(_tlog_oos)
                     r['oosTotal'] = round(stats_oos['total'], 2)
@@ -902,10 +907,10 @@ def deep_analysis():
 
         def run_for_period(period_key, ohlcv_data, symbol, yf_tf, do_oos_check=True):
             """跑指定資料的最佳策略，回傳通過的策略 dict"""
-            sym_upper = symbol.upper()
-            if sym_upper.endswith('.TW'):
+            _mkt = classify_market(symbol)
+            if _mkt == 'tw':
                 min_trades = 8
-            elif any(sym_upper.endswith(x) for x in ['-USD','/USDT']) or any(c in sym_upper for c in ['BTC','ETH','BNB','SOL','XRP','PAXG']):
+            elif _mkt == 'crypto':
                 min_trades = 15
             else:
                 min_trades = 8
@@ -920,11 +925,11 @@ def deep_analysis():
             metal_strats  = {'volbreak','supertrend','kama','heikin','ema_cross','pullback',
                              'macd','psar','rsi50','sixline','donchian'}
 
-            if sym_upper.endswith('.TW'):
+            if _mkt == 'tw':
                 allowed = tw_strats
-            elif any(sym_upper.endswith(x) for x in ['-USD','/USDT']) or any(c in sym_upper for c in ['BTC','ETH','BNB','SOL','XRP','PAXG']):
+            elif _mkt == 'crypto':
                 allowed = crypto_strats
-            elif sym_upper in {'GC=F','SI=F','PL=F','PA=F','GLD','SLV'}:
+            elif _mkt in ('commodity', 'metal_etf'):
                 allowed = metal_strats
             else:
                 allowed = us_strats
@@ -941,9 +946,9 @@ def deep_analysis():
                 if strat_key in skip or strat_key not in allowed:
                     continue
                 try:
-                    _com, _slp = market_cost(('yf', symbol), strat_key)
+                    _ck = cost_kwargs(symbol, strat_key)
                     result_is = run_backtest(ohlcv_is, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf,
-                                             commission=_com, slippage=_slp)
+                                             **_ck)
                     if not result_is:
                         continue
                     _, _, stats_is = result_is
@@ -962,7 +967,7 @@ def deep_analysis():
                     oos_pf = None; oos_total = None
                     if do_oos and do_oos_check:
                         result_oos = run_backtest(ohlcv_oos, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf,
-                                                  commission=_com, slippage=_slp)
+                                                  **_ck)
                         if not result_oos:
                             continue
                         _, _, stats_oos = result_oos
@@ -1013,14 +1018,15 @@ def deep_analysis():
             # 時間切割點
             cutoff_6mo = (datetime.datetime.now() - datetime.timedelta(days=180)).timestamp() * 1000
             cutoff_2y  = (datetime.datetime.now() - datetime.timedelta(days=730)).timestamp() * 1000
-            cutoff_6mo_dt = datetime.datetime.now() - datetime.timedelta(days=180)
-            cutoff_2y_dt  = datetime.datetime.now() - datetime.timedelta(days=730)
+            cutoff_6mo_dt = _utcnow() - datetime.timedelta(days=180)
+            cutoff_2y_dt  = _utcnow() - datetime.timedelta(days=730)
 
-            def get_window_trades(trade_log, cutoff_ms):
-                """取某個時間窗口內的交易"""
+            def get_window_trades(trade_log, cutoff_dt):
+                """取某個時間窗口內的交易(exit_date 是 UTC naive datetime,直接跟 UTC cutoff 比;
+                以前用 naive.timestamp() 會被當成本機時間,台灣差 8 小時)"""
                 return [t for t in trade_log
                         if not t.get('open') and t.get('exit_date') and
-                        t['exit_date'].timestamp()*1000 >= cutoff_ms]
+                        t['exit_date'] >= cutoff_dt]
 
             def eval_window(trades):
                 """評估一段時間內的交易績效（總報酬用複利）"""
@@ -1039,9 +1045,9 @@ def deep_analysis():
                 if strat_key in skip or strat_key not in allowed:
                     continue
                 try:
-                    _com, _slp = market_cost(('yf', symbol), strat_key)
+                    _ck = cost_kwargs(symbol, strat_key)
                     result = run_backtest(ohlcv_2y, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf,
-                                          commission=_com, slippage=_slp)
+                                          **_ck)
                     if not result:
                         continue
                     dates_c, equity_c, stats = result
@@ -1051,8 +1057,8 @@ def deep_analysis():
                         continue
 
                     # 評估兩個窗口
-                    trades_6mo = get_window_trades(trade_log_all, cutoff_6mo)
-                    trades_2y  = get_window_trades(trade_log_all, cutoff_2y)
+                    trades_6mo = get_window_trades(trade_log_all, cutoff_6mo_dt)
+                    trades_2y  = get_window_trades(trade_log_all, cutoff_2y_dt)
 
                     r6mo = eval_window(trades_6mo)
                     r2y  = eval_window(trades_2y)
@@ -1233,9 +1239,6 @@ def signal():
 
     try:
         import sim as _sim
-        spec = ('yf', symbol)
-        _com, _slp = market_cost(spec, strategy)
-
         ohlcv = fetch_data(symbol, start_date, interval=yf_tf)
         if not ohlcv or len(ohlcv) < 50:
             return jsonify({'error': '資料不足', 'state': 'unknown'})

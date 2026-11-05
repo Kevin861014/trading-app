@@ -1311,7 +1311,7 @@ def sig_three_soldiers(O, H, L, C, V=None, tf=None):
     """三白兵／三烏鴉。"""
     n = len(C)
     el, xl, es, xs = _empty(n), _empty(n), _empty(n), _empty(n)
-    for i in range(2, n):
+    for i in range(3, n):   # 從 3 開始:i=2 時 j=0 會比較 C[0] > C[-1](C[-1] 是整段資料的最後一根 = 未來函數)
         up3 = all(C[j] > O[j] and C[j] > C[j - 1] for j in range(i - 2, i + 1))
         dn3 = all(C[j] < O[j] and C[j] < C[j - 1] for j in range(i - 2, i + 1))
         if up3:

@@ -1,0 +1,320 @@
+{
+ "BTC/USDT": {
+  "tested": 163,
+  "top": [
+   {
+    "s": "eom_zero",
+    "pf": 1.38,
+    "total": 31.42,
+    "trades": 218,
+    "mdd": 9.96,
+    "oos": 0.99
+   },
+   {
+    "s": "vortex_both",
+    "pf": 1.35,
+    "total": 26.46,
+    "trades": 232,
+    "mdd": 11.53,
+    "oos": 0.96
+   },
+   {
+    "s": "nvi_ema",
+    "pf": 1.4,
+    "total": 30.77,
+    "trades": 165,
+    "mdd": 11.52,
+    "oos": 1.18
+   },
+   {
+    "s": "nr4_break",
+    "pf": 1.27,
+    "total": 23.35,
+    "trades": 225,
+    "mdd": 17.77,
+    "oos": 1.48
+   },
+   {
+    "s": "kst_cross",
+    "pf": 1.35,
+    "total": 27.52,
+    "trades": 117,
+    "mdd": 11.44,
+    "oos": 1.12
+   },
+   {
+    "s": "hma_cross",
+    "pf": 1.33,
+    "total": 23.67,
+    "trades": 121,
+    "mdd": 10.65,
+    "oos": 1.34
+   },
+   {
+    "s": "klinger_cross",
+    "pf": 1.24,
+    "total": 24.44,
+    "trades": 279,
+    "mdd": 23.33,
+    "oos": 1.25
+   },
+   {
+    "s": "diadx",
+    "pf": 1.54,
+    "total": 20.13,
+    "trades": 47,
+    "mdd": 8.06,
+    "oos": 1.83
+   }
+  ],
+  "n_candidates_passing": 8
+ },
+ "SOL/USDT": {
+  "tested": 163,
+  "top": [
+   {
+    "s": "diadx",
+    "pf": 2.24,
+    "total": 23.83,
+    "trades": 37,
+    "mdd": 7.15,
+    "oos": 2.4
+   },
+   {
+    "s": "obv",
+    "pf": 1.53,
+    "total": 20.23,
+    "trades": 148,
+    "mdd": 7.08,
+    "oos": 1.1
+   },
+   {
+    "s": "ttm",
+    "pf": 2.29,
+    "total": 21.09,
+    "trades": 24,
+    "mdd": 4.06,
+    "oos": 5.04
+   },
+   {
+    "s": "ichimoku_twist",
+    "pf": 1.86,
+    "total": 42.87,
+    "trades": 58,
+    "mdd": 11.85,
+    "oos": 1.74
+   },
+   {
+    "s": "smma_cross",
+    "pf": 2.17,
+    "total": 34.05,
+    "trades": 32,
+    "mdd": 16.41,
+    "oos": 2.26
+   },
+   {
+    "s": "trix_zero",
+    "pf": 1.77,
+    "total": 37.83,
+    "trades": 52,
+    "mdd": 12.1,
+    "oos": 1.38
+   },
+   {
+    "s": "camarilla_break",
+    "pf": 1.19,
+    "total": 22.42,
+    "trades": 437,
+    "mdd": 15.96,
+    "oos": 1.35
+   },
+   {
+    "s": "week_hl",
+    "pf": 1.67,
+    "total": 49.71,
+    "trades": 70,
+    "mdd": 13.76,
+    "oos": 0.94
+   }
+  ],
+  "n_candidates_passing": 8
+ },
+ "2330.TW": {
+  "tested": 18,
+  "top": [
+   {
+    "s": "lrs",
+    "pf": 211.0,
+    "total": 13.86,
+    "trades": 6,
+    "mdd": 3.1,
+    "oos": 10.82
+   },
+   {
+    "s": "supertrend",
+    "pf": 103.59,
+    "total": 19.1,
+    "trades": 6,
+    "mdd": 2.92,
+    "oos": 18.09
+   },
+   {
+    "s": "sixline",
+    "pf": 17.05,
+    "total": 10.22,
+    "trades": 7,
+    "mdd": 3.24,
+    "oos": 12.35
+   },
+   {
+    "s": "rolltrend",
+    "pf": 7.82,
+    "total": 52.18,
+    "trades": 5,
+    "mdd": 13.12,
+    "oos": 6.18
+   },
+   {
+    "s": "vortex",
+    "pf": 3.5,
+    "total": 14.4,
+    "trades": 27,
+    "mdd": 4.36,
+    "oos": 4.0
+   },
+   {
+    "s": "kama",
+    "pf": 2.33,
+    "total": 10.95,
+    "trades": 29,
+    "mdd": 4.92,
+    "oos": 2.77
+   },
+   {
+    "s": "donchian",
+    "pf": 3.17,
+    "total": 10.77,
+    "trades": 11,
+    "mdd": 4.78,
+    "oos": 2.73
+   },
+   {
+    "s": "tsmom",
+    "pf": 2.62,
+    "total": 6.11,
+    "trades": 20,
+    "mdd": 7.55,
+    "oos": 2.76
+   }
+  ],
+  "n_candidates_passing": 8
+ },
+ "AAPL": {
+  "tested": 15,
+  "top": [
+   {
+    "s": "tsmom",
+    "pf": 6.86,
+    "total": 10.71,
+    "trades": 13,
+    "mdd": 3.97,
+    "oos": 7.77
+   },
+   {
+    "s": "lrs",
+    "pf": 9.27,
+    "total": 9.12,
+    "trades": 6,
+    "mdd": 2.72,
+    "oos": 6.76
+   },
+   {
+    "s": "macd",
+    "pf": 4.29,
+    "total": 9.18,
+    "trades": 14,
+    "mdd": 2.56,
+    "oos": 1.92
+   },
+   {
+    "s": "vortex",
+    "pf": 3.88,
+    "total": 8.9,
+    "trades": 15,
+    "mdd": 3.65,
+    "oos": 3.44
+   },
+   {
+    "s": "cci",
+    "pf": 3.38,
+    "total": 5.38,
+    "trades": 13,
+    "mdd": 2.52,
+    "oos": 2.75
+   },
+   {
+    "s": "vbreakr",
+    "pf": 2.27,
+    "total": 21.9,
+    "trades": 15,
+    "mdd": 13.12,
+    "oos": 2.06
+   },
+   {
+    "s": "bbreak",
+    "pf": 3.19,
+    "total": 4.31,
+    "trades": 11,
+    "mdd": 2.96,
+    "oos": 4.04
+   },
+   {
+    "s": "donchian",
+    "pf": 3.7,
+    "total": 5.95,
+    "trades": 8,
+    "mdd": 3.99,
+    "oos": 3.93
+   }
+  ],
+  "n_candidates_passing": 8
+ },
+ "NVDA": {
+  "tested": 15,
+  "top": [
+   {
+    "s": "crsi",
+    "pf": 24.04,
+    "total": 5.63,
+    "trades": 6,
+    "mdd": 0.8,
+    "oos": 24.04
+   },
+   {
+    "s": "supertrend",
+    "pf": 2.64,
+    "total": 0.44,
+    "trades": 8,
+    "mdd": 5.13,
+    "oos": 2.48
+   },
+   {
+    "s": "ema_cross",
+    "pf": 1.66,
+    "total": -1.07,
+    "trades": 7,
+    "mdd": 6.19,
+    "oos": 1.64
+   },
+   {
+    "s": "ichimoku",
+    "pf": 1.03,
+    "total": -2.57,
+    "trades": 7,
+    "mdd": 3.69,
+    "oos": 0.67
+   }
+  ],
+  "n_candidates_passing": 4
+ }
+}

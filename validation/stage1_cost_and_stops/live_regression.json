@@ -1,0 +1,543 @@
+{
+ "log": [
+  [
+   "BTC/USDT 4h",
+   "analyze",
+   {
+    "bars": 2189,
+    "last": "2026-11-04 20:00",
+    "total": 1.36,
+    "mdd": 11.36,
+    "trades": 28,
+    "pf": 0.61,
+    "wr": 32.1,
+    "buys": 29,
+    "sells": 28
+   }
+  ],
+  [
+   "BTC/USDT 4h",
+   "signal/character",
+   {
+    "state": "holding",
+    "character": "\u8da8\u52e2\u8f49\u63db\u4e2d",
+    "adx": 24.1
+   }
+  ],
+  [
+   "BTC/USDT 4h",
+   "best_strategy",
+   {
+    "tested": 163,
+    "n": 8,
+    "top": [
+     [
+      "smc",
+      1.33,
+      43,
+      0.9,
+      null
+     ],
+     [
+      "eom_zero",
+      1.17,
+      218,
+      0.94,
+      null
+     ],
+     [
+      "nvi_ema",
+      1.2,
+      165,
+      1.0,
+      null
+     ]
+    ],
+    "character": "\u8da8\u52e2\u8f49\u63db\u4e2d"
+   }
+  ],
+  [
+   "BTC/USDT 4h",
+   "deep_analysis",
+   {
+    "n": 8,
+    "trust": [
+     2,
+     2,
+     2,
+     2,
+     2,
+     2,
+     2,
+     2
+    ],
+    "top": [
+     [
+      "bbreak",
+      1.67,
+      14
+     ],
+     [
+      "diadx",
+      1.52,
+      18
+     ],
+     [
+      "tsmom",
+      1.53,
+      26
+     ]
+    ]
+   }
+  ],
+  [
+   "SOL/USDT 4h",
+   "analyze",
+   {
+    "bars": 2189,
+    "last": "2026-11-04 20:00",
+    "total": 13.54,
+    "mdd": 4.21,
+    "trades": 12,
+    "pf": 2.23,
+    "wr": 25.0,
+    "buys": 12,
+    "sells": 12
+   }
+  ],
+  [
+   "SOL/USDT 4h",
+   "signal/character",
+   {
+    "state": "exited",
+    "character": "\u4e0a\u5347\u8da8\u52e2",
+    "adx": 32.6
+   }
+  ],
+  [
+   "SOL/USDT 4h",
+   "best_strategy",
+   {
+    "tested": 163,
+    "n": 8,
+    "top": [
+     [
+      "diadx",
+      2.06,
+      37,
+      2.01,
+      null
+     ],
+     [
+      "ttm",
+      2.13,
+      24,
+      3.41,
+      null
+     ],
+     [
+      "ichimoku_twist",
+      1.7,
+      58,
+      1.83,
+      null
+     ]
+    ],
+    "character": "\u4e0a\u5347\u8da8\u52e2"
+   }
+  ],
+  [
+   "SOL/USDT 4h",
+   "deep_analysis",
+   {
+    "n": 8,
+    "trust": [
+     2,
+     2,
+     2,
+     2,
+     2,
+     2,
+     2,
+     2
+    ],
+    "top": [
+     [
+      "lrs",
+      2.49,
+      16
+     ],
+     [
+      "donchian",
+      4.58,
+      10
+     ],
+     [
+      "ao_saucer",
+      2.36,
+      15
+     ]
+    ]
+   }
+  ],
+  [
+   "XRP/USDT 1h",
+   "analyze",
+   {
+    "bars": 8759,
+    "last": "2026-11-05 02:00",
+    "total": 25.3,
+    "mdd": 14.69,
+    "trades": 157,
+    "pf": 1.07,
+    "wr": 27.4,
+    "buys": 158,
+    "sells": 157
+   }
+  ],
+  [
+   "XRP/USDT 1h",
+   "signal/character",
+   {
+    "state": "holding",
+    "character": "\u4e0a\u5347\u8da8\u52e2",
+    "adx": 34.7
+   }
+  ],
+  [
+   "XRP/USDT 1h",
+   "best_strategy",
+   {
+    "tested": 163,
+    "n": 8,
+    "top": [
+     [
+      "bbreak",
+      1.4,
+      237,
+      1.64,
+      null
+     ],
+     [
+      "abands_break",
+      1.4,
+      168,
+      1.09,
+      null
+     ],
+     [
+      "cci",
+      1.29,
+      284,
+      1.5,
+      null
+     ]
+    ],
+    "character": "\u4e0a\u5347\u8da8\u52e2"
+   }
+  ],
+  [
+   "XRP/USDT 1h",
+   "deep_analysis",
+   {
+    "n": 8,
+    "trust": [
+     2,
+     2,
+     2,
+     2,
+     2,
+     2,
+     2,
+     2
+    ],
+    "top": [
+     [
+      "bbreak",
+      1.9,
+      55
+     ],
+     [
+      "cci",
+      1.67,
+      63
+     ],
+     [
+      "keltner",
+      1.77,
+      36
+     ]
+    ]
+   }
+  ],
+  [
+   "2330.TW 1d",
+   "analyze",
+   {
+    "bars": 241,
+    "last": "2026-11-04",
+    "total": -1.83,
+    "mdd": 2.07,
+    "trades": 5,
+    "pf": 0.0,
+    "wr": 0.0,
+    "buys": 5,
+    "sells": 5
+   }
+  ],
+  [
+   "2330.TW 1d",
+   "signal/character",
+   {
+    "state": "exited",
+    "character": "\u76e4\u6574",
+    "adx": 12.8
+   }
+  ],
+  [
+   "2330.TW 1d",
+   "best_strategy",
+   {
+    "tested": 18,
+    "n": 8,
+    "top": [
+     [
+      "supertrend",
+      265.08,
+      6,
+      null,
+      true
+     ],
+     [
+      "lrs",
+      82.15,
+      6,
+      null,
+      true
+     ],
+     [
+      "sixline",
+      11.66,
+      7,
+      null,
+      true
+     ]
+    ],
+    "character": "\u76e4\u6574"
+   }
+  ],
+  [
+   "2330.TW 1d",
+   "deep_analysis",
+   {
+    "n": 8,
+    "trust": [
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1
+    ],
+    "top": [
+     [
+      "ichimoku",
+      3.92,
+      13
+     ],
+     [
+      "volbreak",
+      3.13,
+      22
+     ],
+     [
+      "tsmom",
+      2.81,
+      29
+     ]
+    ]
+   }
+  ],
+  [
+   "AAPL 1d",
+   "analyze",
+   {
+    "bars": 250,
+    "last": "2026-11-04",
+    "total": 4.83,
+    "mdd": 3.28,
+    "trades": 10,
+    "pf": 12.12,
+    "wr": 60.0,
+    "buys": 10,
+    "sells": 10
+   }
+  ],
+  [
+   "AAPL 1d",
+   "signal/character",
+   {
+    "state": "expired",
+    "character": "\u8da8\u52e2\u8f49\u63db\u4e2d",
+    "adx": 20.3
+   }
+  ],
+  [
+   "AAPL 1d",
+   "best_strategy",
+   {
+    "tested": 15,
+    "n": 8,
+    "top": [
+     [
+      "tsmom",
+      6.59,
+      13,
+      5.37,
+      null
+     ],
+     [
+      "lrs",
+      9.11,
+      6,
+      null,
+      true
+     ],
+     [
+      "macd",
+      4.18,
+      14,
+      1.18,
+      null
+     ]
+    ],
+    "character": "\u8da8\u52e2\u8f49\u63db\u4e2d"
+   }
+  ],
+  [
+   "AAPL 1d",
+   "deep_analysis",
+   {
+    "n": 8,
+    "trust": [
+     2,
+     2,
+     2,
+     1,
+     1,
+     1,
+     1,
+     1
+    ],
+    "top": [
+     [
+      "bbreak",
+      3.7,
+      21
+     ],
+     [
+      "macd",
+      2.31,
+      34
+     ],
+     [
+      "vortex",
+      2.27,
+      32
+     ]
+    ]
+   }
+  ],
+  [
+   "NVDA 1d",
+   "analyze",
+   {
+    "bars": 250,
+    "last": "2026-11-04",
+    "total": -1.43,
+    "mdd": 3.4,
+    "trades": 5,
+    "pf": 0.76,
+    "wr": 40.0,
+    "buys": 4,
+    "sells": 5
+   }
+  ],
+  [
+   "NVDA 1d",
+   "signal/character",
+   {
+    "state": "exited",
+    "character": "\u4e0b\u964d\u8da8\u52e2",
+    "adx": 25.7
+   }
+  ],
+  [
+   "NVDA 1d",
+   "best_strategy",
+   {
+    "tested": 15,
+    "n": 4,
+    "top": [
+     [
+      "crsi",
+      23.79,
+      6,
+      null,
+      true
+     ],
+     [
+      "supertrend",
+      2.62,
+      8,
+      null,
+      true
+     ],
+     [
+      "ema_cross",
+      1.64,
+      7,
+      0.07,
+      null
+     ]
+    ],
+    "character": "\u4e0b\u964d\u8da8\u52e2"
+   }
+  ],
+  [
+   "NVDA 1d",
+   "deep_analysis",
+   {
+    "n": 4,
+    "trust": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "top": [
+     [
+      "supertrend",
+      5.05,
+      18
+     ],
+     [
+      "crsi",
+      6.89,
+      14
+     ],
+     [
+      "rolltrend",
+      2.69,
+      17
+     ]
+    ]
+   }
+  ]
+ ],
+ "problems": [
+  "NVDA 1d buy/sell markers inconsistent 4/5"
+ ]
+}

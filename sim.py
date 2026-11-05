@@ -12,8 +12,18 @@
     TradingView Pine 版因平台規則,初始停損以『成交棒收盤』計,與本模組約差 1 根 K 棒,
     僅微幅影響進場初期的停損點位,對整體統計影響極小(屬可接受近似)。
 """
-import math, datetime
-COMMISSION = 0.0004; SLIPPAGE = 0.0002   # 每邊;來回約 0.12%
+import math, datetime, os, re
+
+# ============================ 交易成本設定(可用環境變數調整)============================
+# 單邊成本;來回 = 買進成本 + 賣出成本。加密貨幣:吃單手續費 0.05% + 滑價 0.02%,來回約 0.14%。
+CRYPTO_COMMISSION = float(os.environ.get("CRYPTO_COMMISSION", 0.0005))
+CRYPTO_SLIPPAGE   = float(os.environ.get("CRYPTO_SLIPPAGE",   0.0002))
+# 台股:手續費 0.1425% × 券商折扣(預設 6 折),證交稅只在『賣出』時收(股票 0.3%、ETF 0.1%)。
+TW_BROKER_DISCOUNT = float(os.environ.get("TW_BROKER_DISCOUNT", 0.6))
+TW_COMMISSION = 0.001425 * TW_BROKER_DISCOUNT
+TW_TAX_STOCK  = 0.003
+TW_TAX_ETF    = 0.001
+COMMISSION = CRYPTO_COMMISSION; SLIPPAGE = CRYPTO_SLIPPAGE   # 每邊;僅 CLI/未指定成本時的後備值
 
 # ============================ 指標 ============================
 def ema(vals, n):
@@ -744,46 +754,60 @@ TF_DAYS = {"5m":45, "15m":120, "30m":250, "1h":540, "2h":720, "4h":900, "1d":150
 
 # ============================ 模擬器(long-only)============================
 def _simulate(T,O,H,L,C, el, xl, A, atr_stop, atr_trail, atr_tp, risk_pct, max_lev, start,
-              pct_stop=0.0, pct_trail=0.0, pct_tp=0.0, commission=None, slippage=None):
+              pct_stop=0.0, pct_trail=0.0, pct_tp=0.0, commission=None, slippage=None, sell_tax=0.0):
     """長多模擬。風控可用 ATR 倍(atr_*)或『百分比價格』(pct_*,如 pct_trail=0.025=回檔2.5%鎖利)。
        pct_* > 0 時優先採用百分比式(動態鎖利);否則用 ATR 式。
-       commission/slippage 為 None 時退回模組全域值（保留 CLI 相容）。"""
+       commission/slippage 為 None 時退回模組全域值（保留 CLI 相容）。
+       sell_tax 只在『賣出』方向收(台股證交稅);買進不收。
+
+       K 棒內時序(OHLC 無法知道高低點先後,所以一律用『進入該根之前已生效』的停損,不靠該根未來資訊):
+         1) 持倉中的這根 K 棒:先用「上一根收盤後定下的」停損/停利判斷是否出場;
+            停損價被跳空跌破 → 以開盤價成交;同一根同時碰到停利與停損 → 保守地視為停損先到。
+         2) 沒被打到,才用這根『已收盤』的最高價與 ATR 更新追蹤停損,下一根才生效
+            (機器人實盤也是每根收盤後才更新交易所端的保護停損,見 portfolio_bot.py)。
+         3) 新倉的追蹤高點從『實際進場價』起算,不使用進場之前那根訊號棒的高點。"""
     N=len(C); eq=start; pos=0; entry=0.0; qty=0.0; stop=None; tp=None; peak=None
     entry_date=None; entry_idx=None
     dates=[]; equity=[]; trades=[]; trade_log=[]
     _com = COMMISSION if commission is None else commission
     _slp = SLIPPAGE if slippage is None else slippage
-    cost=lambda px: px*(_com+_slp)
+    _tax = float(sell_tax or 0.0)
+    buy_cost  = lambda px: px*(_com+_slp)
+    sell_cost = lambda px: px*(_com+_slp+_tax)
     use_pct = (pct_stop>0 or pct_trail>0 or pct_tp>0)
+
+    def _close(exit_px, exit_i):
+        nonlocal eq, pos, qty, stop, tp, peak, entry_date, entry_idx
+        c_in = qty*buy_cost(entry); c_out = qty*sell_cost(exit_px)
+        pnl = qty*(exit_px-entry) - c_in - c_out
+        eq += pnl; trades.append(pnl)
+        net_ret = ((exit_px-entry) - buy_cost(entry) - sell_cost(exit_px))/entry*100
+        trade_log.append({'entry_px':round(entry,8),'exit_px':round(exit_px,8),
+            'entry_date':entry_date,'exit_date':datetime.datetime.utcfromtimestamp(T[exit_i]/1000),
+            'entry_i':entry_idx,'exit_i':exit_i,
+            'ret':round(net_ret,2),                                   # 扣除手續費+滑價(+賣出稅)後的報酬%
+            'ret_gross':round((exit_px-entry)/entry*100,2),           # 未扣成本的價格報酬%
+            'cost':c_in+c_out})
+        pos=0; qty=0.0; stop=tp=peak=None; entry_date=None; entry_idx=None
+
     for i in range(N-1):
         o2=O[i+1]
         if pos>0:
-            av=A[i]
-            if pct_trail>0:                                   # 百分比動態鎖利:回檔 pct_trail 即出場(隨新高上移)
-                peak=max(peak if peak is not None else -1e18, H[i])
-                ns=peak*(1.0-pct_trail)
-                stop=ns if stop is None else max(stop,ns)
-            elif atr_trail>0 and av is not None:
-                peak=max(peak if peak is not None else -1e18, H[i])
-                ns=peak-atr_trail*av
-                stop=ns if stop is None else max(stop,ns)
-            exit_px=None; exit_i=None
-            if stop is not None and L[i]<=stop: exit_px=min(stop,O[i]); exit_i=i
-            elif tp is not None and H[i]>=tp: exit_px=tp; exit_i=i
+            exit_px=None
+            if stop is not None and L[i]<=stop: exit_px=min(stop,O[i])      # 跳空跌破 → 以開盤價成交
+            elif tp is not None and H[i]>=tp: exit_px=tp                    # 同根兩者都碰到 → 停損優先(上一行先判斷)
             if exit_px is not None:
-                pnl=qty*(exit_px-entry)-qty*cost(exit_px)-qty*cost(entry); eq+=pnl; trades.append(pnl)
-                exit_date=datetime.datetime.utcfromtimestamp(T[exit_i]/1000)
-                trade_log.append({'entry_px':round(entry,2),'exit_px':round(exit_px,2),
-                    'entry_date':entry_date,'exit_date':exit_date,
-                    'ret':round((exit_px-entry)/entry*100,2)})
-                pos=0; qty=0.0; stop=tp=peak=None; entry_date=None
+                _close(exit_px, i)
+            else:
+                av=A[i]                                                     # 這根已收盤,資訊已確定 → 更新『下一根』的追蹤停損
+                if pct_trail>0:
+                    peak=max(peak, H[i]); ns=peak*(1.0-pct_trail)
+                    stop=ns if stop is None else max(stop,ns)
+                elif atr_trail>0 and av is not None:
+                    peak=max(peak, H[i]); ns=peak-atr_trail*av
+                    stop=ns if stop is None else max(stop,ns)
         if pos>0 and xl[i]:
-            pnl=qty*(o2-entry)-qty*cost(o2)-qty*cost(entry); eq+=pnl; trades.append(pnl)
-            exit_date=datetime.datetime.utcfromtimestamp(T[i+1]/1000)
-            trade_log.append({'entry_px':round(entry,2),'exit_px':round(o2,2),
-                'entry_date':entry_date,'exit_date':exit_date,
-                'ret':round((o2-entry)/entry*100,2)})
-            pos=0; qty=0.0; stop=tp=peak=None; entry_date=None
+            _close(o2, i+1)
         if pos==0 and el[i]:
             av=A[i]
             ok = (av is not None and av>0) if not use_pct else True
@@ -791,64 +815,72 @@ def _simulate(T,O,H,L,C, el, xl, A, atr_stop, atr_trail, atr_tp, risk_pct, max_l
                 entry=o2; entry_date=datetime.datetime.utcfromtimestamp(T[i+1]/1000); entry_idx=i+1
                 stop_dist = (pct_stop*entry) if (use_pct and pct_stop>0) else (atr_stop*av if (av and atr_stop>0) else 0)
                 qty=min((eq*risk_pct)/stop_dist, (eq*max_lev)/entry) if (risk_pct>0 and stop_dist>0) else (eq)/entry
-                pos=1; peak=H[i]
+                pos=1; peak=entry                                           # 追蹤高點從實際進場價起算(不含進場前的高點)
                 if use_pct:
                     stop=entry*(1.0-pct_stop) if pct_stop>0 else None
                     tp=entry*(1.0+pct_tp) if pct_tp>0 else None
                 else:
-                    stop=C[i]-atr_stop*av if atr_stop>0 else None
+                    stop=C[i]-atr_stop*av if atr_stop>0 else None           # 與機器人一致:以訊號棒收盤為基準
                     tp=C[i]+atr_tp*av if atr_tp>0 else None
         mtm=eq + (qty*(C[i+1]-entry) if pos>0 else 0)
         dates.append(datetime.datetime.utcfromtimestamp(T[i+1]/1000)); equity.append(mtm)
     # 如果還在場內，記錄未出場的進場資訊
     if pos>0 and entry_date:
-        trade_log.append({'entry_px':round(entry,2),'exit_px':None,
-            'entry_date':entry_date,'exit_date':None,'ret':None,'open':True})
+        trade_log.append({'entry_px':round(entry,8),'exit_px':None,
+            'entry_date':entry_date,'exit_date':None,'entry_i':entry_idx,'exit_i':None,
+            'ret':None,'open':True})
     return dates, equity, trades, trade_log
 
 def _simulate_pyramid(T,O,H,L,C, el, A, init_atr, trail_atr, add_atr, max_adds, risk_pct, max_lev, start,
-                      commission=None, slippage=None):
+                      commission=None, slippage=None, sell_tax=0.0):
     """順勢滾倉(加碼)回測。回傳 (dates,equity,trades,trade_log)。
-    trade_log 每筆包含完整進出場資訊及加碼明細 add_log。"""
+    trade_log 每筆包含完整進出場資訊及加碼明細 add_log。
+    時序規則同 _simulate:先用『進入該根之前已生效』的吊燈停損判斷,沒被打到才用該根已收盤的高點更新、並判斷加碼。"""
     N=len(C); eq=start; pos=False; entries=[]; peak=0.0; stop=None; last_add=0.0; adds=0
     _com = COMMISSION if commission is None else commission
     _slp = SLIPPAGE if slippage is None else slippage
-    cost=lambda px: px*(_com+_slp)
+    _tax = float(sell_tax or 0.0)
+    buy_cost  = lambda px: px*(_com+_slp)
+    sell_cost = lambda px: px*(_com+_slp+_tax)
     dates=[]; equity=[]; trades=[]; trade_log=[]
-    entry_date=None; add_log=[]  # 本次進場的加碼紀錄
+    entry_date=None; entry_idx=None; add_log=[]  # 本次進場的加碼紀錄
     tq=lambda: sum(q for _,q in entries)
     for i in range(N-1):
         o2=O[i+1]; av=A[i]
-        if pos and av:
-            peak=max(peak,H[i]); ns=peak-trail_atr*av; stop=ns if stop is None else max(stop,ns)
-            if L[i]<=stop:                                       # 吊燈止損 → 全部出場
+        if pos:
+            if stop is not None and L[i]<=stop:                  # 吊燈止損(進入本根前已生效)→ 全部出場
                 ex=min(stop,O[i])
                 avg_entry=sum(ep*q for ep,q in entries)/tq() if entries else 0
-                pnl=sum(q*(ex-ep) for ep,q in entries)-sum(q*(cost(ex)+cost(ep)) for ep,q in entries)
+                cost=sum(q*(buy_cost(ep)+sell_cost(ex)) for ep,q in entries)
+                gross=sum(q*(ex-ep) for ep,q in entries); pnl=gross-cost
+                invested=sum(ep*q for ep,q in entries)
                 eq+=pnl; trades.append(pnl)
-                exit_date=datetime.datetime.utcfromtimestamp(T[i]/1000)
                 trade_log.append({
-                    'entry_px':round(avg_entry,2),'exit_px':round(ex,2),
-                    'entry_date':entry_date,'exit_date':exit_date,
-                    'ret':round((ex-avg_entry)/avg_entry*100,2) if avg_entry else 0,
+                    'entry_px':round(avg_entry,8),'exit_px':round(ex,8),
+                    'entry_date':entry_date,'exit_date':datetime.datetime.utcfromtimestamp(T[i]/1000),
+                    'entry_i':entry_idx,'exit_i':i,
+                    'ret':round(pnl/invested*100,2) if invested else 0,                    # 扣成本後
+                    'ret_gross':round((ex-avg_entry)/avg_entry*100,2) if avg_entry else 0,
+                    'cost':cost,
                     'add_log': add_log[:],  # 加碼明細
                     'is_pyramid': True
                 })
-                pos=False; entries=[]; stop=None; adds=0; peak=0.0; entry_date=None; add_log=[]
-            elif adds<max_adds and C[i]>=last_add+add_atr*av:    # 順勢加碼(滾倉)
-                sd=trail_atr*av
-                want=min((eq*risk_pct)/sd, (eq*max_lev)/o2 - tq()) if sd>0 else 0
-                if want>0:
-                    entries.append((o2,want)); last_add=C[i]; adds+=1
-                    add_date=datetime.datetime.utcfromtimestamp(T[i+1]/1000)
-                    add_log.append({'px':round(o2,2),'date':add_date,'n':adds})
+                pos=False; entries=[]; stop=None; adds=0; peak=0.0; entry_date=None; entry_idx=None; add_log=[]
+            elif av:
+                peak=max(peak,H[i]); ns=peak-trail_atr*av; stop=ns if stop is None else max(stop,ns)
+                if adds<max_adds and C[i]>=last_add+add_atr*av:    # 順勢加碼(滾倉)
+                    sd=trail_atr*av
+                    want=min((eq*risk_pct)/sd, (eq*max_lev)/o2 - tq()) if sd>0 else 0
+                    if want>0:
+                        entries.append((o2,want)); last_add=C[i]; adds+=1
+                        add_log.append({'px':round(o2,8),'date':datetime.datetime.utcfromtimestamp(T[i+1]/1000),'n':adds})
         if (not pos) and av and av>0 and el[i]:                  # 突破進場(首手)
             entry=o2; sd=init_atr*av
             q=min((eq*risk_pct)/sd, (eq*max_lev)/entry) if sd>0 else 0
             if q>0:
-                pos=True; entries=[(entry,q)]; peak=H[i]
+                pos=True; entries=[(entry,q)]; peak=entry        # 追蹤高點從實際進場價起算
                 stop=entry-init_atr*av; last_add=C[i]; adds=0
-                entry_date=datetime.datetime.utcfromtimestamp(T[i+1]/1000)
+                entry_date=datetime.datetime.utcfromtimestamp(T[i+1]/1000); entry_idx=i+1
                 add_log=[]
         avg=(sum(ep*q for ep,q in entries)/tq()) if entries else 0
         mtm=eq + (tq()*(C[i+1]-avg) if pos else 0)
@@ -857,20 +889,22 @@ def _simulate_pyramid(T,O,H,L,C, el, A, init_atr, trail_atr, add_atr, max_adds, 
     if pos and entries and entry_date:
         avg_entry=sum(ep*q for ep,q in entries)/tq() if entries else 0
         trade_log.append({
-            'entry_px':round(avg_entry,2),'exit_px':None,
-            'entry_date':entry_date,'exit_date':None,'ret':None,
+            'entry_px':round(avg_entry,8),'exit_px':None,
+            'entry_date':entry_date,'exit_date':None,'entry_i':entry_idx,'exit_i':None,'ret':None,
             'add_log': add_log[:], 'is_pyramid': True, 'open': True
         })
     return dates, equity, trades, trade_log
 
 def run_backtest(ohlcv, strategy="trend", risk_pct=0.015, max_lev=3.0, start=10000.0,
-                 timeframe=None, atr_len=14, commission=None, slippage=None):
+                 timeframe=None, atr_len=14, commission=None, slippage=None, sell_tax=0.0):
     """ohlcv=[[ts_ms,o,h,l,c,v],...]。回傳 (dates,equity,stats) 或 None。
-    commission/slippage 直接傳入，避免改全域變數造成多請求並發競爭。"""
+    commission/slippage/sell_tax 直接傳入，避免改全域變數造成多請求並發競爭。
+    成本請用 cost_kwargs(symbol) 取得,各 API 才會用同一套規則。"""
     if len(ohlcv) < 220: return None     # 需足夠暖機(六條線含 EMA200)
     T=[r[0] for r in ohlcv]; O=[r[1] for r in ohlcv]; H=[r[2] for r in ohlcv]; L=[r[3] for r in ohlcv]; C=[r[4] for r in ohlcv]
     V=[(r[5] if len(r)>5 else 0.0) for r in ohlcv]
     s=STRATS.get(strategy, STRATS["trend"])
+    if len(ohlcv) < int(s.get("min_bars") or 0): return None   # 策略自己宣告的暖機根數(例如 12 個月動能 2380 根)不夠 → 資料不足,不硬跑
     el,xl=s["build"](O,H,L,C,V,timeframe)
     A=atr(H,L,C,atr_len)
     if s.get("pyramid"):
@@ -878,13 +912,13 @@ def run_backtest(ohlcv, strategy="trend", risk_pct=0.015, max_lev=3.0, start=100
         dates,equity,trades,trade_log=_simulate_pyramid(T,O,H,L,C, el, A,
                                               pp["init_atr"], pp["trail_atr"], pp["add_atr"], pp["max_adds"],
                                               risk_pct, max_lev, start,
-                                              commission=commission, slippage=slippage)
+                                              commission=commission, slippage=slippage, sell_tax=sell_tax)
     else:
         dates,equity,trades,trade_log=_simulate(T,O,H,L,C, el,xl, A,
                                       s["atr_stop"], s["atr_trail"], s["atr_tp"],
                                       risk_pct, max_lev, start,
                                       s.get("pct_stop",0.0), s.get("pct_trail",0.0), s.get("pct_tp",0.0),
-                                      commission=commission, slippage=slippage)
+                                      commission=commission, slippage=slippage, sell_tax=sell_tax)
     if not equity: return None
     base=equity[0]; peak=base; mdd=0.0
     for v in equity:
@@ -901,7 +935,11 @@ def run_backtest(ohlcv, strategy="trend", risk_pct=0.015, max_lev=3.0, start=100
     payoff=(sum(w)/len(w))/(-sum(l)/len(l)) if w and l else 0
     stats={"cagr":cagr,"mdd":mdd*100,"sharpe":sharpe,"win":win,"trades":len(trades),
            "payoff":payoff,"total":(equity[-1]/base-1)*100 if equity else 0,"years":yrs,
-           "strategy":strategy,"trade_log":trade_log}
+           "strategy":strategy,"trade_log":trade_log,
+           "cost_paid":sum(t.get("cost",0.0) for t in trade_log),     # 這次回測付出的手續費+滑價(+賣出稅),單位同 start
+           "cost_model":{"commission":COMMISSION if commission is None else commission,
+                         "slippage":SLIPPAGE if slippage is None else slippage,
+                         "sell_tax":float(sell_tax or 0.0)}}
     return dates, equity, stats
 
 # ============================ 抓資料 ============================
@@ -933,6 +971,8 @@ def fetch_yf(ticker, start="2017-01-01", interval="1d"):
     elif iv=="1h":               kw["period"]="730d"
     else:                        kw["start"]=start
     d=yf.download(ticker, **kw)
+    if getattr(d.columns, "nlevels", 1) > 1:        # 新版 yfinance 回傳 MultiIndex 欄位,舊寫法會讀不到資料而靜默回傳空
+        d.columns = [c[0] for c in d.columns]
     out=[]
     for ts,row in d.iterrows():
         try: o=float(row["Open"]); h=float(row["High"]); l=float(row["Low"]); c=float(row["Close"])
@@ -940,24 +980,66 @@ def fetch_yf(ticker, start="2017-01-01", interval="1d"):
         if c>0: out.append([int(ts.timestamp()*1000), o, h, l, c, 0.0])
     return out
 
+# ---------------- 市場分類(只看『代碼本身』,不看資料來源是 yfinance 還是 ccxt)----------------
+# 以前成本是用 spec[0]=='ccxt' 判斷加密貨幣,但網站大多傳 ('yf', symbol),結果 BTC/USDT 被當成美股計費。
+_COMMODITY_FUT = {"GC=F","SI=F","PL=F","PA=F","HG=F","CL=F","NG=F"}
+_METAL_ETF     = {"GLD","SLV","PPLT","PALL"}
+# 沒有任何後綴的『純代碼』要被視為加密貨幣時才需要這份清單(整個字完全相等,不再用子字串比對)
+_BARE_CRYPTO_BASES = {"BTC","ETH","BNB","SOL","XRP","DOGE","ADA","LINK","LTC","TRX","PAXG","DOT","XLM"}
+_TW_ETF_RE = re.compile(r"^00\d{2,4}[A-Z]?\.TWO?$")
+
+def classify_market(x):
+    """回傳 'crypto' | 'tw' | 'commodity' | 'metal_etf' | 'us'。
+    x 可以是代碼字串,或 ('ccxt',exchange,symbol) / ('yf',ticker) 這種 spec。
+    'crypto' 同時涵蓋幣安合約上的 TradFi 永續(AVGO/USDT:USDT 等),因為它們的成本是交易所合約費率。"""
+    if isinstance(x, (tuple, list)):
+        if len(x) >= 1 and x[0] == "ccxt": return "crypto"
+        x = x[1] if len(x) > 1 else ""
+    s = str(x or "").strip().upper()
+    if not s: return "us"
+    if s.endswith(".TW") or s.endswith(".TWO"): return "tw"
+    if s in _COMMODITY_FUT or s.endswith("=F"): return "commodity"
+    if s in _METAL_ETF: return "metal_etf"
+    if "/" in s: return "crypto"                                   # BTC/USDT、SOL/USDT:USDT
+    if s.endswith("-USD") or s.endswith("-USDT"): return "crypto"  # Yahoo 加密代碼 BTC-USD
+    if s.endswith("USDT") and len(s) > 4: return "crypto"          # BTCUSDT
+    if s in _BARE_CRYPTO_BASES: return "crypto"
+    return "us"
+
+def is_crypto(x):
+    return classify_market(x) == "crypto"
+
+def cost_model(x, strategy=None):
+    """回傳『分方向』成本 dict:commission/slippage 兩邊各收一次,sell_tax 只在賣出收。
+    strategy 參數保留向下相容:不再因為策略名稱(rsi2dip/ibsdip/zdip)就假定 maker 成交——
+    模擬器是『下一根開盤價成交』,沒有模擬限價單是否成交,所以一律用吃單成本。"""
+    m = classify_market(x)
+    if m == "crypto":    return dict(market=m, commission=CRYPTO_COMMISSION, slippage=CRYPTO_SLIPPAGE, sell_tax=0.0)
+    if m == "tw":
+        s = x[1] if isinstance(x, (tuple, list)) else x
+        tax = TW_TAX_ETF if _TW_ETF_RE.match(str(s).strip().upper()) else TW_TAX_STOCK
+        return dict(market=m, commission=TW_COMMISSION, slippage=0.0, sell_tax=tax)
+    if m == "commodity": return dict(market=m, commission=0.0002,  slippage=0.0001,  sell_tax=0.0)   # 期貨 ~0.06% 來回
+    if m == "metal_etf": return dict(market=m, commission=0.0003,  slippage=0.0,     sell_tax=0.0)   # 金屬 ETF ~0.06% 來回
+    return                      dict(market=m, commission=0.00015, slippage=0.00005, sell_tax=0.0)   # 美股(多數零佣)~0.04% 來回
+
+def cost_kwargs(x, strategy=None):
+    """給 run_backtest(..., **cost_kwargs(symbol)) 用。所有 API 都該走這一個入口,成本才會一致。"""
+    c = cost_model(x, strategy)
+    return dict(commission=c["commission"], slippage=c["slippage"], sell_tax=c["sell_tax"])
+
 def market_cost(spec, strategy=None):
-    """各市場真實『單邊』成本(來回=2倍)。台股含 0.3% 賣出證交稅是硬成本,務必正確計入。"""
-    if strategy in ("rsi2dip","ibsdip","zdip"): return (0.0002, 0.0)      # 限掛單 maker ~0.04% 來回
-    if spec[0]=="ccxt": return (0.0004, 0.0002)                            # 加密 taker ~0.12% 來回
-    tk = spec[1]
-    if tk.endswith(".TW"): return (0.00225, 0.0)                           # 台股 ≈0.45% 來回(手續費+0.3%證交稅)
-    if tk in ("GC=F","SI=F","PL=F","PA=F"): return (0.0002, 0.0001)        # 商品期貨 ~0.06% 來回
-    if tk in ("GLD","SLV"): return (0.0003, 0.0)                           # 金屬 ETF ~0.06% 來回
-    return (0.00015, 0.00005)                                             # 美股(多數零佣)~0.04% 來回
+    """【舊介面,保留相容】回傳『單邊平均』(commission, slippage)。台股的賣出證交稅攤成兩邊各一半,
+    只是近似值;要精確請用 cost_kwargs()(買賣分開計算)。"""
+    c = cost_model(spec, strategy)
+    return (c["commission"] + c["sell_tax"] / 2.0, c["slippage"])
 
 def backtest_product(spec, timeframe, risk_pct=0.015, days=None, strategy="trend"):
     """spec=('ccxt',exchange,symbol) 或 ('yf',ticker)。回傳 (dates,equity,stats)。
-       依市場套用真實費率(台股含 0.3% 證交稅),避免試算過度樂觀。"""
-    global COMMISSION, SLIPPAGE
+       依代碼所屬市場套用成本(台股賣出證交稅只算賣出方向),避免試算過度樂觀。"""
     if days is None: days = TF_DAYS.get(timeframe, 900)
-    COMMISSION, SLIPPAGE = market_cost(spec, strategy)
     o = fetch_yf(spec[1], interval=timeframe) if spec[0]=="yf" else fetch_ccxt(spec[1], spec[2], timeframe, days)
-    return run_backtest(o, strategy=strategy, risk_pct=risk_pct, timeframe=timeframe)
+    return run_backtest(o, strategy=strategy, risk_pct=risk_pct, timeframe=timeframe, **cost_kwargs(spec, strategy))
 
 def backtest_symbol(symbol, timeframe, risk_pct=0.015, days=900, strategy="trend"):   # 向後相容
     return backtest_product(("ccxt","binanceusdm",symbol), timeframe, risk_pct, days, strategy)
