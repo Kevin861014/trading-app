@@ -62,4 +62,4 @@ def call(ex, fn, params):
             msg = _scrub(e, ex._secrets)
             if attempt < 3 and ('429' in msg or '418' in msg or 'Too many' in msg or '-1003' in msg or 'timed out' in msg.lower() or '-1021' in msg):
                 time.sleep(2 + attempt * 3); continue
-            raise RuntimeError(msg)
+            raise RuntimeError(msg) from None

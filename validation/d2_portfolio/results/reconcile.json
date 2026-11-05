@@ -1,0 +1,55 @@
+{
+ "result": {
+  "snap": {
+   "totalWalletBalance": "311.94773879",
+   "totalUnrealizedProfit": "1.54191415",
+   "totalMarginBalance": "313.48965294",
+   "availableBalance": "302.73546888",
+   "totalCrossWalletBalance": "302.73546888",
+   "totalCrossUnPnl": "0.00000000",
+   "totalInitialMargin": "9.76137159",
+   "totalPositionInitialMargin": "9.76137159",
+   "totalOpenOrderInitialMargin": "0.00000000",
+   "maxWithdrawAmount": "302.73546888",
+   "usdt_asset": {
+    "walletBalance": "311.94773879",
+    "unrealizedProfit": "1.54191415",
+    "marginBalance": "313.48965294",
+    "crossWalletBalance": "302.73546888",
+    "crossUnPnl": "0.00000000",
+    "initialMargin": "9.76137159",
+    "positionInitialMargin": "9.76137159",
+    "openOrderInitialMargin": "0.00000000",
+    "maintMargin": "0.29284113",
+    "availableBalance": "302.73546888"
+   },
+   "balance_endpoint_usdt": {
+    "balance": "311.94773879",
+    "crossWalletBalance": "302.73546888",
+    "crossUnPnl": "0.00000000",
+    "availableBalance": "302.73546888"
+   },
+   "asOf": "2026-11-05 15:18:21"
+  },
+  "income_records_first_pass": 2276,
+  "income_records_second_pass": 2276,
+  "new_records_between_passes": 0,
+  "fills": 775,
+  "fills_commission_sum": 8.449092,
+  "income_commission_sum": -8.449092,
+  "fills_missing_in_income": 0,
+  "income_without_fill": 0,
+  "fills_realized_sum": 13.074795,
+  "income_realized_sum": 13.074795,
+  "income_funding_sum": -0.887065,
+  "income_other_types": {
+   "TRANSFER": 156.389344
+  },
+  "deposits_to_futures": 308.88066799,
+  "income_total_pnl": 3.738637,
+  "snapshot_based_pnl_wallet": 3.067071,
+  "snapshot_based_pnl_with_unrealized": 4.608985,
+  "income_based_pnl_realized": 3.738637,
+  "residual_wallet_vs_income": -0.671567
+ }
+}

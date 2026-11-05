@@ -1,0 +1,270 @@
+{
+ "window": {
+  "from": "2026-06-22 12:00",
+  "to": "2026-11-05 15:00"
+ },
+ "assumption": "設定時間線與機器人在線時間為推測(見檔頭);只比 {AAVE,BNB,PAXG,PYTH,SOL,XRP} 以外、歸屬可靠的實盤交易",
+ "counts": {
+  "live_comparable": 168,
+  "sim": 236,
+  "matched_entry_pm1bar": 166,
+  "sim_only": 70,
+  "live_only": 2,
+  "match_rate_of_live_pct": 98.8
+ },
+ "exit_within_1h": 166,
+ "exit_within_4h": 166,
+ "closed_pairs": 166,
+ "notional_ratio_sim_over_live": {
+  "median": 0.9918796176512269,
+  "p10": 0.7944136487066513,
+  "p90": 1.0003
+ },
+ "net_matched": {
+  "sim": 11.15,
+  "live": 10.688
+ },
+ "by_symbol_matched_simonly_liveonly": {
+  "1000PEPE/USDT": [
+   5,
+   0,
+   0
+  ],
+  "ADA/USDT": [
+   15,
+   11,
+   0
+  ],
+  "ALGO/USDT": [
+   3,
+   4,
+   0
+  ],
+  "ARB/USDT": [
+   2,
+   0,
+   0
+  ],
+  "ATOM/USDT": [
+   9,
+   6,
+   0
+  ],
+  "CHZ/USDT": [
+   3,
+   1,
+   0
+  ],
+  "DOT/USDT": [
+   6,
+   3,
+   0
+  ],
+  "INJ/USDT": [
+   4,
+   3,
+   1
+  ],
+  "JUP/USDT": [
+   16,
+   13,
+   1
+  ],
+  "KAVA/USDT": [
+   1,
+   0,
+   0
+  ],
+  "NEAR/USDT": [
+   12,
+   2,
+   0
+  ],
+  "RUNE/USDT": [
+   8,
+   0,
+   0
+  ],
+  "THETA/USDT": [
+   2,
+   0,
+   0
+  ],
+  "TRX/USDT": [
+   55,
+   2,
+   0
+  ],
+  "VET/USDT": [
+   12,
+   14,
+   0
+  ],
+  "WLD/USDT": [
+   7,
+   11,
+   0
+  ],
+  "XLM/USDT": [
+   6,
+   0,
+   0
+  ]
+ },
+ "sim_only_sample": [
+  {
+   "key": "VET/USDT|4h|cci_pm100",
+   "entry": "2026-06-22 16:00",
+   "exit": "2026-06-23 00:00",
+   "net": -0.165
+  },
+  {
+   "key": "JUP/USDT|4h|tsi_cross",
+   "entry": "2026-06-25 04:00",
+   "exit": "2026-06-25 13:30",
+   "net": -0.286
+  },
+  {
+   "key": "TRX/USDT|1h|tsmom",
+   "entry": "2026-06-25 06:00",
+   "exit": "2026-06-25 07:00",
+   "net": -0.119
+  },
+  {
+   "key": "JUP/USDT|4h|tsi_cross",
+   "entry": "2026-06-27 00:00",
+   "exit": "2026-06-27 03:30",
+   "net": -0.279
+  },
+  {
+   "key": "VET/USDT|4h|cci_pm100",
+   "entry": "2026-06-28 04:00",
+   "exit": "2026-06-29 00:00",
+   "net": -0.162
+  },
+  {
+   "key": "ADA/USDT|4h|cci_pm100",
+   "entry": "2026-07-01 04:00",
+   "exit": "2026-07-02 16:00",
+   "net": 0.655
+  },
+  {
+   "key": "JUP/USDT|4h|tsi_cross",
+   "entry": "2026-07-01 08:00",
+   "exit": "2026-07-02 12:00",
+   "net": 0.919
+  },
+  {
+   "key": "VET/USDT|4h|cci_pm100",
+   "entry": "2026-07-02 12:00",
+   "exit": "2026-07-06 08:00",
+   "net": 0.175
+  },
+  {
+   "key": "ATOM/USDT|4h|ema_8_21",
+   "entry": "2026-07-03 00:00",
+   "exit": "2026-07-05 12:00",
+   "net": -0.053
+  },
+  {
+   "key": "WLD/USDT|4h|coppock_zero",
+   "entry": "2026-07-03 16:00",
+   "exit": "2026-07-05 00:30",
+   "net": -0.282
+  },
+  {
+   "key": "ADA/USDT|4h|cci_pm100",
+   "entry": "2026-07-04 16:00",
+   "exit": "2026-07-05 10:30",
+   "net": -0.292
+  },
+  {
+   "key": "ALGO/USDT|4h|smc",
+   "entry": "2026-07-04 16:00",
+   "exit": "2026-07-08 04:00",
+   "net": -0.438
+  },
+  {
+   "key": "ATOM/USDT|4h|ema_8_21",
+   "entry": "2026-07-06 00:00",
+   "exit": "2026-07-06 12:30",
+   "net": -0.289
+  },
+  {
+   "key": "JUP/USDT|4h|tsi_cross",
+   "entry": "2026-07-06 04:00",
+   "exit": "2026-07-06 07:30",
+   "net": -0.287
+  },
+  {
+   "key": "VET/USDT|4h|cci_pm100",
+   "entry": "2026-07-06 20:00",
+   "exit": "2026-07-07 11:30",
+   "net": -0.291
+  }
+ ],
+ "live_only_sample": [
+  {
+   "sym": "INJ/USDT",
+   "strategy": "supertrend",
+   "entry": "2026-11-04 08:00",
+   "net": -0.01
+  },
+  {
+   "sym": "JUP/USDT",
+   "strategy": "tsi_cross",
+   "entry": "2026-11-04 08:01",
+   "net": -0.005
+  }
+ ],
+ "sim_final": {
+  "equity": 311.72,
+  "trades": 378,
+  "rejected": {
+   "below_step": 47,
+   "below_min_notional": 14
+  }
+ },
+ "sim_only_split": {
+  "before_first_live_trade_of_that_symbol": 68,
+  "after_first_live_trade": 2,
+  "after_list": [
+   {
+    "key": "TRX/USDT|1h|tsmom",
+    "entry": "2026-08-13 06:00",
+    "exit": "2026-08-13 10:00",
+    "net": -0.415
+   },
+   {
+    "key": "WLD/USDT|4h|coppock_zero",
+    "entry": "2026-10-01 00:00",
+    "exit": "2026-10-01 07:30",
+    "net": -0.624
+   }
+  ]
+ },
+ "first_live_trade": {
+  "1000PEPE/USDT": "2026-10-13 16:00",
+  "AAVE/USDT": "2026-10-26 16:00",
+  "ADA/USDT": "2026-09-03 04:00",
+  "ALGO/USDT": "2026-09-01 08:00",
+  "ARB/USDT": "2026-08-31 20:00",
+  "ATOM/USDT": "2026-09-03 16:00",
+  "CHZ/USDT": "2026-09-13 08:00",
+  "DOT/USDT": "2026-09-06 12:00",
+  "INJ/USDT": "2026-09-06 08:00",
+  "JUP/USDT": "2026-09-01 04:00",
+  "KAVA/USDT": "2026-10-16 00:00",
+  "NEAR/USDT": "2026-09-04 20:00",
+  "PAXG/USDT": "2026-10-25 20:01",
+  "PYTH/USDT": "2026-10-31 20:01",
+  "RUNE/USDT": "2026-10-14 12:00",
+  "SOL/USDT": "2026-10-28 12:00",
+  "THETA/USDT": "2026-10-11 00:00",
+  "TRX/USDT": "2026-07-03 07:00",
+  "VET/USDT": "2026-09-03 20:00",
+  "WLD/USDT": "2026-09-03 08:00",
+  "XLM/USDT": "2026-09-03 16:01",
+  "XRP/USDT": "2026-10-28 20:00"
+ }
+}

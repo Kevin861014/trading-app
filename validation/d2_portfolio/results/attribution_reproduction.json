@@ -1,0 +1,128 @@
+{
+ "unknown_trips": 121,
+ "classification": {
+  "single_candidate": 102,
+  "unexplained": 5,
+  "ambiguous": 14
+ },
+ "net_by_class": {
+  "single_candidate": -6.484,
+  "unexplained": 10.748,
+  "ambiguous": -4.718
+ },
+ "by_symbol": {
+  "AAVE/USDT": {
+   "single_candidate": 18
+  },
+  "BNB/USDT": {
+   "single_candidate": 18,
+   "unexplained": 1
+  },
+  "PAXG/USDT": {
+   "single_candidate": 14,
+   "unexplained": 1
+  },
+  "PYTH/USDT": {
+   "single_candidate": 8
+  },
+  "SOL/USDT": {
+   "ambiguous": 4,
+   "single_candidate": 12
+  },
+  "XRP/USDT": {
+   "unexplained": 3,
+   "single_candidate": 32,
+   "ambiguous": 10
+  }
+ },
+ "candidates": {
+  "AAVE/USDT|4h|ppo_cross": {
+   "sim_trips": 36,
+   "live_unknown_trips_of_symbol": 18,
+   "reproduced": 18
+  },
+  "AAVE/USDT|4h|cmf_zero": {
+   "sim_trips": 39,
+   "live_unknown_trips_of_symbol": 18,
+   "reproduced": 0
+  },
+  "BNB/USDT|4h|cmf": {
+   "sim_trips": 32,
+   "live_unknown_trips_of_symbol": 19,
+   "reproduced": 15
+  },
+  "BNB/USDT|4h|ttm": {
+   "sim_trips": 6,
+   "live_unknown_trips_of_symbol": 19,
+   "reproduced": 3
+  },
+  "XRP/USDT|1h|cci": {
+   "sim_trips": 53,
+   "live_unknown_trips_of_symbol": 45,
+   "reproduced": 22
+  },
+  "XRP/USDT|1h|vortex": {
+   "sim_trips": 52,
+   "live_unknown_trips_of_symbol": 45,
+   "reproduced": 30
+  },
+  "PAXG/USDT|4h|supertrend": {
+   "sim_trips": 12,
+   "live_unknown_trips_of_symbol": 15,
+   "reproduced": 4
+  },
+  "PAXG/USDT|4h|lrs": {
+   "sim_trips": 5,
+   "live_unknown_trips_of_symbol": 15,
+   "reproduced": 0
+  },
+  "PAXG/USDT|4h|trix_signal": {
+   "sim_trips": 22,
+   "live_unknown_trips_of_symbol": 15,
+   "reproduced": 10
+  },
+  "PAXG/USDT|4h|inside_break": {
+   "sim_trips": 27,
+   "live_unknown_trips_of_symbol": 15,
+   "reproduced": 0
+  },
+  "PYTH/USDT|4h|week_hl": {
+   "sim_trips": 17,
+   "live_unknown_trips_of_symbol": 8,
+   "reproduced": 8
+  },
+  "PYTH/USDT|4h|fisher_zero": {
+   "sim_trips": 31,
+   "live_unknown_trips_of_symbol": 8,
+   "reproduced": 0
+  },
+  "SOL/USDT|4h|force": {
+   "sim_trips": 30,
+   "live_unknown_trips_of_symbol": 16,
+   "reproduced": 10
+  },
+  "SOL/USDT|4h|ema_8_21": {
+   "sim_trips": 18,
+   "live_unknown_trips_of_symbol": 16,
+   "reproduced": 7
+  },
+  "SOL/USDT|4h|ssl_channel": {
+   "sim_trips": 30,
+   "live_unknown_trips_of_symbol": 16,
+   "reproduced": 3
+  }
+ },
+ "inferred_single_candidate": {
+  "AAVE/USDT|ppo_cross": 18,
+  "BNB/USDT|cmf": 15,
+  "BNB/USDT|ttm": 3,
+  "PAXG/USDT|supertrend": 4,
+  "PAXG/USDT|trix_signal": 10,
+  "PYTH/USDT|week_hl": 8,
+  "SOL/USDT|ema_8_21": 4,
+  "SOL/USDT|force": 8,
+  "XRP/USDT|cci": 12,
+  "XRP/USDT|vortex": 20
+ },
+ "caveat": "訊號重現只是證據:被重現不代表帳務上就是該策略(不同策略可能在同一根 K 棒產生相同進出場)。實盤歸屬表仍把這 121 筆列為「無法可靠歸屬」。"
+}

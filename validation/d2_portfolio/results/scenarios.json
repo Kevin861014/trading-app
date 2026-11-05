@@ -1,0 +1,486 @@
+{
+ "init": 310.0,
+ "periods": {
+  "L": {
+   "label": "實盤期間",
+   "from": "2026-06-22",
+   "to": "2026-11-05"
+  },
+  "E": {
+   "label": "擴充期間",
+   "from": "2025-05-08",
+   "to": "2026-11-05"
+  }
+ },
+ "results": {
+  "L_A": {
+   "end_equity": 364.16,
+   "return_pct": 17.47,
+   "max_dd_pct": -8.74,
+   "max_dd_usd": -28.42,
+   "trades": 521,
+   "win_pct": 34.7,
+   "pf": 1.4,
+   "avg_net": 0.1012,
+   "net_closed": 52.7,
+   "fees": 12.92,
+   "funding": -1.7,
+   "fees_vs_gross_pct": 19.2,
+   "avg_concurrent": 4.74,
+   "max_concurrent": 14,
+   "share_hours_flat_pct": 4.0,
+   "max_exposure_x": 0.93,
+   "p95_exposure_x": 0.68,
+   "worst_day_usd": -6.79,
+   "worst_day_pct": -1.82,
+   "worst_day": "2026-10-29",
+   "top3_net": 25.1,
+   "net_without_top3": 27.6,
+   "top3_share_of_net_pct": 48.0,
+   "thirds_usd": [
+    -7.48,
+    67.76,
+    -6.12
+   ],
+   "rejected": {},
+   "notes": {
+    "exchange_stop_exit": 116
+   },
+   "label": "A 維持全部 23 組"
+  },
+  "L_B": {
+   "end_equity": 359.97,
+   "return_pct": 16.12,
+   "max_dd_pct": -5.77,
+   "max_dd_usd": -18.49,
+   "trades": 411,
+   "win_pct": 38.2,
+   "pf": 1.47,
+   "avg_net": 0.118,
+   "net_closed": 48.5,
+   "fees": 7.3,
+   "funding": -1.54,
+   "fees_vs_gross_pct": 12.7,
+   "avg_concurrent": 4.31,
+   "max_concurrent": 13,
+   "share_hours_flat_pct": 4.1,
+   "max_exposure_x": 0.71,
+   "p95_exposure_x": 0.47,
+   "worst_day_usd": -4.92,
+   "worst_day_pct": -1.4,
+   "worst_day": "2026-10-29",
+   "top3_net": 10.49,
+   "net_without_top3": 38.01,
+   "top3_share_of_net_pct": 22.0,
+   "thirds_usd": [
+    -3.41,
+    52.62,
+    0.75
+   ],
+   "rejected": {},
+   "notes": {
+    "exchange_stop_exit": 113
+   },
+   "label": "B 不啟用 1H 組合"
+  },
+  "L_C": {
+   "end_equity": 333.75,
+   "return_pct": 7.66,
+   "max_dd_pct": -6.87,
+   "max_dd_usd": -24.61,
+   "trades": 448,
+   "win_pct": 35.0,
+   "pf": 1.2,
+   "avg_net": 0.0498,
+   "net_closed": 22.32,
+   "fees": 10.16,
+   "funding": -1.46,
+   "fees_vs_gross_pct": 29.9,
+   "avg_concurrent": 4.28,
+   "max_concurrent": 10,
+   "share_hours_flat_pct": 4.0,
+   "max_exposure_x": 0.5,
+   "p95_exposure_x": 0.47,
+   "worst_day_usd": -6.31,
+   "worst_day_pct": -1.84,
+   "worst_day": "2026-10-29",
+   "top3_net": 8.14,
+   "net_without_top3": 14.19,
+   "top3_share_of_net_pct": 36.0,
+   "thirds_usd": [
+    -2.88,
+    37.32,
+    -10.69
+   ],
+   "rejected": {
+    "guard_exposure": 78
+   },
+   "notes": {
+    "exchange_stop_exit": 103
+   },
+   "label": "C 同時暴露上限 0.5×權益"
+  },
+  "L_D": {
+   "end_equity": 351.04,
+   "return_pct": 13.24,
+   "max_dd_pct": -8.46,
+   "max_dd_usd": -27.51,
+   "trades": 487,
+   "win_pct": 33.7,
+   "pf": 1.32,
+   "avg_net": 0.081,
+   "net_closed": 39.44,
+   "fees": 12.15,
+   "funding": -1.56,
+   "fees_vs_gross_pct": 22.9,
+   "avg_concurrent": 4.54,
+   "max_concurrent": 14,
+   "share_hours_flat_pct": 4.0,
+   "max_exposure_x": 0.89,
+   "p95_exposure_x": 0.66,
+   "worst_day_usd": -6.58,
+   "worst_day_pct": -1.83,
+   "worst_day": "2026-10-29",
+   "top3_net": 22.89,
+   "net_without_top3": 16.55,
+   "top3_share_of_net_pct": 58.0,
+   "thirds_usd": [
+    -6.56,
+    56.54,
+    -8.94
+   ],
+   "rejected": {
+    "guard_max_entries": 37
+   },
+   "notes": {
+    "exchange_stop_exit": 109
+   },
+   "label": "D 同一輪最多 2 組新進場"
+  },
+  "E_A": {
+   "end_equity": 333.33,
+   "return_pct": 7.53,
+   "max_dd_pct": -25.84,
+   "max_dd_usd": -93.19,
+   "trades": 2249,
+   "win_pct": 29.8,
+   "pf": 1.04,
+   "avg_net": 0.0097,
+   "net_closed": 21.9,
+   "fees": 49.89,
+   "funding": -5.69,
+   "fees_vs_gross_pct": 64.4,
+   "avg_concurrent": 4.76,
+   "max_concurrent": 17,
+   "share_hours_flat_pct": 7.0,
+   "max_exposure_x": 1.14,
+   "p95_exposure_x": 0.73,
+   "worst_day_usd": -12.96,
+   "worst_day_pct": -3.65,
+   "worst_day": "2025-08-14",
+   "top3_net": 36.06,
+   "net_without_top3": -14.16,
+   "top3_share_of_net_pct": 165.0,
+   "thirds_usd": [
+    -1.58,
+    -24.96,
+    49.87
+   ],
+   "rejected": {},
+   "notes": {
+    "exchange_stop_exit": 579
+   },
+   "label": "A 維持全部 23 組"
+  },
+  "E_B": {
+   "end_equity": 333.9,
+   "return_pct": 7.71,
+   "max_dd_pct": -22.6,
+   "max_dd_usd": -79.69,
+   "trades": 1726,
+   "win_pct": 31.1,
+   "pf": 1.05,
+   "avg_net": 0.013,
+   "net_closed": 22.47,
+   "fees": 27.92,
+   "funding": -3.87,
+   "fees_vs_gross_pct": 51.5,
+   "avg_concurrent": 4.19,
+   "max_concurrent": 15,
+   "share_hours_flat_pct": 8.0,
+   "max_exposure_x": 0.86,
+   "p95_exposure_x": 0.54,
+   "worst_day_usd": -10.47,
+   "worst_day_pct": -3.01,
+   "worst_day": "2025-08-14",
+   "top3_net": 28.59,
+   "net_without_top3": -6.12,
+   "top3_share_of_net_pct": 127.0,
+   "thirds_usd": [
+    3.58,
+    -26.26,
+    46.57
+   ],
+   "rejected": {},
+   "notes": {
+    "exchange_stop_exit": 560
+   },
+   "label": "B 不啟用 1H 組合"
+  },
+  "E_C": {
+   "end_equity": 285.77,
+   "return_pct": -7.82,
+   "max_dd_pct": -27.12,
+   "max_dd_usd": -91.97,
+   "trades": 1870,
+   "win_pct": 29.1,
+   "pf": 0.94,
+   "avg_net": -0.0136,
+   "net_closed": -25.35,
+   "fees": 37.36,
+   "funding": -3.79,
+   "fees_vs_gross_pct": 236.4,
+   "avg_concurrent": 3.97,
+   "max_concurrent": 10,
+   "share_hours_flat_pct": 7.3,
+   "max_exposure_x": 0.51,
+   "p95_exposure_x": 0.48,
+   "worst_day_usd": -7.67,
+   "worst_day_pct": -2.33,
+   "worst_day": "2025-08-14",
+   "top3_net": 27.18,
+   "net_without_top3": -52.53,
+   "top3_share_of_net_pct": null,
+   "thirds_usd": [
+    -10.34,
+    -36.57,
+    22.68
+   ],
+   "rejected": {
+    "guard_exposure": 435,
+    "below_step": 3
+   },
+   "notes": {
+    "exchange_stop_exit": 493
+   },
+   "label": "C 同時暴露上限 0.5×權益"
+  },
+  "E_D": {
+   "end_equity": 310.23,
+   "return_pct": 0.08,
+   "max_dd_pct": -25.2,
+   "max_dd_usd": -88.53,
+   "trades": 2045,
+   "win_pct": 29.1,
+   "pf": 1.0,
+   "avg_net": -0.0006,
+   "net_closed": -1.22,
+   "fees": 45.35,
+   "funding": -5.06,
+   "fees_vs_gross_pct": 92.2,
+   "avg_concurrent": 4.35,
+   "max_concurrent": 16,
+   "share_hours_flat_pct": 7.1,
+   "max_exposure_x": 1.05,
+   "p95_exposure_x": 0.68,
+   "worst_day_usd": -11.85,
+   "worst_day_pct": -3.43,
+   "worst_day": "2025-08-14",
+   "top3_net": 35.26,
+   "net_without_top3": -36.48,
+   "top3_share_of_net_pct": null,
+   "thirds_usd": [
+    -4.84,
+    -31.21,
+    36.28
+   ],
+   "rejected": {
+    "guard_max_entries": 224
+   },
+   "notes": {
+    "exchange_stop_exit": 503
+   },
+   "label": "D 同一輪最多 2 組新進場"
+  }
+ },
+ "stress": {
+  "L_A": {
+   "end_equity": 351.23,
+   "return_pct": 13.3,
+   "max_dd_pct": -9.89,
+   "max_dd_usd": -32.1,
+   "trades": 521,
+   "win_pct": 33.2,
+   "pf": 1.29,
+   "avg_net": 0.0764,
+   "net_closed": 39.8,
+   "fees": 19.04,
+   "funding": -1.67,
+   "fees_vs_gross_pct": 31.5,
+   "avg_concurrent": 4.74,
+   "max_concurrent": 14,
+   "share_hours_flat_pct": 4.0,
+   "max_exposure_x": 0.93,
+   "p95_exposure_x": 0.68,
+   "worst_day_usd": -6.86,
+   "worst_day_pct": -1.9,
+   "worst_day": "2026-10-29",
+   "top3_net": 24.63,
+   "net_without_top3": 15.17,
+   "top3_share_of_net_pct": 62.0,
+   "thirds_usd": [
+    -11.27,
+    62.27,
+    -9.77
+   ],
+   "rejected": {},
+   "notes": {
+    "exchange_stop_exit": 116
+   },
+   "label": "A 維持全部 23 組(成本 ×1.5)"
+  },
+  "L_B": {
+   "end_equity": 352.45,
+   "return_pct": 13.69,
+   "max_dd_pct": -6.41,
+   "max_dd_usd": -20.54,
+   "trades": 411,
+   "win_pct": 37.0,
+   "pf": 1.39,
+   "avg_net": 0.0998,
+   "net_closed": 41.02,
+   "fees": 10.84,
+   "funding": -1.53,
+   "fees_vs_gross_pct": 20.3,
+   "avg_concurrent": 4.31,
+   "max_concurrent": 13,
+   "share_hours_flat_pct": 4.1,
+   "max_exposure_x": 0.71,
+   "p95_exposure_x": 0.47,
+   "worst_day_usd": -5.0,
+   "worst_day_pct": -1.43,
+   "worst_day": "2026-10-29",
+   "top3_net": 10.36,
+   "net_without_top3": 30.66,
+   "top3_share_of_net_pct": 25.0,
+   "thirds_usd": [
+    -5.61,
+    49.57,
+    -1.5
+   ],
+   "rejected": {},
+   "notes": {
+    "exchange_stop_exit": 113
+   },
+   "label": "B 不啟用 1H 組合(成本 ×1.5)"
+  },
+  "E_A": {
+   "end_equity": 281.36,
+   "return_pct": -9.24,
+   "max_dd_pct": -33.26,
+   "max_dd_usd": -117.19,
+   "trades": 2246,
+   "win_pct": 28.6,
+   "pf": 0.95,
+   "avg_net": -0.0132,
+   "net_closed": -29.73,
+   "fees": 68.97,
+   "funding": -5.31,
+   "fees_vs_gross_pct": 154.8,
+   "avg_concurrent": 4.76,
+   "max_concurrent": 17,
+   "share_hours_flat_pct": 7.0,
+   "max_exposure_x": 1.15,
+   "p95_exposure_x": 0.73,
+   "worst_day_usd": -12.83,
+   "worst_day_pct": -3.73,
+   "worst_day": "2025-08-14",
+   "top3_net": 33.28,
+   "net_without_top3": -63.01,
+   "top3_share_of_net_pct": null,
+   "thirds_usd": [
+    -18.78,
+    -37.77,
+    27.91
+   ],
+   "rejected": {
+    "below_step": 3
+   },
+   "notes": {
+    "exchange_stop_exit": 577
+   },
+   "label": "A 維持全部 23 組(成本 ×1.5)"
+  },
+  "E_B": {
+   "end_equity": 304.01,
+   "return_pct": -1.93,
+   "max_dd_pct": -26.04,
+   "max_dd_usd": -90.61,
+   "trades": 1726,
+   "win_pct": 30.1,
+   "pf": 0.98,
+   "avg_net": -0.0041,
+   "net_closed": -7.12,
+   "fees": 40.01,
+   "funding": -3.7,
+   "fees_vs_gross_pct": 109.3,
+   "avg_concurrent": 4.19,
+   "max_concurrent": 15,
+   "share_hours_flat_pct": 8.0,
+   "max_exposure_x": 0.85,
+   "p95_exposure_x": 0.54,
+   "worst_day_usd": -10.49,
+   "worst_day_pct": -3.07,
+   "worst_day": "2025-08-14",
+   "top3_net": 28.08,
+   "net_without_top3": -35.2,
+   "top3_share_of_net_pct": null,
+   "thirds_usd": [
+    -6.25,
+    -33.53,
+    33.79
+   ],
+   "rejected": {},
+   "notes": {
+    "exchange_stop_exit": 560
+   },
+   "label": "B 不啟用 1H 組合(成本 ×1.5)"
+  }
+ },
+ "btc_thirds": {
+  "L": [
+   {
+    "from": "2026-06-22",
+    "to": "2026-08-06",
+    "btc_pct": 0.5
+   },
+   {
+    "from": "2026-08-06",
+    "to": "2026-09-21",
+    "btc_pct": 34.6
+   },
+   {
+    "from": "2026-09-21",
+    "to": "2026-11-05",
+    "btc_pct": -7.1
+   }
+  ],
+  "E": [
+   {
+    "from": "2025-05-08",
+    "to": "2025-11-06",
+    "btc_pct": -1.9
+   },
+   {
+    "from": "2025-11-06",
+    "to": "2026-05-07",
+    "btc_pct": -21.1
+   },
+   {
+    "from": "2026-05-07",
+    "to": "2026-11-05",
+    "btc_pct": 0.6
+   }
+  ]
+ }
+}

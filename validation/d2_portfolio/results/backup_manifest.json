@@ -1,0 +1,120 @@
+{
+ "created": "2026-11-05 23:16:41",
+ "source": "C:\\Users\\User\\發大財\\順勢交易機器人",
+ "files": [
+  {
+   "name": "portfolio.log",
+   "source_size": 1058063,
+   "source_mtime": "2026-11-05 23:15:42",
+   "bytes_read": 1058063,
+   "source_sha256_at_read": "f82f9ff37032c2c8c7bc0cb0cba5bf613694e51b83c60fda3d4d653e9aad296a",
+   "backup": "portfolio.log",
+   "kind": "byte-identical copy",
+   "backup_sha256": "f82f9ff37032c2c8c7bc0cb0cba5bf613694e51b83c60fda3d4d653e9aad296a",
+   "backup_size": 1058063
+  },
+  {
+   "name": "portfolio.log.old",
+   "source_size": 5000010,
+   "source_mtime": "2026-11-03 19:53:21",
+   "bytes_read": 5000010,
+   "source_sha256_at_read": "64a3e2a551a146c7b93eea43fda1ebc987ff35c1a4e517eb98ccadd97e940869",
+   "backup": "portfolio.log.old",
+   "kind": "byte-identical copy",
+   "backup_sha256": "64a3e2a551a146c7b93eea43fda1ebc987ff35c1a4e517eb98ccadd97e940869",
+   "backup_size": 5000010
+  },
+  {
+   "name": "portfolio_state.json",
+   "source_size": 17368,
+   "source_mtime": "2026-11-05 23:15:50",
+   "bytes_read": 17368,
+   "source_sha256_at_read": "9a7e1f0480b84357cc7d79884af8eb6acc8a4e26c09930a5c5e6f0302c82f127",
+   "backup": "portfolio_state.json",
+   "kind": "byte-identical copy",
+   "backup_sha256": "9a7e1f0480b84357cc7d79884af8eb6acc8a4e26c09930a5c5e6f0302c82f127",
+   "backup_size": 17368
+  },
+  {
+   "name": "portfolio_state.json.bak",
+   "source_size": 17368,
+   "source_mtime": "2026-11-05 23:15:50",
+   "bytes_read": 17368,
+   "source_sha256_at_read": "9a7e1f0480b84357cc7d79884af8eb6acc8a4e26c09930a5c5e6f0302c82f127",
+   "backup": "portfolio_state.json.bak",
+   "kind": "byte-identical copy",
+   "backup_sha256": "9a7e1f0480b84357cc7d79884af8eb6acc8a4e26c09930a5c5e6f0302c82f127",
+   "backup_size": 17368
+  },
+  {
+   "name": "portfolio.protection_alerts.log",
+   "source_size": 3297,
+   "source_mtime": "2026-10-05 12:00:12",
+   "bytes_read": 3297,
+   "source_sha256_at_read": "787b38d3e40d33fe9a4457f8e7b9800f40e883699696b1e52af6b85f28b0c3f9",
+   "backup": "portfolio.protection_alerts.log",
+   "kind": "byte-identical copy",
+   "backup_sha256": "787b38d3e40d33fe9a4457f8e7b9800f40e883699696b1e52af6b85f28b0c3f9",
+   "backup_size": 3297
+  },
+  {
+   "name": "watchdog.log",
+   "source_size": 71354,
+   "source_mtime": "2026-11-05 22:46:34",
+   "bytes_read": 71354,
+   "source_sha256_at_read": "95de4bacd5b09da5025c7228d7055086ebc437fe48a145f4c67c63c22661e43d",
+   "backup": "watchdog.log",
+   "kind": "byte-identical copy",
+   "backup_sha256": "95de4bacd5b09da5025c7228d7055086ebc437fe48a145f4c67c63c22661e43d",
+   "backup_size": 71354
+  },
+  {
+   "name": "basket_saved.json",
+   "source_size": 952,
+   "source_mtime": "2026-08-21 21:21:47",
+   "bytes_read": 952,
+   "source_sha256_at_read": "439e75060ccf73ca34d3441636bf64acedde6fb21b2b947b46c4c41e86c4f168",
+   "backup": "basket_saved.json",
+   "kind": "byte-identical copy",
+   "backup_sha256": "439e75060ccf73ca34d3441636bf64acedde6fb21b2b947b46c4c41e86c4f168",
+   "backup_size": 952
+  },
+  {
+   "name": "config.portfolio.json",
+   "source_size": 3479,
+   "source_mtime": "2026-10-29 21:26:30",
+   "bytes_read": 3479,
+   "source_sha256_at_read": "47e269d42dbea57a1670159cc5a2dc6a681c142871ea0ee571d15b375ee5ab17",
+   "backup": "config.portfolio.json.REDACTED.json",
+   "kind": "redacted copy (api keys removed)",
+   "backup_sha256": "ae188f1da96296aee2b6bc944dc71e6b5f3df93451a870dcfec8dd88df1744d3",
+   "backup_size": 2822
+  },
+  {
+   "name": "config.portfolio.json.bak_20251010",
+   "source_size": 3069,
+   "source_mtime": "2026-10-10 15:29:11",
+   "bytes_read": 3069,
+   "source_sha256_at_read": "4e4ee47d1e1e68d16bab9fe8717ddb2f8c8b2b455bc69b146ba27dacf8d90395",
+   "backup": "config.portfolio.json.bak_20251010.REDACTED.json",
+   "kind": "redacted copy (api keys removed)",
+   "backup_sha256": "b7b6d66f252df6f3cdf5f8eea6f8f6c121de7d96f7750e80dde9342ee9617c5f",
+   "backup_size": 2478
+  },
+  {
+   "name": "config.portfolio.json.bak_20251029_before_swap",
+   "source_size": 3595,
+   "source_mtime": "2026-10-29 21:26:30",
+   "bytes_read": 3595,
+   "source_sha256_at_read": "4ea3b284bcd7d7f23b632001f1222caddbd8334a4f55a63025559d5fbfe21e05",
+   "backup": "config.portfolio.json.bak_20251029_before_swap.REDACTED.json",
+   "kind": "redacted copy (api keys removed)",
+   "backup_sha256": "53313d8c12e49748f43041887a2eaa897daeb3287c9961c7f64214f435e4f8c3",
+   "backup_size": 2916
+  }
+ ],
+ "verification": {
+  "secrets_found_in_backup": [],
+  "hash_problems": []
+ }
+}
