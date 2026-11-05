@@ -84,3 +84,14 @@ function tfUnsupported(symbol, tf){
     return '台股／美股／貴金屬不支援 4H：資料來源只有 1 小時資料，合成的 4H 區間對不上交易時段，結果不可靠。請改用日線或 1H。';
   return null;
 }
+
+// 手機(窄螢幕或觸控)用較高的圖與較大的觸控區;只影響顯示尺寸,不影響任何計算。
+function isMobileView(){ return window.matchMedia('(max-width:720px)').matches; }
+function isTouchDevice(){ return window.matchMedia('(hover:none) and (pointer:coarse)').matches; }
+function chartHeights(kind){
+  const m = isMobileView();
+  if(kind === 'card')  return m ? {main:260, ema:70, kd:80, rsi:80, vol:64} : {main:220, ema:60, kd:70, rsi:70, vol:50};
+  if(kind === 'sym')   return m ? {main:300, ema:70, kd:80, rsi:80, vol:64} : {main:320, ema:60, kd:70, rsi:70, vol:50};
+  const full = Math.max(280, Math.round(window.innerHeight * (m ? 0.46 : 0.5)));   // modal
+  return m ? {main:full, ema:70, kd:80, rsi:80, vol:64} : {main:360, ema:60, kd:70, rsi:70, vol:50};
+}

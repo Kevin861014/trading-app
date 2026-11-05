@@ -1,0 +1,229 @@
+/* B2: iPhone Safari / touch optimisation. Loaded AFTER app.css and ui.css.
+   Presentation only: nothing here hides a feature or changes any number (the comparison table is swapped for the same data as cards). */
+
+/* trade-date caption (phones enlarge it below) */
+.tm-date{font-size:11px;color:var(--text3);margin-top:1px;}
+.sig-sub{font-size:11px;color:var(--text3);margin-left:8px;}
+
+/* modal grab handle / close X exist only in the phone bottom sheet */
+.sheet-grab,.sheet-x{display:none;}
+
+/* ---------- touch basics (any touch device or narrow window) ---------- */
+html{-webkit-tap-highlight-color:rgba(55,138,221,0.22);}
+body{min-height:100vh;min-height:100dvh;}
+body.modal-open{overflow:hidden;}
+button,a,select,label,input[type=checkbox],[role=button]{touch-action:manipulation;}
+.chart-container,#symK,.curve-box,#modalChartContainer{touch-action:pan-y;}
+.itoggle,.btn-icon,.btn-analyze{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;}
+
+/* ---------- tip sheet (replaces hover tooltips on touch) ---------- */
+.tip-sheet{position:fixed;left:12px;right:12px;bottom:calc(72px + env(safe-area-inset-bottom));z-index:3000;background:#262b3d;border:1px solid rgba(255,255,255,0.18);border-radius:12px;padding:12px 44px 12px 14px;font-size:14px;line-height:1.6;color:var(--text);box-shadow:0 8px 28px rgba(0,0,0,0.6);}
+.tip-sheet[hidden]{display:none;}
+.tip-x{position:absolute;right:2px;top:2px;width:44px;height:44px;background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;}
+@media (min-width:721px){.tip-sheet{left:auto;right:20px;bottom:20px;max-width:420px;}}
+@media (hover:none){
+  [data-tip]{cursor:default;}
+  [data-tip]:hover::after,[data-tip]:hover::before{display:none !important;}
+}
+
+/* ---------- bigger targets for coarse pointers (also tablets) ---------- */
+@media (pointer:coarse), (max-width:720px){
+  .btn-icon{min-width:44px;min-height:44px;font-size:16px;}
+  .btn-analyze{min-height:44px;font-size:14px;padding:6px 12px;}
+  .btn-add,.btn-primary,.btn-ghost,.linkbtn,.btn-apply{min-height:44px;font-size:14px;}
+  .nav-toggle-btn{min-height:44px;min-width:44px;}
+  .itoggle{min-height:44px;font-size:14px;padding:6px 16px;}
+  .sel-sm{min-height:44px;font-size:16px;padding:6px 10px;}
+  .htab,.hstock,.mtab{min-height:44px;display:inline-flex;align-items:center;font-size:14px;padding:6px 16px;}
+  .card-expand{min-height:48px;font-size:14px;}
+  .search-item{min-height:48px;display:flex;align-items:center;justify-content:space-between;}
+  .nav-item{min-height:52px;}
+  .nav-drawer-close{min-width:44px;min-height:44px;font-size:20px;}
+  .btn-close,.btn-close-analysis{min-height:44px;font-size:15px;}
+  .rec-tag{min-height:44px;display:inline-flex;align-items:center;font-size:14px;}
+  .intro-close{min-height:48px;font-size:15px;}
+}
+
+/* ---------- phone layout ---------- */
+@media (max-width:720px){
+  /* inputs ≥16px so iOS does not zoom the page on focus */
+  input,select,textarea,.add-bar input,.add-bar select,.ctrl-bar select,.ctrl-bar input[type=text]{font-size:16px !important;min-height:44px;}
+  input[type=checkbox]{width:22px;height:22px;}
+
+  /* header: brand + icon tools */
+  .app-header{padding:0 8px 0 12px;height:calc(var(--header-h) + env(safe-area-inset-top));padding-top:env(safe-area-inset-top);}
+  .brand{font-size:16px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  .header-tools{gap:4px;}
+  .header-tools .lbl{display:none;}
+  .header-tools .ico{font-size:18px;}
+  .nav-toggle-btn{display:inline-flex;align-items:center;justify-content:center;padding:0;}
+
+  /* bottom tab bar */
+  .bottom-tabs{min-height:calc(58px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:rgba(15,17,23,0.98);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);}
+  .bottom-tabs a{min-height:58px;font-size:12px;gap:3px;-webkit-user-select:none;user-select:none;}
+  .bottom-tabs a span{font-size:22px;line-height:1;}
+  .bottom-tabs a.active{font-weight:600;}
+  body{padding-bottom:calc(76px + env(safe-area-inset-bottom));}
+  .toast{bottom:calc(84px + env(safe-area-inset-bottom));font-size:14px;}
+
+  /* add bar */
+  .add-bar{padding:10px 12px;gap:8px;}
+  .add-bar .search-wrap{flex:1 1 100%;}
+  .add-bar select{flex:1 1 0;min-width:0;}
+  .btn-add{flex:0 0 auto;padding:8px 18px;}
+  .search-dropdown{max-height:55dvh;overflow-y:auto;}
+  .market-tabs,.hotbar{padding:8px 12px;}
+  .market-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+  .market-tabs::-webkit-scrollbar,.hotbar-stocks::-webkit-scrollbar,.hotbar-tabs::-webkit-scrollbar{display:none;}
+  .mtab{flex:0 0 auto;font-size:15px;}
+  .hotbar{display:block;}
+  .hotbar-tabs{overflow-x:auto;scrollbar-width:none;padding-bottom:6px;}
+  .hotbar-tabs .htab{flex:0 0 auto;}
+  .hotbar-stocks{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+  .hstock{flex:0 0 auto;font-size:14px;}
+  .rec-bar{flex-wrap:wrap;padding:8px 12px;}
+  .intro-bar{margin:10px 12px;}
+  .intro-title{font-size:16px;}
+  .intro-body{font-size:14px;line-height:1.7;}
+  .watch-toolbar{padding:8px 12px 0;}
+  .watch-toolbar>span{font-size:13px;flex:1 1 100%;}
+
+  /* cards */
+  .grid{padding:10px;gap:12px;}
+  .card-top{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"id icons" "main main";gap:8px 6px;padding:12px 12px 8px;}
+  .card-id{grid-area:id;}
+  .card-actions{display:contents;}
+  .act-icons{grid-area:icons;display:flex;gap:4px;align-items:flex-start;}
+  .act-main{grid-area:main;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .act-main .btn-analyze{width:100%;}
+  .card-name{font-size:17px;}
+  .mk-badge{font-size:12px;}
+  .card-sub{font-size:13px;line-height:1.8;}
+  .char-badge{font-size:12px;padding:2px 8px;}
+  .card-datatime{font-size:13px;line-height:1.5;}
+  .mismatch-warn{font-size:13px;padding:8px 12px;line-height:1.5;}
+  .signal-banner{padding:10px 12px;flex-wrap:wrap;min-height:48px;}
+  .signal-big{font-size:15px;}
+  .kpi-row{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .kpi{padding:10px 12px;}
+  .kpi-label{font-size:13px;}
+  .kpi-val{font-size:21px;}
+  .kpi-oos .vb{font-size:13px;}
+  .vb{font-size:13px;padding:3px 10px;}
+  .vb-sub{font-size:13px;line-height:1.5;}
+  .card-status{font-size:13px;padding:8px 12px;}
+  .metrics{grid-template-columns:repeat(2,1fr);}
+  .metric{padding:10px 12px;}
+  .metric-label{font-size:13px;}
+  .metric-val{font-size:16px;}
+  .detail-note{font-size:13px;padding:10px 12px;line-height:1.7;}
+  .vtable{font-size:13px;}
+  .vtable th,.vtable td{padding:7px 6px;}
+  .chart-section{padding:10px 8px;}
+  .toolbar{gap:8px;}
+  .toolbar .sel-sm{flex:1 1 30%;min-width:0;}
+  .ind-toggles{gap:8px;}
+  .trades-title{font-size:13px;}
+  .tm-row{font-size:14px;padding:8px 0;}
+  .card-links{padding:10px 12px;}
+  .card-links .linkbtn{width:100%;text-align:left;}
+  .chart-pane-label{font-size:12px;}
+  .tm-date{font-size:13px;margin-top:2px;}
+  .sig-sub{font-size:13px;}
+  .vtable th small{font-size:12px;font-weight:400;}
+  .page-foot{font-size:12px;line-height:1.9;padding-bottom:12px;}
+  .page-foot a{display:inline-block;padding:14px 4px;}
+
+  /* views */
+  .view-head{padding:14px 12px 4px;}
+  .view-head h2{font-size:20px;}
+  .view-head p{font-size:14px;line-height:1.6;}
+  .ctrl-bar{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 12px;}
+  .ctrl-bar>*{grid-column:1/-1;}
+  .ctrl-bar label:has(#symPeriod),.ctrl-bar label:has(#symTf),.ctrl-bar label:has(#bestPeriod),.ctrl-bar label:has(#bestTf){grid-column:auto;}
+  .ctrl-bar label{display:flex;flex-direction:column;align-items:stretch;text-align:left;gap:4px;font-size:13px;color:var(--text2);}
+  .ctrl-bar label:has(input[type=checkbox]){flex-direction:row;align-items:center;gap:10px;font-size:15px;color:var(--text);min-height:44px;}
+  .ctrl-bar select,.ctrl-bar input[type=text]{width:100%;}
+  .btn-primary,.btn-ghost{width:100%;}
+  .panel{margin:10px 8px;}
+  .panel-h{font-size:14px;}
+  .legend-row{display:grid;gap:8px;font-size:13px;}
+  .rtag{font-size:12px;}
+  .sym-head{padding:12px 12px 0;}
+  .sym-title{font-size:20px;}
+  .sym-meta{font-size:13px;}
+  .chip{font-size:13px;padding:5px 10px;}
+  .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .kpi-card .kpi-label{font-size:13px;}
+  .kpi-card .kpi-val{font-size:21px;}
+  .curve-box{height:230px;}
+  .curve-box.dd{height:110px;}
+  .curve-legend{font-size:13px;gap:10px;}
+  .cost-box,.vb-note{font-size:13px;}
+  .empty-state,.state-card{font-size:14px;}
+  .state-card{margin:10px 12px;}
+  #bestBody [data-res],#labBody [data-res]{padding:0 8px 16px;}
+
+  /* comparison: same data, shown as cards (desktop table is kept in the DOM, just not displayed) */
+  .split-banner{font-size:13px;line-height:1.8;padding:8px 4px 10px;}
+  .cmp-card{padding:12px;border-radius:12px;}
+  .cmp-card h4{font-size:16px;}
+  .cmp-grid{grid-template-columns:1fr;gap:4px;font-size:14px;}
+  .cmp-grid .k{font-size:13px;}
+  .cmp-card .btn-apply,.cmp-card .linkbtn{flex:1;}
+
+  /* market table → cards */
+  .mk-table,.mk-table tbody,.mk-table tr,.mk-table td{display:block;width:100%;}
+  .mk-table thead{display:none;}
+  .mk-table tr{border:1px solid var(--border);border-radius:12px;margin:0 0 10px;padding:6px 12px;background:var(--bg2);}
+  .mk-table td{border:none;padding:6px 0;display:flex;justify-content:space-between;gap:12px;font-size:14px;text-align:right;}
+  .mk-table td::before{content:attr(data-l);color:var(--text2);font-size:13px;text-align:left;flex:0 0 auto;}
+  .mk-table td.mk-name{display:block;font-size:16px;font-weight:600;text-align:left;border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:2px;}
+  .mk-table td.mk-name::before{display:none;}
+  #view-market .panel-b{padding:10px 8px !important;overflow:visible !important;}
+  #view-market .panel{background:none;border:none;}
+
+  /* nav drawer (股票列表) */
+  .nav-drawer{width:min(86vw,340px);padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}
+  .nav-drawer-title{font-size:16px;}
+  .nav-group-label{font-size:13px;padding:10px 14px 4px;}
+  .nav-item-name{font-size:15px;}
+  .nav-item-sig{font-size:13px;}
+
+  /* analysis modal → full-height bottom sheet */
+  .analysis-modal-bg{padding:0;align-items:flex-end;}
+  .analysis-modal{max-width:none;width:100%;max-height:94dvh;max-height:94vh;border-radius:18px 18px 0 0;padding:22px 12px calc(16px + env(safe-area-inset-bottom));overscroll-behavior:contain;-webkit-overflow-scrolling:touch;position:relative;}
+  @supports (height:1dvh){.analysis-modal{max-height:94dvh;}}
+  .sheet-grab{position:absolute;left:50%;top:8px;width:42px;height:5px;margin-left:-21px;border-radius:3px;background:rgba(255,255,255,0.25);}
+  .sheet-x{display:block;position:absolute;right:4px;top:4px;width:48px;height:48px;background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;z-index:2;}
+  .analysis-title{font-size:18px;padding-right:44px;}
+  .analysis-sub{font-size:14px;line-height:1.6;}
+  .progress-text{font-size:13px;}
+  .btn-close-analysis{width:100%;margin-top:12px;}
+
+  /* enlarged K-line → full screen */
+  .modal-bg{padding:0;align-items:stretch;}
+  .modal{max-width:none;max-height:none;height:100%;border-radius:0;padding:calc(10px + env(safe-area-inset-top)) 10px calc(14px + env(safe-area-inset-bottom));overscroll-behavior:contain;}
+  .modal-title{font-size:17px;}
+  .modal-signal{font-size:14px;}
+  .modal-toolbar{width:100%;}
+  .modal-toolbar select{flex:1;}
+  .btn-close{min-width:48px;}
+}
+
+/* ---------- short landscape phones ---------- */
+@media (max-height:480px) and (orientation:landscape){
+  .bottom-tabs{min-height:calc(44px + env(safe-area-inset-bottom));}
+  .bottom-tabs a{min-height:44px;flex-direction:row;gap:6px;}
+  .bottom-tabs a span{font-size:18px;}
+  body{padding-bottom:calc(56px + env(safe-area-inset-bottom));}
+  .tip-sheet{bottom:calc(56px + env(safe-area-inset-bottom));}
+}
+
+/* ---------- iPad / wide touch screens keep the desktop layout but get safe-area padding ---------- */
+@media (min-width:721px){
+  .app-header{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));}
+}
+
+
+@media (max-width:720px){.metric:last-child:nth-child(odd){grid-column:1/-1;}}

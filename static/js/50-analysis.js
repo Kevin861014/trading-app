@@ -179,10 +179,6 @@ async function runBestStrategy(id, e){
 
 async function runDeepAnalysis(id, e){
   if(e) e.stopPropagation();
-  if(isRender){
-    alert('❌ 深度分析僅支援本機執行\n\nRender 免費版有 30 秒請求限制，深度分析時間較長會超時。\n\n建議：在自己電腦上執行 python app.py 後使用此功能。');
-    return;
-  }
   const stock = stocks.find(s=>s.id===id);
   if(!stock) return;
   analysisStockId = id;

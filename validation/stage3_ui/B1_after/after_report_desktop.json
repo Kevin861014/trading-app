@@ -8,9 +8,7 @@
    "validation/stage3_ui/B1_after\\after_desktop_symbol_us.png",
    "validation/stage3_ui/B1_after\\after_desktop_symbol_crypto.png",
    "validation/stage3_ui/B1_after\\after_desktop_market.png",
-   "validation/stage3_ui/B1_after\\after_desktop_best_modal.png",
-   "validation/stage3_ui/B1_after\\after_desktop_best_view_AAPL.png",
-   "validation/stage3_ui/B1_after\\after_desktop_lab_view_2330.png"
+   "validation/stage3_ui/B1_after\\after_desktop_best_modal.png"
   ],
   "checks": [
    {
@@ -23,7 +21,7 @@
      "勝率": "0%",
      "交易筆數": "6筆",
      "年化": "-0.93%",
-     "買進持有報酬": "+119.46%",
+     "買進持有報酬": "+117.52%",
      "買進持有回撤": "30.51%"
     },
     "eqLast": -1.842,
@@ -36,7 +34,7 @@
       "boundary": "2026-03-31",
       "end": "2026-11-05",
       "isBars": 337,
-      "oosBars": 147,
+      "oosBars": 148,
       "windowStart": "2024-11-05"
      }
     },
@@ -73,18 +71,18 @@
      ]
     ],
     "dataInfo": {
-     "bars": 944,
+     "bars": 945,
      "firstBar": "2022-12-06",
      "interval": "1d",
      "lastBarClosed": true,
-     "lastBarLocal": "2026-11-04",
-     "lastBarUtc": "2026-11-04",
+     "lastBarLocal": "2026-11-05",
+     "lastBarUtc": "2026-11-05",
      "market": "tw",
      "source": "yfinance",
      "tz": "Asia/Taipei",
      "tzLabel": "台北時間 (UTC+8)"
     },
-    "headerText": "資料至 2026-11-04 收盤 · 台北時間 (UTC+8) · Yahoo Finance · 共 944 根已收盤 K 棒（最後一根未收盤的已排除）"
+    "headerText": "資料至 2026-11-05 收盤 · 台北時間 (UTC+8) · Yahoo Finance · 共 945 根已收盤 K 棒（最後一根未收盤的已排除）"
    },
    {
     "symbol": "AAPL",

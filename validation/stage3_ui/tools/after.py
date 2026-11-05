@@ -5,7 +5,7 @@ usage: python after.py <base_url> <outdir> [--profile desktop|mobile|both] [--lo
 import asyncio, base64, json, os, sys, time, argparse, shutil
 import aiohttp
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from shot import CDP, launch, PROFILES
+from shot import CDP, launch, PROFILES, kill_tree
 
 
 async def shot(c, path, full=False, sel=None, maxh=6000, pad=0):
@@ -126,9 +126,7 @@ async def run(base, outdir, profiles, long_run):
                     R['console_errors'] = c.console[:30]
                     pump.cancel()
         finally:
-            proc.terminate()
-            try: proc.wait(timeout=10)
-            except Exception: proc.kill()
+            kill_tree(proc)
             shutil.rmtree(tmp, ignore_errors=True)
     return rep
 

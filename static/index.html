@@ -4,9 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0f1117">
+<meta name="format-detection" content="telephone=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="順勢分析">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/static/pwa/favicon.png">
 <title>順勢策略分析</title>
 <link rel="stylesheet" href="/static/css/app.css">
 <link rel="stylesheet" href="/static/css/ui.css">
+<link rel="stylesheet" href="/static/css/mobile.css">
 <script src="/static/vendor/lightweight-charts/lightweight-charts.standalone.production.js"></script>
 <script src="/static/stocks_data.js"></script>
 </head>
@@ -23,10 +33,10 @@
     <a href="#/market" data-view="market">市場環境</a>
   </nav>
   <div class="header-tools">
-    <span id="dataSourceLabel" class="src" title="資料來源">台股1D · 加密4H</span>
-    <button class="nav-toggle-btn" onclick="exportStocks()" title="匯出股票清單">⬇ 匯出</button>
-    <label class="nav-toggle-btn" style="cursor:pointer;" title="匯入股票清單">⬆ 匯入<input type="file" accept=".json" style="display:none;" onchange="importStocks(event)"></label>
-    <button class="nav-toggle-btn" onclick="toggleNav()" id="navToggleBtn">☰ 股票列表</button>
+    <span id="dataSourceLabel" class="src data-src-label" title="資料來源">台股1D · 加密4H</span>
+    <button class="nav-toggle-btn" onclick="exportStocks()" title="匯出股票清單" aria-label="匯出股票清單"><span class="ico">⬇</span><span class="lbl"> 匯出</span></button>
+    <label class="nav-toggle-btn" style="cursor:pointer;" title="匯入股票清單" aria-label="匯入股票清單"><span class="ico">⬆</span><span class="lbl"> 匯入</span><input type="file" accept=".json" style="display:none;" onchange="importStocks(event)"></label>
+    <button class="nav-toggle-btn" onclick="toggleNav()" id="navToggleBtn" aria-label="股票列表"><span class="ico">☰</span><span class="lbl"> 股票列表</span></button>
   </div>
 </header>
 
@@ -150,9 +160,11 @@
 </section>
 
 <footer class="page-foot">
-  資料來源：Yahoo Finance、幣安公開行情（ccxt）｜回測已計入成本：加密約 0.14%、台股約 0.47%（ETF 約 0.27%）、美股約 0.04%（來回）｜過去績效不代表未來，本站不提供投資建議<br>
+  資料來源：Yahoo Finance、幣安公開行情（ccxt）｜<span class="data-src-label foot-src"></span><span class="foot-src-sep"> ｜</span>回測已計入成本：加密約 0.14%、台股約 0.47%（ETF 約 0.27%）、美股約 0.04%（來回）｜過去績效不代表未來，本站不提供投資建議<br>
   圖表：<a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView Lightweight Charts™</a>，Copyright © 2023 TradingView, Inc.（Apache-2.0）
 </footer>
+
+<div class="tip-sheet" id="tipSheet" role="status" aria-live="polite" hidden><div class="tip-text"></div><button type="button" class="tip-x" aria-label="關閉說明">✕</button></div>
 
 <nav class="bottom-tabs" id="bottomTabs" aria-label="主要功能（手機）">
   <a href="#/watchlist" data-view="watchlist"><span>📋</span>清單</a>
@@ -165,6 +177,8 @@
 <!-- 分析彈窗(最佳策略/深度分析):保留,桌面版放寬以容納比較表 -->
 <div class="analysis-modal-bg" id="analysisBg" onclick="closeAnalysis(event)">
   <div class="analysis-modal" onclick="event.stopPropagation()">
+    <div class="sheet-grab" aria-hidden="true"></div>
+    <button class="sheet-x" onclick="closeAnalysis()" aria-label="關閉">✕</button>
     <div class="analysis-title" id="analysisTitle">🔍 分析最佳策略</div>
     <div class="analysis-sub" id="analysisSub"></div>
     <div class="analysis-progress" id="analysisProgress" style="display:none;">
@@ -211,6 +225,7 @@
 <script src="/static/js/40-signals-nav.js"></script>
 <script src="/static/js/50-analysis.js"></script>
 <script src="/static/js/60-views.js"></script>
+<script src="/static/js/70-mobile.js"></script>
 <script src="/static/js/90-main.js"></script>
 </body>
 </html>

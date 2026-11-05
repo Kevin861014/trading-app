@@ -153,27 +153,12 @@ function switchMarketTab(m){
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
-// ── 環境判斷 ──────────────────────────────────────────
-let isRender = true; // 預設保守，載入後更新
+// ── 資料來源標示(網站在本機 Windows 執行)──────────────────────────
 fetch('/api/config').then(r=>r.json()).then(data=>{
-  isRender = data.isRender;
-  // 顯示資料來源
-  const srcEl = document.getElementById('dataSourceLabel');
-  if(srcEl){
-    if(!isRender && data.ccxtAvailable){
-      srcEl.textContent = '台股1D · 加密4H（ccxt）';
-      srcEl.style.color = '#26a69a';
-      srcEl.title = '本機模式：加密貨幣使用 ccxt 幣安資料，支援真正 4H 和更長歷史';
-    } else {
-      srcEl.textContent = '台股1D · 加密4H（yfinance）';
-    }
-  }
-  // 如果是 Render，深度分析按鈕顯示提示（只有本機才能跑）
-  if(isRender){
-    document.querySelectorAll('[id^="deep-btn-"]').forEach(btn=>{
-      btn.title = '深度分析僅支援本機執行（Render 請用 🔍 最佳策略）';
-      btn.style.opacity = '0.4';
-      btn.style.cursor = 'not-allowed';
-    });
-  }
+  const txt = data.ccxtAvailable ? '台股1D · 加密4H（ccxt）' : '台股1D · 加密4H（yfinance）';
+  const tip = data.ccxtAvailable ? '加密貨幣使用 ccxt 幣安公開行情，支援真正 4H 和更長歷史' : '目前連不上幣安，加密貨幣改用 yfinance（4H 由 1H 合成，歷史較短）';
+  document.querySelectorAll('.data-src-label').forEach(el=>{
+    el.textContent = txt; el.title = tip;
+    if(data.ccxtAvailable && el.id==='dataSourceLabel') el.style.color = '#26a69a';
+  });
 }).catch(()=>{});

@@ -104,6 +104,7 @@ function initViews(){
 
 // ── 標的分析 ───────────────────────────────────────────
 let _symSeq = 0, symCharts = [], _symPending = null;
+let _symLast = null;   // 最近一次標的分析的資料(旋轉螢幕時只用它重畫,不重新打 API)
 function symClear(){ symCharts.forEach(c => { try{ c.remove(); }catch(e){} }); symCharts = []; }
 
 // 從卡片/排名結果進入:設定好選單後自動分析一次(使用者主動點擊,所以是一次明確的 API 呼叫)
@@ -152,7 +153,8 @@ async function runSymbolView(){
       body.innerHTML = `<div class="state-card ${nodata?'warn':'err'}"><b>${nodata?'資料不足':'分析失敗'}</b>：${esc(data.error)}<br><span class="vb-note">${nodata?'這個標的／時框的歷史資料不夠長,無法可靠回測;可改用日線或較短期間,或確認代號是否正確。':'請稍後再試,或確認代號是否正確。'}</span></div>`;
       return;
     }
-    renderSymbolBody(body, data, {symbol: t.symbol, name: t.name, strat, period, tf, stock: t.stock});
+    _symLast = {data, ctx: {symbol: t.symbol, name: t.name, strat, period, tf, stock: t.stock}};
+    renderSymbolBody(body, _symLast.data, _symLast.ctx);
   }catch(e){
     if(seq !== _symSeq) return;
     body.innerHTML = `<div class="state-card err"><b>連線失敗</b>：${esc(e.message)}。請確認本機伺服器仍在執行。</div>`;
@@ -216,7 +218,7 @@ function renderSymbolBody(body, data, ctx){
 
   if(bt && bt.available) symCharts.push(...drawBacktestCurves($id('symEq'), $id('symDd'), bt, intraday));
   const inds = (ctx.stock && ctx.stock.indicators) || {ema:true, kd:true, rsi:true, vol:true};
-  symCharts.push(...buildChartsInContainer($id('symK'), data, inds, 320));
+  symCharts.push(...buildChartsInContainer($id('symK'), data, inds, chartHeights('sym')));
 
   // 市場性格(ADX):與卡片同一個 API,只做描述
   fetch(`/api/market_character?symbol=${encodeURIComponent(ctx.symbol)}&timeframe=${ctx.tf}`).then(r => r.json()).then(d => {
@@ -262,7 +264,6 @@ async function runBestView(){
   await rankingFlow('best', 'best', ctx, viewUi('bestBody', 'bestRun'));
 }
 async function runLabView(){
-  if(isRender){ $id('labBody').innerHTML = '<div class="state-card warn">深度分析僅支援本機執行(雲端版有請求時間限制)。</div>'; return; }
   const custom = normSymbol($id('labCustom').value);
   const symbol = custom || $id('labSel').value;
   if(!symbol){ $id('labBody').innerHTML = '<div class="empty-state">請選擇標的，或輸入代號。</div>'; return; }
@@ -289,7 +290,7 @@ async function loadMarketView(force){
       const msg = checkStratMismatch(d.code, getStratCat(s.strat));
       fit = d.code === 'na' ? '—' : (msg ? `<span style="color:#f5a623">${esc(msg.replace(/^⚠ /, ''))}</span>` : '類型相符');
     } else if(c === null){ ch = '<span style="color:var(--red)">暫時無法取得</span>'; }
-    return `<tr><td>${esc(s.name||s.symbol)}<div class="vb-sub">${esc(s.symbol)}</div></td><td>${MARKET_LABEL[getMarket(s.symbol)]}</td><td>${TF_LABELS[s.tf]||'日線'}</td><td>${ch}</td><td>${adx}</td><td>${esc(getStratName(s.strat))}</td><td>${fit}</td></tr>`;
+    return `<tr><td class="mk-name">${esc(s.name||s.symbol)}<div class="vb-sub">${esc(s.symbol)}</div></td><td data-l="市場">${MARKET_LABEL[getMarket(s.symbol)]}</td><td data-l="時框">${TF_LABELS[s.tf]||'日線'}</td><td data-l="目前市場性格">${ch}</td><td data-l="ADX">${adx}</td><td data-l="自選策略">${esc(getStratName(s.strat))}</td><td data-l="策略類型 vs 性格">${fit}</td></tr>`;
   };
   const draw = () => {
     tbl.innerHTML = `<thead><tr><th>標的</th><th>市場</th><th>時框</th><th>目前市場性格</th><th>ADX</th><th>自選策略</th><th>策略類型 vs 性格</th></tr></thead><tbody>${stocks.map(rowHtml).join('')}</tbody>`;

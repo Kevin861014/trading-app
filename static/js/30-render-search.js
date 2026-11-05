@@ -36,11 +36,15 @@ function renderCard(stock){
         <div class="card-datatime">資料時間：載入中…</div>
       </div>
       <div class="card-actions">
+        <div class="act-main">
         <button class="btn-analyze" onclick="runBestStrategy(${stock.id},event)" title="跑所有策略並排名(僅用樣本內資料排名,再做樣本外驗證)">🔍 最佳策略</button>
-        <button class="btn-analyze" id="deep-btn-${stock.id}" onclick="runDeepAnalysis(${stock.id},event)" title="深度分析:較長資料、較嚴筆數門檻,同樣樣本內排名、樣本外驗證(僅本機)" style="background:rgba(156,39,176,0.1);border-color:rgba(156,39,176,0.4);color:#b36fd0;">🔬 深度分析</button>
-        <button class="btn-icon" onclick="openModal(${stock.id})" title="放大 K 線">⛶</button>
-        <button class="btn-icon" onclick="reloadCard(${stock.id})" title="重新載入">↺</button>
-        <button class="btn-icon del" onclick="deleteStock(${stock.id},event)" title="刪除">✕</button>
+        <button class="btn-analyze" id="deep-btn-${stock.id}" onclick="runDeepAnalysis(${stock.id},event)" title="深度分析:較長資料、較嚴筆數門檻,同樣樣本內排名、樣本外驗證(約 1~2 分鐘)" style="background:rgba(156,39,176,0.1);border-color:rgba(156,39,176,0.4);color:#b36fd0;">🔬 深度分析</button>
+        </div>
+        <div class="act-icons">
+        <button class="btn-icon" onclick="openModal(${stock.id})" title="放大 K 線" aria-label="放大 K 線">⛶</button>
+        <button class="btn-icon" onclick="reloadCard(${stock.id})" title="重新載入" aria-label="重新載入">↺</button>
+        <button class="btn-icon del" onclick="deleteStock(${stock.id},event)" title="刪除" aria-label="刪除">✕</button>
+        </div>
       </div>
     </div>
     <div id="mismatch-${stock.id}" class="mismatch-warn" style="display:none;" data-tip="策略分兩種：順勢/突破類適合有方向的行情，均值回歸類適合原地整理的行情。現在的市場性格跟選的策略類型對不上，訊號可信度要打折看，不是不能用，是要更小心。"></div>

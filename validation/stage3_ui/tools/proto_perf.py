@@ -4,7 +4,7 @@ usage: python proto_perf.py <url> <outdir>"""
 import asyncio, base64, json, os, sys, time
 import aiohttp
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from shot import CDP, launch
+from shot import CDP, launch, kill_tree
 import shutil
 
 
@@ -106,9 +106,7 @@ async def run(url, outdir):
                     out['console_desktop'] = c.console[:10]
                     pump.cancel()
         finally:
-            proc.terminate()
-            try: proc.wait(timeout=10)
-            except Exception: proc.kill()
+            kill_tree(proc)
             shutil.rmtree(tmp, ignore_errors=True)
     return out
 

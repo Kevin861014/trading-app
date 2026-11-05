@@ -249,7 +249,7 @@ function updateSignalBanner(card,data){
   const sig=getSignalState(data);
   const typeClass={'buy':'buy','sell':'sell','holding':'buy','expired':'hold','exited':'sell','wait':'buy','bear':'sell','neutral':'hold'}[sig.type]||'hold';
   let html=`<span class="signal-big ${typeClass}">${sig.label}</span>`;
-  if(sig.sub) html+=`<span style="font-size:11px;color:var(--text3);margin-left:8px;">${esc(sig.sub)}</span>`;
+  if(sig.sub) html+=`<span class="sig-sub">${esc(sig.sub)}</span>`;
   html+=`<span class="rtag live" style="margin-left:auto;" title="策略『目前』的技術狀態,不是預測,也不是買賣建議">即時技術訊號</span>`;
   card.querySelector('.signal-banner').innerHTML=html;
 }
@@ -312,7 +312,7 @@ function tradesHtml(trades){
       <span style="color:var(--text3);margin:0 4px;">→</span>
       <span style="color:var(--red);">▼${t.sellPrice}</span>
       <span class="${t.ret>=0?'up':'down'}" style="font-weight:600;margin-left:8px;">${t.ret>=0?'+':''}${t.ret}%</span>
-      <div style="font-size:11px;color:var(--text3);margin-top:1px;">${t.buyDate||''} → ${t.sellDate||''}（已扣成本）</div>
+      <div class="tm-date">${t.buyDate||''} → ${t.sellDate||''}（已扣成本）</div>
     </div>`).join('');
 }
 function drawTrades(card,trades){

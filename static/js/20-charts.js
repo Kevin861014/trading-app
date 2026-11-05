@@ -70,7 +70,8 @@ function buildChartsInContainer(container,data,indicators,height){
   if(isTouch) container.appendChild(infoBar);
 
   // ── 主圖：K線 + EMA20/50 + 買賣點 ──
-  const mainH=height||240;
+  const H=(typeof height==='object'&&height)?height:{main:height||240,ema:60,kd:70,rsi:70,vol:50};
+  const mainH=H.main;
   const mainDiv=document.createElement('div');
   mainDiv.style.cssText=`width:100%;height:${mainH}px;`;
   container.appendChild(mainDiv);
@@ -215,11 +216,11 @@ function buildChartsInContainer(container,data,indicators,height){
   // ── EMA差距 ──
   if(indicators.ema){
     const emaDiv=document.createElement('div');
-    emaDiv.style.cssText='width:100%;height:60px;position:relative;';
+    emaDiv.style.cssText=`width:100%;height:${H.ema}px;position:relative;`;
     const label=document.createElement('div');
     label.className='chart-pane-label';label.textContent='EMA差距';
     container.appendChild(label);container.appendChild(emaDiv);
-    const emaChart=LightweightCharts.createChart(emaDiv,{...CHART_OPTS,height:60,
+    const emaChart=LightweightCharts.createChart(emaDiv,{...CHART_OPTS,height:H.ema,
       timeScale:{visible:false},rightPriceScale:{scaleMargins:{top:0.1,bottom:0.1}}});
     const emaHist=emaChart.addHistogramSeries({priceLineVisible:false,lastValueVisible:false});
     emaHist.setData(dates.map((d,i)=>({time:toTime(d),value:diff[i],color:diff[i]>=0?'rgba(38,166,154,0.6)':'rgba(239,83,80,0.6)'})));
@@ -235,11 +236,11 @@ function buildChartsInContainer(container,data,indicators,height){
   // ── KD 線 ──
   if(indicators.kd){
     const kdDiv=document.createElement('div');
-    kdDiv.style.cssText='width:100%;height:70px;position:relative;';
+    kdDiv.style.cssText=`width:100%;height:${H.kd}px;position:relative;`;
     const label=document.createElement('div');
     label.className='chart-pane-label';label.textContent='KD';
     container.appendChild(label);container.appendChild(kdDiv);
-    const kdChart=LightweightCharts.createChart(kdDiv,{...CHART_OPTS,height:70,
+    const kdChart=LightweightCharts.createChart(kdDiv,{...CHART_OPTS,height:H.kd,
       timeScale:{visible:false},rightPriceScale:{scaleMargins:{top:0.1,bottom:0.1}}});
     const kLine=kdChart.addLineSeries({color:'#f5a623',lineWidth:1.2,priceLineVisible:false,lastValueVisible:true,title:'K'});
     const dLine=kdChart.addLineSeries({color:'#378ADD',lineWidth:1.2,priceLineVisible:false,lastValueVisible:true,title:'D'});
@@ -256,11 +257,11 @@ function buildChartsInContainer(container,data,indicators,height){
   // ── RSI ──
   if(indicators.rsi){
     const rsiDiv=document.createElement('div');
-    rsiDiv.style.cssText='width:100%;height:70px;position:relative;';
+    rsiDiv.style.cssText=`width:100%;height:${H.rsi}px;position:relative;`;
     const label=document.createElement('div');
     label.className='chart-pane-label';label.textContent='RSI(14)';
     container.appendChild(label);container.appendChild(rsiDiv);
-    const rsiChart=LightweightCharts.createChart(rsiDiv,{...CHART_OPTS,height:70,
+    const rsiChart=LightweightCharts.createChart(rsiDiv,{...CHART_OPTS,height:H.rsi,
       timeScale:{visible:false},rightPriceScale:{scaleMargins:{top:0.1,bottom:0.1}}});
     const rsiLine=rsiChart.addLineSeries({color:'#9c27b0',lineWidth:1.2,priceLineVisible:false,lastValueVisible:true,title:'RSI'});
     rsiLine.setData(dates.map((d,i)=>rsiVals[i]!=null?{time:toTime(d),value:rsiVals[i]}:null).filter(Boolean));
@@ -278,11 +279,11 @@ function buildChartsInContainer(container,data,indicators,height){
   // ── 成交量 ──
   if(indicators.vol&&data.volumes&&data.volumes.some(v=>v>0)){
     const volDiv=document.createElement('div');
-    volDiv.style.cssText='width:100%;height:50px;position:relative;';
+    volDiv.style.cssText=`width:100%;height:${H.vol}px;position:relative;`;
     const label=document.createElement('div');
     label.className='chart-pane-label';label.textContent='成交量';
     container.appendChild(label);container.appendChild(volDiv);
-    const volChart=LightweightCharts.createChart(volDiv,{...CHART_OPTS,height:50,
+    const volChart=LightweightCharts.createChart(volDiv,{...CHART_OPTS,height:H.vol,
       timeScale:{visible:true},rightPriceScale:{scaleMargins:{top:0.1,bottom:0}}});
     const volHist=volChart.addHistogramSeries({priceLineVisible:false,lastValueVisible:false});
     volHist.setData(dates.map((d,i)=>({
@@ -309,7 +310,7 @@ function drawCharts(id,data,indicators){
   const card=document.getElementById(`card-${id}`);
   const container=card.querySelector('.chart-container');
   container.innerHTML='';
-  chartInsts[id]=buildChartsInContainer(container,data,indicators,220);
+  chartInsts[id]=buildChartsInContainer(container,data,indicators,chartHeights('card'));
 }
 
 // ── Modal ──────────────────────────────────────────────
@@ -371,7 +372,7 @@ function drawModalCharts(data,indicators){
   }
   const container=document.getElementById('modalChartContainer');
   container.innerHTML='';
-  modalChartInst=buildChartsInContainer(container,data,indicators,360);
+  modalChartInst=buildChartsInContainer(container,data,indicators,chartHeights('modal'));
 }
 
 function closeModal(e){

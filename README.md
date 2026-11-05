@@ -1,45 +1,32 @@
 # 順勢策略分析工具
 
-真實行情 K 線圖 + 策略回測分析，支援台股與加密貨幣。
+策略回測與研究工具(台股、美股、加密貨幣),在**自己的 Windows 電腦本機執行**。它是研究與學習用途,不預測未來,也不提供買賣建議。
 
 ## 功能
-- 台股：台積電、鴻海、長榮、聯發科、0050 等
-- 加密貨幣：PAXG、SOL、ETH、BNB、XRP、BTC
-- 策略：DMI 方向動能、EMA 快慢交叉、波動突破、六條線
-- 時間範圍：7天 / 1個月 / 1年 / 2年 / 3年 / 5年
-- 回測數據：總報酬、年化報酬、PF、最大回撤、勝率、交易筆數
-- 進出場紀錄
+- 自選清單:每個標的的扣成本報酬、淨 PF、最大回撤、樣本外驗證;展開看 K 線、指標、進出場明細
+- 標的分析:權益曲線 vs 買進持有、回撤、成本、樣本內/樣本外對照
+- 最佳策略 / 策略實驗室(深度分析):跑完所有策略,**只用樣本內(IS)排名**,再對前幾名做一次樣本外(OOS)驗證
+- 市場環境:各標的目前的 ADX 市場性格(只描述,不影響排名或訊號)
+- 回測已計入成本:加密約 0.14%、台股約 0.47%(ETF 約 0.27%)、美股約 0.04%(皆為來回)
 
-## 部署到 Render（免費）
+## 樣本外(OOS)展示分級
+依樣本外交易筆數:**少於 20 筆=樣本不足;20～49 筆=初步觀察;50 筆以上=可進一步評估。**
+這只是樣本量分級,**不是統計顯著性判定,也不代表策略有效或能獲利**;畫面一律同時顯示實際的 OOS 淨 PF、報酬、最大回撤與筆數。
+舊版的「OOS 至少 5 筆且 PF>1」只是程式內部的技術條件,畫面上只以「舊版技術門檻」小字標示,不是研究可信度。
 
-### 步驟一：上傳到 GitHub
-1. 到 https://github.com 註冊帳號
-2. 點右上角「+」→「New repository」
-3. 取名「trading-app」，按「Create repository」
-4. 把這個資料夾的所有檔案上傳（拖曳到網頁）
-
-### 步驟二：部署到 Render
-1. 到 https://render.com 用 GitHub 帳號登入
-2. 點「New +」→「Web Service」
-3. 選你剛上傳的「trading-app」repository
-4. 設定：
-   - Name：trading-app（隨便取）
-   - Environment：Python 3
-   - Build Command：pip install -r requirements.txt
-   - Start Command：gunicorn app:app --bind 0.0.0.0:$PORT
-5. 按「Create Web Service」
-6. 等 2~3 分鐘部署完成
-7. 上方會給你一個網址，例如 https://trading-app-xxxx.onrender.com
-
-### 步驟三：手機加到桌面（iPhone）
-1. 用 Safari 打開你的網址
-2. 點下方「分享」按鈕（方塊+箭頭圖示）
-3. 選「加入主畫面」
-4. 完成！桌面會出現圖示，打開就像 APP
-
-## 本機測試
+## 在本機執行
 ```
 pip install -r requirements.txt
 python app.py
 ```
-然後打開 http://localhost:5000
+然後打開 http://localhost:5000 (只綁本機,沒有對外開放)。
+
+## iPhone / PWA
+網站有 PWA manifest 與主畫面圖示,**沒有 Service Worker**(不做離線快取)。iPhone Safari 能把頁面「加入主畫面」成為全螢幕入口;但目前網站只在本機執行,iPhone 要連線仍需另外的安全連線方式(尚未設定,見 docs)。自選清單存在各瀏覽器自己的 localStorage,不同裝置不會同步,可用「匯出/匯入」搬移。
+
+## 圖表
+TradingView Lightweight Charts™(Apache-2.0),已自行託管於 `static/vendor/`,授權與歸屬見 `THIRD_PARTY_NOTICES.md`。
+
+## 注意
+- 過去績效不代表未來;加密貨幣、台股與美股均有虧損風險。
+- 先前的 Render 雲端部署已停用,相關限制與說明已移除。

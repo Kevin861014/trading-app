@@ -54,6 +54,7 @@ app = Flask(__name__)
 CORS(app)
 
 import os
+# 網站已改在本機 Windows 執行,不再有雲端(Render)限制。RENDER=true 現在只用來『略過啟動時的 ccxt 連線檢查』(單元測試用,避免連網)。
 IS_RENDER = os.environ.get('RENDER') == 'true'
 
 # 啟動時測試 ccxt 連線一次，之後直接用結果
@@ -244,7 +245,7 @@ def fetch_data(symbol, start_date, interval='1d'):
             _cache_time[cache_key] = now
             return result
 
-    # 沒有 ccxt（例如 Render）：yfinance 沒有 4H，改抓 1H 再合成真正的 4H
+    # 沒有 ccxt（連不上幣安、或股票市場）：yfinance 沒有 4H，改抓 1H 再合成真正的 4H
     if interval == '4h':
         base = fetch_data(symbol, start_date, '1h')
         out = resample_ohlcv(base, 4 * 3600 * 1000) if base else []
@@ -782,7 +783,6 @@ def analyze():
 @app.route('/api/config')
 def get_config():
     return jsonify({
-        'isRender': IS_RENDER,
         'ccxtAvailable': CCXT_AVAILABLE,
         'dataSource': 'ccxt+yfinance' if CCXT_AVAILABLE else 'yfinance'
     })
@@ -830,7 +830,9 @@ for _s in STRAT_LIST:
 #   2. 只用 IS 資料選策略並排名;IS 回測只拿『截斷到邊界之前』的資料跑,OOS 資料物理上進不了選擇流程。
 #   3. 對入選者只做一次 OOS 驗證,結果只標註,不重排、不剔除、不調參。
 #   4. 交易依『進場時間』歸屬;跨邊界的交易(IS 進場、OOS 出場)兩邊都不算。
-#   5. OOS 筆數不足 → 標「證據不足」,不算通過。
+#   5. OOS 筆數不足 → 標「證據不足」,不算通過(舊版技術門檻 OOS_MIN_TRADES=5 且 PF>1,僅為內部技術條件,不是研究可信度)。
+#   6. 展示分級只看 OOS 筆數:<20 樣本不足 / 20~49 初步觀察 / >=50 可進一步評估(OOS_TIER_PRELIM / OOS_TIER_EVAL);
+#      它不是統計顯著性判定,不影響排名,前端 static/js/05-ui-helpers.js 與 README 的數字必須和這裡一致(有測試把關)。
 OOS_FRACTION = 0.30
 OOS_MIN_TRADES = 5
 MIN_IS_WINDOW_BARS = 60     # IS 窗口(不含暖機)至少要有這麼多根,否則不切分
@@ -1050,9 +1052,6 @@ def deep_analysis():
     """深度分析:資料比較長(加密 2 年、台股/美股 5 年),門檻比較嚴。
     跟 best_strategy 用同一套 IS/OOS:只用 IS 選與排名,OOS 只標註(trust=2 代表 OOS 通過,但不影響排序)。
     以前的『3年+5年 / 6個月+2年 交叉驗證』是互相重疊的巢狀窗口,而且用 OOS 當篩選門檻,已移除。"""
-    if IS_RENDER:
-        return jsonify({'error': '深度分析僅支援本機執行，Render 免費版會超時'}), 403
-
     symbol    = request.args.get('symbol', '2330.TW')
     timeframe = request.args.get('timeframe', '1d')
     use_oos   = request.args.get('use_oos', '1') == '1'
@@ -1281,6 +1280,25 @@ def signal():
 @app.route('/')
 def index():
     return app.send_static_file('index.html')
+
+
+# ── PWA(只有 manifest 與圖示,沒有 Service Worker,不做離線快取)────────────
+@app.route('/manifest.webmanifest')
+def pwa_manifest():
+    r = app.send_static_file('pwa/manifest.webmanifest')
+    r.headers['Content-Type'] = 'application/manifest+json; charset=utf-8'
+    return r
+
+
+@app.route('/apple-touch-icon.png')
+@app.route('/apple-touch-icon-precomposed.png')
+def pwa_apple_icon():
+    return app.send_static_file('pwa/apple-touch-icon.png')
+
+
+@app.route('/favicon.ico')
+def pwa_favicon():
+    return app.send_static_file('pwa/favicon.png')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

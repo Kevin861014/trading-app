@@ -48,6 +48,18 @@ class CDP:
         return r['result'].get('value')
 
 
+def kill_tree(proc):
+    """Edge re-spawns itself as a detached browser process, so killing only our PID leaves browsers behind (and a later run on the same
+    port reconnects to the OLD browser with its old localStorage). Kill every msedge whose command line has our debugging port."""
+    port = getattr(proc, '_port', None)
+    if port:
+        ps = "Get-CimInstance Win32_Process -Filter \"Name='msedge.exe'\" | Where-Object { $_.CommandLine -match 'remote-debugging-port=%d ' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }" % port
+        try: subprocess.run(['powershell', '-NoProfile', '-Command', ps], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
+        except Exception: pass
+    try: proc.terminate()
+    except Exception: pass
+
+
 async def launch(port):
     tmp = tempfile.mkdtemp(prefix='shot_profile_')
     proc = subprocess.Popen([BROWSER, '--headless=new', '--remote-debugging-port=%d' % port, '--user-data-dir=' + tmp, '--no-first-run',
@@ -62,6 +74,7 @@ async def launch(port):
         async with s.get('http://127.0.0.1:%d/json' % port) as r:
             targets = await r.json()
     page = next(t for t in targets if t.get('type') == 'page')
+    proc._port = port
     return proc, tmp, page['webSocketDebuggerUrl']
 
 
@@ -117,9 +130,7 @@ async def run(base, outdir, prefix, profiles, scenarios):
                     report[pname]['console_errors'] = c.console[:20]
                     pump.cancel()
         finally:
-            proc.terminate()
-            try: proc.wait(timeout=10)
-            except Exception: proc.kill()
+            kill_tree(proc)
             shutil.rmtree(tmp, ignore_errors=True)
     return report
 
