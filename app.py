@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-import sys, os, datetime, time
+import sys, os, datetime, time, math, bisect, calendar
 sys.path.insert(0, os.path.dirname(__file__))
 from sim import run_backtest, STRATS, market_cost, cost_kwargs, classify_market
 from sim import ema as calc_ema
@@ -714,9 +714,178 @@ for _s in STRAT_LIST:
     _s['cat'] = STRAT_CATEGORY.get(_s['v'], '')
 
 
+# ── 樣本內(IS)/ 樣本外(OOS)驗證 ─────────────────────────────────────────
+# 設計見 validation/stage2_oos/DESIGN.md。重點:
+#   1. 只按時間順序切(前 70% = IS、後 30% = OOS),不隨機、不混合 K 棒。
+#   2. 只用 IS 資料選策略並排名;IS 回測只拿『截斷到邊界之前』的資料跑,OOS 資料物理上進不了選擇流程。
+#   3. 對入選者只做一次 OOS 驗證,結果只標註,不重排、不剔除、不調參。
+#   4. 交易依『進場時間』歸屬;跨邊界的交易(IS 進場、OOS 出場)兩邊都不算。
+#   5. OOS 筆數不足 → 標「證據不足」,不算通過。
+OOS_FRACTION = 0.30
+OOS_MIN_TRADES = 5
+MIN_IS_WINDOW_BARS = 60     # IS 窗口(不含暖機)至少要有這麼多根,否則不切分
+MIN_OOS_BARS = 20
+SCALPERS = {'rsi2dip', 'ibsdip', 'zdip'}
+
+
+def _to_ms(dt_):
+    """naive UTC datetime → epoch ms"""
+    return int(calendar.timegm(dt_.timetuple()) * 1000)
+
+
+def strategy_pool(market, deep_intraday=False):
+    """各市場適合跑的策略集合(跟原本 best_strategy / deep_analysis 內的集合相同,只是集中成一處)。"""
+    tw_strats  = {'diadx','volbreak','sixline','pullback','supertrend','donchian',
+                  'ema_cross','bbreak','lrs','ichimoku','cci','vortex','macd','kama','heikin','crsi','tsmom','rolltrend'}
+    us_strats  = {'tsmom','vbreakr','bbreak','lrs','sixline','ema_cross','pullbk',
+                  'rolltrend','crsi','macd','supertrend','ichimoku','cci','vortex','donchian'}
+    crypto_strats = {'sixline','ttm','keltner','donchian','smc','hma','rsi50',
+                     'vwap','obv','force','cmf','bbreak','lrs','cci','vortex','diadx'} | EXTRA_STRAT_CODES
+    if deep_intraday:
+        crypto_strats = crypto_strats | {'tsmom', 'ema_cross', 'supertrend'}
+    metal_strats  = {'volbreak','supertrend','kama','heikin','ema_cross','pullback',
+                     'macd','psar','rsi50','sixline','donchian'}
+    if market == 'tw': return tw_strats
+    if market == 'crypto': return crypto_strats
+    if market in ('commodity', 'metal_etf'): return metal_strats
+    return us_strats
+
+
+def min_trades_for(market, deep=False):
+    if deep:
+        return 15 if market == 'crypto' else 8
+    return 10 if market == 'crypto' else 5
+
+
+def is_oos_split(ohlcv, window_start_dt, end_dt, oos_fraction=OOS_FRACTION):
+    """時間順序切割。回傳切點資訊 dict;資料不夠切就回 None(呼叫端要明確回報,不能假裝有 OOS)。"""
+    ts = [r[0] for r in ohlcv]
+    boundary_dt = window_start_dt + (end_dt - window_start_dt) * (1.0 - oos_fraction)
+    idx_b = bisect.bisect_left(ts, _to_ms(boundary_dt))
+    w0 = _to_ms(window_start_dt)
+    is_bars = sum(1 for t in ts[:idx_b] if t >= w0)
+    oos_bars = len(ts) - idx_b
+    if idx_b < 220 or is_bars < MIN_IS_WINDOW_BARS or oos_bars < MIN_OOS_BARS:
+        return None
+    return dict(boundary_dt=boundary_dt, idx_b=idx_b, window_start_dt=window_start_dt, end_dt=end_dt,
+                is_bars=is_bars, oos_bars=oos_bars)
+
+
+def partition_trades(trade_log, window_start_dt, boundary_dt):
+    """依『進場時間』把交易分到 IS / OOS。回傳 (is_trades, oos_trades, carry_trades, open_trades)。
+    - 進場早於窗口起點(暖機期)的不算任何一邊。
+    - 進場在邊界前、出場在邊界後(跨邊界)→ carry,兩邊都不算(purge)。
+    - 尚未平倉的不算(但會回傳,方便呼叫端說明)。"""
+    is_t, oos_t, carry, opened = [], [], [], []
+    for t in trade_log:
+        ed = t.get('entry_date')
+        if ed is None or ed < window_start_dt:
+            continue
+        if t.get('open'):
+            opened.append(t); continue
+        if ed < boundary_dt:
+            (carry if t['exit_date'] >= boundary_dt else is_t).append(t)
+        else:
+            oos_t.append(t)
+    return is_t, oos_t, carry, opened
+
+
+def oos_verdict(n_trades, pf):
+    """回傳 (證據不足, 通過)。筆數不足就是『證據不足』,**不可能**算通過;夠了才看 PF 是否 > 1。"""
+    insufficient = n_trades < OOS_MIN_TRADES
+    return insufficient, (not insufficient) and pf > 1
+
+
+def _trade_stats(trades):
+    n = len(trades)
+    wins = sum(1 for t in trades if (t.get('ret') or 0) > 0)
+    return {'pf': calc_pf(trades), 'win': round(wins / n * 100, 1) if n else 0.0, 'trades': n}
+
+
+def _perf_block(trades, dates, equity, cutoff_dt):
+    total, mdd, cagr = equity_window_metrics(dates, equity, cutoff_dt)
+    s = _trade_stats(trades)
+    return {'pf': s['pf'], 'total': total, 'cagr': cagr, 'mdd': mdd, 'win': s['win'], 'trades': s['trades']}
+
+
+def rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=True, top_n=8, now_dt=None):
+    """跑 allowed 內所有策略,只用 IS 資料排名,回傳 (前 top_n 名, 切分資訊 或 None, 測試的策略數)。
+    use_oos=False(快速模式)或資料不夠切 → 不切分,用全窗口排名,沒有 OOS。"""
+    now_dt = now_dt or _utcnow()
+    window_start_dt = now_dt - datetime.timedelta(days=days)
+    split = is_oos_split(ohlcv, window_start_dt, now_dt) if use_oos else None
+    rank_data = ohlcv[:split['idx_b']] if split else ohlcv          # 排名用的資料:OOS 資料在這裡就已經被截掉
+    boundary_dt = split['boundary_dt'] if split else None
+
+    pool = [k for k in STRATS if k not in SCALPERS and k in allowed]
+    cands = []
+    for strat_key in pool:
+        try:
+            ck = cost_kwargs(symbol, strat_key)
+            res = run_backtest(rank_data, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf, **ck)
+            if not res:
+                continue
+            dates, equity, st = res
+            tl = [t for t in st.get('trade_log', [])
+                  if not t.get('open') and t.get('entry_date') and t['entry_date'] >= window_start_dt]
+            blk = _perf_block(tl, dates, equity, window_start_dt)
+            if not (blk['pf'] > 1 and blk['trades'] >= min_trades and blk['mdd'] < 50):
+                continue
+            ret_bonus = 1.5 if blk['total'] >= 20 else (1.2 if blk['total'] >= 10 else 1.0)
+            score = round(blk['pf'] * math.log(max(blk['trades'], 2)) * ret_bonus / (1 + blk['mdd'] / 100), 2)
+            cands.append({'strat': strat_key, 'name': STRATS[strat_key]['name'], 'cat': STRAT_CATEGORY.get(strat_key, ''),
+                          'score': score, **blk, 'is': dict(blk)})
+        except Exception:
+            continue
+
+    cands.sort(key=lambda x: x['score'], reverse=True)               # 排序只看 IS 分數
+    top = cands[:top_n]
+
+    for r in top:
+        r.update({'oos': None, 'full': None, 'oosStatus': 'unavailable', 'oosPf': None, 'oosTotal': None,
+                  'oosTrades': None, 'oosPass': None, 'oosInsufficient': None, 'oosIndependent': bool(split),
+                  'minOosTrades': OOS_MIN_TRADES})
+        if not split:
+            r['full'] = dict(r['is'])
+            continue
+        try:                                                           # 只對入選者做一次 OOS,結果只標註
+            ck = cost_kwargs(symbol, r['strat'])
+            res = run_backtest(ohlcv, strategy=r['strat'], risk_pct=0.015, timeframe=yf_tf, **ck)
+            if not res:
+                continue
+            dates, equity, st = res
+            tlog = st.get('trade_log', [])
+            _, oos_t, carry, _ = partition_trades(tlog, window_start_dt, boundary_dt)
+            full_t = [t for t in tlog if not t.get('open') and t.get('entry_date') and t['entry_date'] >= window_start_dt]
+            r['full'] = _perf_block(full_t, dates, equity, window_start_dt)
+            o = _perf_block(oos_t, dates, equity, boundary_dt)
+            o['carry'] = len(carry)
+            o['insufficient'], o['pass'] = oos_verdict(o['trades'], o['pf'])
+            r['oos'] = o
+            r['oosStatus'] = 'insufficient' if o['insufficient'] else ('pass' if o['pass'] else 'fail')
+            r['oosInsufficient'] = o['insufficient']
+            r['oosTrades'] = o['trades']
+            r['oosTotal'] = o['total']
+            if not o['insufficient']:
+                r['oosPf'] = o['pf']
+                r['oosPass'] = o['pass']
+        except Exception:
+            continue
+
+    info = None
+    if split:
+        info = {'mode': 'time', 'oosFraction': OOS_FRACTION, 'minOosTrades': OOS_MIN_TRADES,
+                'windowStart': split['window_start_dt'].strftime('%Y-%m-%d'),
+                'boundary': split['boundary_dt'].strftime('%Y-%m-%d'),
+                'end': split['end_dt'].strftime('%Y-%m-%d'),
+                'isBars': split['is_bars'], 'oosBars': split['oos_bars']}
+    return top, info, len(pool)
+
+
 @app.route('/api/best_strategy')
 def best_strategy():
-    """跑所有策略，回傳最佳前5名"""
+    """跑所有策略,只用『樣本內(IS)』資料排名取前 8 名,再對這 8 名做一次獨立的『樣本外(OOS)』驗證。
+    回傳每名的 is / oos / full 三組績效(full = IS+OOS 全期間,僅供參考)。"""
     symbol    = request.args.get('symbol', '2330.TW')
     period    = request.args.get('period', '2y')
     timeframe = request.args.get('timeframe', '1d')
@@ -736,155 +905,16 @@ def best_strategy():
     start_date = (datetime.datetime.now() - datetime.timedelta(days=fetch_days)).strftime('%Y-%m-%d')
 
     try:
-        import sim as _sim
-
-        # 只抓一次資料
         ohlcv = fetch_data(symbol, start_date, interval=yf_tf)
         if not ohlcv or len(ohlcv) < 220:
             return jsonify({'error': f'資料不足（{len(ohlcv) if ohlcv else 0} 根），4H 策略建議選 2 年以內'}), 400
 
-        O=[r[1] for r in ohlcv]; H=[r[2] for r in ohlcv]
-        L=[r[3] for r in ohlcv]; C=[r[4] for r in ohlcv]
-        V=[(r[5] if len(r)>5 else 0.0) for r in ohlcv]
-
-        results = []
-
-        # 排名照舊用全量資料（跟套用後圖表同一份，筆數/PF 才會一致）。
-        ohlcv_is = ohlcv
-
-        # ── OOS 驗證切割點（後30%）：只拿來給「排名結果」補跑驗證，不影響排名本身、
-        # 也不會因為沒過而被刷掉——只是分數旁邊多一欄「OOS PF」讓人自己判斷可不可信。
-        _oos_split = int(len(ohlcv) * 0.7)
-        ohlcv_oos = ohlcv[_oos_split:]
-        do_oos = use_oos and len(ohlcv_oos) >= 60 and len(ohlcv) >= 220
-
-        # 根據市場選擇適合的策略，避免跑不適合的策略浪費時間
-        tw_strats  = {'diadx','volbreak','sixline','pullback','supertrend','donchian',
-                      'ema_cross','bbreak','lrs','ichimoku','cci','vortex','macd','kama','heikin','crsi','tsmom','rolltrend'}
-        us_strats  = {'tsmom','vbreakr','bbreak','lrs','sixline','ema_cross','pullbk',
-                      'rolltrend','crsi','macd','supertrend','ichimoku','cci','vortex','donchian'}
-        crypto_strats = {'sixline','ttm','keltner','donchian','smc','hma','rsi50',
-                         'vwap','obv','force','cmf','bbreak','lrs','cci','vortex','diadx'} | EXTRA_STRAT_CODES
-        metal_strats  = {'volbreak','supertrend','kama','heikin','ema_cross','pullback',
-                         'macd','psar','rsi50','sixline','donchian'}
-
-        # 判斷市場
-        _mkt = classify_market(symbol)
-        if _mkt == 'tw':
-            allowed = tw_strats
-        elif _mkt == 'crypto':
-            allowed = crypto_strats
-        elif _mkt in ('commodity', 'metal_etf'):
-            allowed = metal_strats
-        else:
-            allowed = us_strats
-
-        # 永遠跳過剝頭皮類
-        skip = {'rsi2dip','ibsdip','zdip'}
-
-        for strat_key, strat_info in _sim.STRATS.items():
-            if strat_key in skip or strat_key not in allowed:
-                continue
-            try:
-                _ck = cost_kwargs(symbol, strat_key)
-
-                # 用 IS 資料選策略
-                result_is = run_backtest(ohlcv_is, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf,
-                                         **_ck)
-                if not result_is:
-                    continue
-                dates_is, equity_is, stats_is = result_is
-
-                # 用顯示期間的交易計算 PF / 筆數 / 勝率（與套用後圖表一致）
-                import datetime as _dt
-                _disp_start = _utcnow() - datetime.timedelta(days=days)
-                _disp_tlog = [
-                    t for t in stats_is.get('trade_log', [])
-                    if not t.get('open') and t.get('exit_date') and t['exit_date'] >= _disp_start
-                ]
-                pf_is = calc_pf(_disp_tlog)
-                _disp_wins_is = sum(1 for t in _disp_tlog if t.get('ret', 0) > 0)
-                _disp_wr_is = round(_disp_wins_is / len(_disp_tlog) * 100, 1) if _disp_tlog else 0
-
-                # 用全量數據計算分數（統計樣本更多，排名更準）
-                stats = stats_is
-                pf = pf_is
-                trades = len(_disp_tlog)
-                # 總報酬／回撤／年化：照搬機器人權益曲線，切到顯示期間（與卡片同口徑）
-                total, _add_mdd, _cagr_bs = equity_window_metrics(dates_is, equity_is, _disp_start)
-
-                # 依市場設定最低筆數門檻
-                if _mkt == 'tw':
-                    min_trades = 5   # 台股日線
-                elif _mkt == 'crypto':
-                    min_trades = 10  # 加密
-                else:
-                    min_trades = 5   # 美股日線
-
-                # 篩選條件：PF > 1 且筆數達標 且 MDD < 50%
-                mdd = _add_mdd
-                if pf > 1 and trades >= min_trades and mdd < 50:
-                    import math
-                    # 綜合分數 = PF × log(筆數) × 報酬加成 / (1 + MDD/100)
-                    # PF 和筆數是主角，報酬是加分項，MDD 是懲罰項
-                    if total >= 20:
-                        ret_bonus = 1.5
-                    elif total >= 10:
-                        ret_bonus = 1.2
-                    else:
-                        ret_bonus = 1.0
-                    mdd_penalty = 1 + mdd / 100  # MDD 越大，分數越低
-                    score = round(pf * math.log(max(trades, 2)) * ret_bonus / mdd_penalty, 2)
-                    results.append({
-                        'strat': strat_key,
-                        'name': strat_info['name'],
-                        'pf': pf,
-                        'total': total,
-                        'cagr': _cagr_bs,
-                        'mdd': mdd,
-                        'win': _disp_wr_is,
-                        'trades': trades,
-                        'score': score,
-                        'cat': STRAT_CATEGORY.get(strat_key, ''),
-                        'oosPf': None,
-                        'oosTotal': None,
-                        'oosTrades': None,
-                        'oosPass': None,
-                        'oosIndependent': False,   # 排名用的是全量資料,這個『後 30%』已包含在排名資料內,不是獨立樣本外
-                    })
-            except Exception:
-                continue
-
-        # 按綜合分數排序（報酬 × PF × log(筆數)），取前 8 名
-        results.sort(key=lambda x: x['score'], reverse=True)
-        top = results[:8]
-
-        # ── 只對前 8 名補跑 OOS（後 30% 資料），當附註資訊；不夠格不刷掉，只是標記 ──
-        if do_oos:
-            for r in top:
-                try:
-                    _ck = cost_kwargs(symbol, r['strat'])
-                    result_oos = run_backtest(ohlcv_oos, strategy=r['strat'], risk_pct=0.015, timeframe=yf_tf,
-                                              **_ck)
-                    if not result_oos:
-                        continue
-                    _, _, stats_oos = result_oos
-                    _tlog_oos = [t for t in stats_oos.get('trade_log', []) if not t.get('open')]
-                    if len(_tlog_oos) < 5:   # OOS 樣本太少，數字不可信，寧可留白
-                        r['oosTrades'] = len(_tlog_oos)
-                        r['oosInsufficient'] = True     # 證據不足(oosPf 維持 None,前端顯示「OOS 樣本不足」)
-                        continue
-                    r['oosPf'] = calc_pf(_tlog_oos)
-                    r['oosTotal'] = round(stats_oos['total'], 2)
-                    r['oosTrades'] = len(_tlog_oos)
-                    r['oosPass'] = r['oosPf'] > 1
-                except Exception:
-                    continue
-
-        tested_count = len([k for k in _sim.STRATS if k not in skip and k in allowed])
-        mc = market_character(ohlcv) if ohlcv else {'code':'na','label':'資料不足','adx':None}
-        return jsonify({'results': top, 'total_tested': tested_count, 'character': mc})
-
+        market = classify_market(symbol)
+        top, split, tested = rank_strategies(ohlcv, symbol, yf_tf, strategy_pool(market),
+                                             min_trades_for(market), days, use_oos=use_oos)
+        mc = market_character(ohlcv) if ohlcv else {'code': 'na', 'label': '資料不足', 'adx': None}
+        return jsonify({'results': top, 'total_tested': tested, 'character': mc,
+                        'split': split, 'oosAvailable': bool(split), 'oosRequested': use_oos})
     except Exception as e:
         import traceback
         return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500
@@ -892,7 +922,9 @@ def best_strategy():
 
 @app.route('/api/deep_analysis')
 def deep_analysis():
-    """深度分析：自動跑 3年+5年交叉驗證，找兩段都通過的策略"""
+    """深度分析:資料比較長(加密 2 年、台股/美股 5 年),門檻比較嚴。
+    跟 best_strategy 用同一套 IS/OOS:只用 IS 選與排名,OOS 只標註(trust=2 代表 OOS 通過,但不影響排序)。
+    以前的『3年+5年 / 6個月+2年 交叉驗證』是互相重疊的巢狀窗口,而且用 OOS 當篩選門檻,已移除。"""
     if IS_RENDER:
         return jsonify({'error': '深度分析僅支援本機執行，Render 免費版會超時'}), 403
 
@@ -902,265 +934,30 @@ def deep_analysis():
     yf_tf = tf_to_data_interval(timeframe)
 
     try:
-        import sim as _sim
-        import math
-
-        def run_for_period(period_key, ohlcv_data, symbol, yf_tf, do_oos_check=True):
-            """跑指定資料的最佳策略，回傳通過的策略 dict"""
-            _mkt = classify_market(symbol)
-            if _mkt == 'tw':
-                min_trades = 8
-            elif _mkt == 'crypto':
-                min_trades = 15
-            else:
-                min_trades = 8
-
-            tw_strats  = {'diadx','volbreak','sixline','pullback','supertrend','donchian',
-                          'ema_cross','bbreak','lrs','ichimoku','cci','vortex','macd',
-                          'kama','heikin','crsi','tsmom','rolltrend'}
-            us_strats  = {'tsmom','vbreakr','bbreak','lrs','sixline','ema_cross','pullbk',
-                          'rolltrend','crsi','macd','supertrend','ichimoku','cci','vortex','donchian'}
-            crypto_strats = {'sixline','ttm','keltner','donchian','smc','hma','rsi50',
-                             'vwap','obv','force','cmf','bbreak','lrs','cci','vortex','diadx'} | EXTRA_STRAT_CODES
-            metal_strats  = {'volbreak','supertrend','kama','heikin','ema_cross','pullback',
-                             'macd','psar','rsi50','sixline','donchian'}
-
-            if _mkt == 'tw':
-                allowed = tw_strats
-            elif _mkt == 'crypto':
-                allowed = crypto_strats
-            elif _mkt in ('commodity', 'metal_etf'):
-                allowed = metal_strats
-            else:
-                allowed = us_strats
-
-            skip = {'rsi2dip','ibsdip','zdip'}
-            passed = {}
-
-            split_idx = int(len(ohlcv_data) * 0.7)
-            ohlcv_is  = ohlcv_data[:split_idx]
-            ohlcv_oos = ohlcv_data[split_idx:]
-            do_oos = len(ohlcv_oos) >= 60 and len(ohlcv_is) >= 220
-
-            for strat_key, strat_info in _sim.STRATS.items():
-                if strat_key in skip or strat_key not in allowed:
-                    continue
-                try:
-                    _ck = cost_kwargs(symbol, strat_key)
-                    result_is = run_backtest(ohlcv_is, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf,
-                                             **_ck)
-                    if not result_is:
-                        continue
-                    _, _, stats_is = result_is
-                    _tlog_is = [t for t in stats_is.get('trade_log',[]) if not t.get('open')]
-                    pf = calc_pf(_tlog_is)
-                    # 總報酬／回撤／年化：照搬機器人權益曲線（整段 IS 期間）
-                    total = round(stats_is['total'], 2)
-                    mdd = round(stats_is['mdd'], 2)
-                    cagr_is = round(stats_is['cagr'], 2)
-                    trades = stats_is.get('trades', 0)
-
-                    if pf <= 1 or trades < min_trades or mdd >= 50:
-                        continue
-
-                    # OOS 驗證（可選）
-                    oos_pf = None; oos_total = None
-                    if do_oos and do_oos_check:
-                        result_oos = run_backtest(ohlcv_oos, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf,
-                                                  **_ck)
-                        if not result_oos:
-                            continue
-                        _, _, stats_oos = result_oos
-                        _tlog_oos = [t for t in stats_oos.get('trade_log',[]) if not t.get('open')]
-                        oos_pf = calc_pf(_tlog_oos)
-                        if oos_pf <= 1:
-                            continue
-                        oos_total = round(stats_oos['total'], 2)
-
-                    ret_bonus = 1.5 if total >= 20 else (1.2 if total >= 10 else 1.0)
-                    mdd_penalty = 1 + mdd / 100
-                    score = round(pf * math.log(max(trades, 2)) * ret_bonus / mdd_penalty, 2)
-
-                    passed[strat_key] = {
-                        'strat': strat_key,
-                        'name': strat_info['name'],
-                        'pf': pf, 'total': total,
-                        'cagr': cagr_is,
-                        'mdd': mdd,
-                        'win': round(stats_is['win'], 1),
-                        'trades': trades,
-                        'score': score,
-                        'oosPf': oos_pf,
-                        'oosTotal': oos_total,
-                    }
-                except Exception:
-                    continue
-            return passed
-
-        # 抓 5 年資料（包含 3 年）
-        start_5y = (datetime.datetime.now() - datetime.timedelta(days=5*365+700)).strftime('%Y-%m-%d')
-        start_3y = (datetime.datetime.now() - datetime.timedelta(days=3*365+700)).strftime('%Y-%m-%d')
-
-        if yf_tf in INTRADAY:
-            # ── 加密貨幣 4H/1H ──
-            import math
-            start_2y = (datetime.datetime.now() - datetime.timedelta(days=730+400)).strftime('%Y-%m-%d')
-            ohlcv_2y = fetch_data(symbol, start_2y, interval=yf_tf)
-            if not ohlcv_2y or len(ohlcv_2y) < 220:
+        market = classify_market(symbol)
+        intraday = yf_tf in INTRADAY
+        if intraday:
+            days = 730
+            start = (datetime.datetime.now() - datetime.timedelta(days=days + 400)).strftime('%Y-%m-%d')
+            ohlcv = fetch_data(symbol, start, interval=yf_tf)
+            if not ohlcv or len(ohlcv) < 220:
                 return jsonify({'error': '資料不足，請確認幣種代碼是否正確'}), 400
-
-            sym_upper = symbol.upper()
-            allowed = {'sixline','ttm','keltner','donchian','smc','hma','rsi50',
-                       'vwap','obv','force','cmf','bbreak','lrs','cci','vortex','diadx',
-                       'tsmom','ema_cross','supertrend'} | EXTRA_STRAT_CODES
-            skip = {'rsi2dip','ibsdip','zdip'}
-
-            # 時間切割點
-            cutoff_6mo = (datetime.datetime.now() - datetime.timedelta(days=180)).timestamp() * 1000
-            cutoff_2y  = (datetime.datetime.now() - datetime.timedelta(days=730)).timestamp() * 1000
-            cutoff_6mo_dt = _utcnow() - datetime.timedelta(days=180)
-            cutoff_2y_dt  = _utcnow() - datetime.timedelta(days=730)
-
-            def get_window_trades(trade_log, cutoff_dt):
-                """取某個時間窗口內的交易(exit_date 是 UTC naive datetime,直接跟 UTC cutoff 比;
-                以前用 naive.timestamp() 會被當成本機時間,台灣差 8 小時)"""
-                return [t for t in trade_log
-                        if not t.get('open') and t.get('exit_date') and
-                        t['exit_date'] >= cutoff_dt]
-
-            def eval_window(trades):
-                """評估一段時間內的交易績效（總報酬用複利）"""
-                if len(trades) < 10:
-                    return None
-                pf = calc_pf(trades)
-                if pf <= 1:
-                    return None
-                total, w_mdd, _ = compound_metrics([t['ret'] for t in trades if t.get('ret') is not None])
-                wins = [t for t in trades if t.get('ret') and t['ret'] > 0]
-                win_rate = round(len(wins)/len(trades)*100, 1)
-                return {'pf': pf, 'total': total, 'win': win_rate, 'trades': len(trades), 'mdd': w_mdd}
-
-            crypto_results = []
-            for strat_key, strat_info in _sim.STRATS.items():
-                if strat_key in skip or strat_key not in allowed:
-                    continue
-                try:
-                    _ck = cost_kwargs(symbol, strat_key)
-                    result = run_backtest(ohlcv_2y, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf,
-                                          **_ck)
-                    if not result:
-                        continue
-                    dates_c, equity_c, stats = result
-                    trade_log_all = stats.get('trade_log', [])
-                    mdd = round(stats['mdd'], 2)
-                    if mdd >= 50:
-                        continue
-
-                    # 評估兩個窗口
-                    trades_6mo = get_window_trades(trade_log_all, cutoff_6mo_dt)
-                    trades_2y  = get_window_trades(trade_log_all, cutoff_2y_dt)
-
-                    r6mo = eval_window(trades_6mo)
-                    r2y  = eval_window(trades_2y)
-
-                    if not r6mo and not r2y:
-                        continue
-
-                    # 可信度
-                    if r6mo and r2y:
-                        trust = 2  # ⭐⭐ 兩段都通過
-                        base = r6mo  # 顯示6個月的數字
-                    elif r6mo:
-                        trust = 1  # ⭐ 只有近期
-                        base = r6mo
-                    else:
-                        trust = 1  # ⭐ 只有長期
-                        base = r2y
-
-                    # 總報酬／回撤／年化：照搬機器人權益曲線，切到對應窗口
-                    base_cut = cutoff_6mo_dt if base is r6mo else cutoff_2y_dt
-                    disp_total, disp_mdd, disp_cagr = equity_window_metrics(dates_c, equity_c, base_cut)
-                    oos_total_2y = None
-                    if r2y:
-                        oos_total_2y, _, _ = equity_window_metrics(dates_c, equity_c, cutoff_2y_dt)
-
-                    ret_bonus = 1.5 if disp_total >= 20 else (1.2 if disp_total >= 10 else 1.0)
-                    score = round(base['pf'] * math.log(max(base['trades'], 2)) * ret_bonus / (1 + disp_mdd/100), 2)
-
-                    crypto_results.append({
-                        'strat': strat_key, 'name': strat_info['name'],
-                        'pf': base['pf'], 'total': disp_total,
-                        'cagr': disp_cagr,
-                        'mdd': disp_mdd, 'win': base['win'],
-                        'trades': base['trades'], 'score': score,
-                        'oosPf': r2y['pf'] if r2y else None,
-                        'oosTotal': oos_total_2y,
-                        'trust': trust,
-                        'in3y': bool(r6mo),   # 近6個月
-                        'in5y': bool(r2y),    # 近2年
-                    })
-                except Exception:
-                    continue
-
-            if not use_oos:
-                # 快速模式：只按報酬排序，不看可信度
-                crypto_results.sort(key=lambda x: x['total'], reverse=True)
-            else:
-                crypto_results.sort(key=lambda x: (x['trust'], x['total']), reverse=True)
-            return jsonify({'results': crypto_results[:8], 'hasOos': use_oos,
-                           'isDeep': True, 'isCrypto': True})
-
+            allowed = strategy_pool('crypto', deep_intraday=True)    # 1H/4H 深度分析一律用加密策略集(跟原本一樣)
+            min_trades = min_trades_for('crypto', deep=True)
         else:
-            # ── 台股/美股日線 ──
-            ohlcv_5y = fetch_data(symbol, start_5y, interval=yf_tf)
-            if not ohlcv_5y or len(ohlcv_5y) < 220:
+            days = 5 * 365
+            start = (datetime.datetime.now() - datetime.timedelta(days=days + 700)).strftime('%Y-%m-%d')
+            ohlcv = fetch_data(symbol, start, interval=yf_tf)
+            if not ohlcv or len(ohlcv) < 220:
                 return jsonify({'error': '5年資料不足'}), 400
+            allowed = strategy_pool(market)
+            min_trades = min_trades_for(market, deep=True)
 
-            if not use_oos:
-                # 快速模式：直接用全部 5 年資料，不切 IS/OOS，按報酬排序
-                passed_3y = run_for_period('full', ohlcv_5y, symbol, yf_tf, do_oos_check=False)
-                passed_5y = passed_3y  # 同一份資料，合併結果
-            else:
-                cutoff_3y = (datetime.datetime.now() - datetime.timedelta(days=3*365)).timestamp() * 1000
-                ohlcv_3y = [r for r in ohlcv_5y if r[0] >= cutoff_3y]
-                if len(ohlcv_3y) < 220:
-                    return jsonify({'error': '3年資料不足'}), 400
-
-                passed_3y = run_for_period('3y', ohlcv_3y, symbol, yf_tf, do_oos_check=True)
-                passed_5y = run_for_period('5y', ohlcv_5y, symbol, yf_tf, do_oos_check=True)
-
-        # 合併結果，標記可信度
-        all_strats = set(passed_3y.keys()) | set(passed_5y.keys())
-        results = []
-        for strat_key in all_strats:
-            in_3y = strat_key in passed_3y
-            in_5y = strat_key in passed_5y
-
-            if not use_oos:
-                # 快速模式：直接用結果，不標記可信度
-                base = passed_3y.get(strat_key) or passed_5y.get(strat_key)
-                results.append({**base, 'trust': 1, 'in3y': True, 'in5y': True})
-            else:
-                if in_3y and in_5y:
-                    trust = 2
-                    base = passed_5y[strat_key]
-                elif in_5y:
-                    trust = 1
-                    base = passed_5y[strat_key]
-                else:
-                    trust = 1
-                    base = passed_3y[strat_key]
-                results.append({**base, 'trust': trust, 'in3y': in_3y, 'in5y': in_5y})
-
-        if not use_oos:
-            # 快速模式按報酬排序
-            results.sort(key=lambda x: x['total'], reverse=True)
-        else:
-            results.sort(key=lambda x: (x['trust'], x['score']), reverse=True)
-        top = results[:8]
-
-        return jsonify({'results': top, 'hasOos': use_oos, 'isDeep': True})
-
+        top, split, tested = rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=use_oos)
+        for r in top:
+            r['trust'] = 2 if r.get('oosStatus') == 'pass' else 1     # 只代表 OOS 是否通過,不影響排序
+        return jsonify({'results': top, 'hasOos': use_oos, 'isDeep': True, 'isCrypto': intraday,
+                        'total_tested': tested, 'split': split, 'oosAvailable': bool(split)})
     except Exception as e:
         import traceback
         return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500

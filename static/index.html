@@ -1409,8 +1409,8 @@ async function runDeepAnalysis(id, e){
   const isCryptoDeep = ['4h','1h'].includes(stock.tf||'1d');
   document.getElementById('analysisTitle').textContent = `🔬 ${stock.name||stock.symbol} — 深度分析`;
   document.getElementById('analysisSub').textContent = isCryptoDeep
-    ? '加密貨幣：6個月 + 2年 交叉驗證，兩段都通過才列入...'
-    : '台股/美股：3年 + 5年 交叉驗證，兩段都通過才列入...';
+    ? '加密貨幣：近 2 年。前 70% 時間選策略（樣本內 IS），後 30% 獨立驗證（樣本外 OOS）...'
+    : '台股/美股：近 5 年。前 70% 時間選策略（樣本內 IS），後 30% 獨立驗證（樣本外 OOS）...';
   document.getElementById('analysisProgress').style.display = 'block';
   document.getElementById('analysisResults').innerHTML = '';
   document.getElementById('progressBar').style.width = '0%';
@@ -1436,39 +1436,34 @@ async function runDeepAnalysis(id, e){
 
     document.getElementById('progressBar').style.width = '100%';
     document.getElementById('progressText').textContent = isCryptoDeep
-      ? '✅ 深度分析完成！加密：6個月+2年交叉驗證'
-      : '✅ 深度分析完成！3年+5年交叉驗證';
+      ? '✅ 深度分析完成！排名只看樣本內（IS），樣本外（OOS）只用來驗證'
+      : '✅ 深度分析完成！排名只看樣本內（IS），樣本外（OOS）只用來驗證';
 
     const medals = ['🥇','🥈','🥉','4','5','6','7','8'];
     const results = data.results;
 
     if(!results.length){
-      document.getElementById('analysisResults').innerHTML = '<div style="color:var(--text2);padding:12px;text-align:center;">沒有策略在兩段期間都通過篩選<br>建議改用「🔍 最佳策略」</div>';
+      document.getElementById('analysisResults').innerHTML = '<div style="color:var(--text2);padding:12px;text-align:center;">沒有策略在樣本內（IS）通過篩選<br>建議改用「🔍 最佳策略」或換更長的期間</div>';
       return;
     }
 
-    document.getElementById('analysisResults').innerHTML = results.map((r,i)=>{
-      const trustBadge = r.trust === 2
-        ? `<span style="color:#26a69a;font-weight:700;">${isCryptoDeep?'⭐⭐ 前後段都通過':'⭐⭐ 3年+5年都通過'}</span>`
-        : r.in5y
-          ? '<span style="color:#f5a623;">⭐ 僅長期通過</span>'
-          : '<span style="color:#8b90a0;">⭐ 僅近期通過</span>';
+    document.getElementById('analysisResults').innerHTML = splitBanner(data) + results.map((r,i)=>{
+      const badges = {
+        pass: '<span style="color:#26a69a;font-weight:700;">⭐⭐ 樣本外通過</span>',
+        fail: '<span style="color:#ef5350;">✗ 樣本外未通過</span>',
+        insufficient: '<span style="color:#f5a623;">⚠ 樣本外證據不足</span>',
+        unavailable: '<span style="color:#8b90a0;">— 無樣本外驗證</span>'};
+      const trustBadge = badges[r.oosStatus] || badges.unavailable;
       return `<div class="result-row ${i===0?'rank-1':''}">
         <div class="result-rank">${medals[i]||i+1}</div>
         <div class="result-info">
           <div class="result-name">${r.name}</div>
           <div style="margin:3px 0;">${trustBadge}</div>
-          <div class="result-stats">
-            <span>報酬 <b style="color:${r.total>=0?'#26a69a':'#ef5350'}">${r.total>=0?'+':''}${r.total}%</b></span>
-            <span>PF <b style="color:#26a69a">${r.pf}</b></span>
-            <span>回撤 <b style="color:#ef5350">${r.mdd}%</b></span>
-            <span>勝率 ${r.win}%</span>
-            <span>${r.trades}筆</span>
-          </div>
+          ${isOosRows(r)}
         </div>
         <div style="text-align:right;flex-shrink:0;">
-          <div style="font-size:16px;font-weight:700;color:#26a69a;">${r.pf}</div>
-          <div style="font-size:10px;color:var(--text3);">綜合 ${r.score}</div>
+          <div style="font-size:16px;font-weight:700;color:#26a69a;">${fmtPF(r.pf)}</div>
+          <div style="font-size:10px;color:var(--text3);">IS PF · 綜合 ${r.score}</div>
         </div>
         <button class="btn-apply" onclick="applyBestStrategy(${id},'${r.strat}','${r.name}')">套用</button>
       </div>`;
@@ -1483,6 +1478,42 @@ async function runDeepAnalysis(id, e){
 // ── 最佳策略分析 ──────────────────────────────────────────
 let analysisStockId = null;
 
+// ── 樣本內(IS) / 樣本外(OOS) / 全期間 顯示 ──────────────────
+function fmtPF(v){ return v==null ? '—' : (v>=999 ? '∞' : v); }
+function fmtPct(v){ return (v>=0?'+':'')+v+'%'; }
+function isOosRows(r){
+  const col = v => v>=0 ? '#26a69a' : '#ef5350';
+  const is = r.is || {pf:r.pf,total:r.total,mdd:r.mdd,win:r.win,trades:r.trades};
+  const isLine = `<div class="result-stats"><span><b>樣本內 IS</b>（排名用）</span>
+      <span>報酬 <b style="color:${col(is.total)}">${fmtPct(is.total)}</b></span>
+      <span>PF <b style="color:#26a69a">${fmtPF(is.pf)}</b></span>
+      <span>回撤 <b style="color:#ef5350">${is.mdd}%</b></span>
+      <span>勝率 ${is.win}%</span><span>${is.trades}筆</span></div>`;
+  const o = r.oos; const minN = r.minOosTrades || 5;
+  let oosLine;
+  if(!o){
+    oosLine = `<span style="color:var(--text3);"><b>樣本外 OOS</b>：沒有（資料太短或快速模式），無法獨立驗證</span>`;
+  } else if(o.insufficient){
+    oosLine = `<span style="color:#f5a623;"><b>樣本外 OOS</b>：⚠ 證據不足（只有 ${o.trades} 筆，至少要 ${minN} 筆），不能當作通過</span>`;
+  } else {
+    const ok = o.pass;
+    oosLine = `<span style="color:${ok?'#26a69a':'#ef5350'};"><b>樣本外 OOS</b>：${ok?'✓ 通過':'✗ 未通過'}　報酬 ${fmtPct(o.total)}　PF <b>${fmtPF(o.pf)}</b>　${o.trades}筆</span>`;
+  }
+  const f = r.full;
+  const fullLine = (f && o) ? `<span style="color:var(--text3);"><b>全期間</b>（IS+OOS，僅供參考）報酬 ${fmtPct(f.total)}　PF ${fmtPF(f.pf)}　回撤 ${f.mdd}%　${f.trades}筆</span>` : '';
+  return isLine +
+    `<div class="result-stats" style="margin-top:2px;font-size:11px;">${oosLine}</div>` +
+    (fullLine ? `<div class="result-stats" style="margin-top:2px;font-size:11px;">${fullLine}</div>` : '');
+}
+function splitBanner(data){
+  const sp = data.split;
+  const st = 'font-size:11px;color:var(--text3);padding:4px 2px 8px;line-height:1.5;';
+  if(data.oosAvailable && sp){
+    return `<div style="${st}">樣本內 IS：${sp.windowStart} → ${sp.boundary}（<b>排名只用這段</b>）｜樣本外 OOS：${sp.boundary} → ${sp.end}（只驗證前幾名，<b>不影響排名</b>；至少 ${sp.minOosTrades} 筆才算有證據）</div>`;
+  }
+  return `<div style="${st}color:#f5a623;">⚠ 這次沒有切出樣本外（資料太短或快速模式）：下列績效都是樣本內，<b>沒有獨立驗證</b></div>`;
+}
+
 async function runBestStrategy(id, e){
   e.stopPropagation();
   const stock = stocks.find(s=>s.id===id);
@@ -1491,7 +1522,7 @@ async function runBestStrategy(id, e){
 
   document.getElementById('analysisBg').classList.add('open');
   document.getElementById('analysisTitle').textContent = `🔍 ${stock.name||stock.symbol} — 最佳策略分析`;
-  document.getElementById('analysisSub').textContent = `完整資料回測，筆數和圖表一致，按 PF × 筆數 綜合評分，前 8 名補跑 OOS 驗證...`;
+  document.getElementById('analysisSub').textContent = `前 70% 時間為樣本內（IS）：只用它排名；後 30% 為樣本外（OOS）：只對前 8 名驗證，不影響排名...`;
   document.getElementById('analysisProgress').style.display = 'block';
   document.getElementById('analysisResults').innerHTML = '';
   document.getElementById('progressBar').style.width = '0%';
@@ -1536,38 +1567,23 @@ async function runBestStrategy(id, e){
     }
 
     if(!results.length){
-      document.getElementById('analysisResults').innerHTML = '<div style="color:var(--text2);padding:12px;text-align:center;">此股票在目前設定下，沒有策略通過篩選條件（PF>1 且筆數達標）<br>建議換更長的時間範圍</div>';
+      document.getElementById('analysisResults').innerHTML = '<div style="color:var(--text2);padding:12px;text-align:center;">此股票在目前設定下，沒有策略在樣本內（IS）通過篩選條件（PF>1 且筆數達標）<br>建議換更長的時間範圍</div>';
       return;
     }
 
-    document.getElementById('analysisResults').innerHTML = results.map((r,i)=>{
+    document.getElementById('analysisResults').innerHTML = splitBanner(data) + results.map((r,i)=>{
       const fit = r.cat && fitCats.includes(r.cat);
       const catBadge = r.cat ? `<span class="char-badge show ${catCls[r.cat]}" style="margin-left:0;">${fit?'✓ ':''}${catLabel[r.cat]||''}</span>` : '';
-      let oosLine;
-      if(r.oosPf==null){
-        oosLine = `<span style="color:var(--text3);">OOS 樣本不足，無法驗證</span>`;
-      } else {
-        const oosColor = r.oosPass ? '#26a69a' : '#ef5350';
-        const oosMark  = r.oosPass ? '✓ 另一段資料也撐得住' : '✗ 另一段資料撐不住，小心過度擬合';
-        oosLine = `<span style="color:${oosColor};">OOS PF <b>${r.oosPf>=999?'∞':r.oosPf}</b>（${r.oosTrades}筆）${oosMark}</span>`;
-      }
       return `
       <div class="result-row ${i===0?'rank-1':''}" ${fit?'style="border-left:3px solid #26a69a;"':''}>
         <div class="result-rank">${medals[i]||i+1}</div>
         <div class="result-info">
           <div class="result-name">${r.name} ${catBadge}</div>
-          <div class="result-stats">
-            <span>報酬 <b style="color:${r.total>=0?'#26a69a':'#ef5350'}">${r.total>=0?'+':''}${r.total}%</b></span>
-            <span>PF <b style="color:#26a69a">${r.pf>=999?'∞':r.pf}</b></span>
-            <span>回撤 <b style="color:#ef5350">${r.mdd}%</b></span>
-            <span>勝率 ${r.win}%</span>
-            <span>${r.trades}筆</span>
-          </div>
-          <div class="result-stats" style="margin-top:2px;font-size:11px;">${oosLine}</div>
+          ${isOosRows(r)}
         </div>
         <div style="text-align:right;flex-shrink:0;">
-          <div style="font-size:16px;font-weight:700;color:#26a69a;">${r.pf>=999?'∞':r.pf}</div>
-          <div style="font-size:10px;color:var(--text3);">綜合 ${r.score||''}</div>
+          <div style="font-size:16px;font-weight:700;color:#26a69a;">${fmtPF(r.pf)}</div>
+          <div style="font-size:10px;color:var(--text3);">IS PF · 綜合 ${r.score||''}</div>
         </div>
         <button class="btn-apply" onclick="applyBestStrategy(${id},'${r.strat}','${r.name}')">套用</button>
       </div>`;}).join('');
