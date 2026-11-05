@@ -1,0 +1,109 @@
+{
+ "idle": {
+  "stats": {
+   "loopOn": false,
+   "fps": 0,
+   "frameCost": 0.23099999964237214,
+   "particles": 0,
+   "pulses": 0,
+   "events": 0,
+   "state": "idle",
+   "lowPower": false,
+   "forced": false,
+   "static": true,
+   "ambient": false,
+   "motion": true
+  },
+  "overflowX": false,
+  "canvasH": 190
+ },
+ "running": {
+  "stats": {
+   "loopOn": false,
+   "fps": 2,
+   "frameCost": 0.32853037275078834,
+   "particles": 0,
+   "pulses": 3,
+   "events": 16,
+   "state": "running",
+   "lowPower": false,
+   "forced": false,
+   "static": true,
+   "ambient": false,
+   "motion": true
+  },
+  "now": "策略回測 13 / 166"
+ },
+ "targets": [
+  {
+   "cls": "rc-node",
+   "w": 106,
+   "h": 70
+  },
+  {
+   "cls": "rc-node",
+   "w": 106,
+   "h": 70
+  },
+  {
+   "cls": "rc-node",
+   "w": 106,
+   "h": 70
+  },
+  {
+   "cls": "rc-node",
+   "w": 106,
+   "h": 70
+  },
+  {
+   "cls": "rc-node",
+   "w": 106,
+   "h": 70
+  },
+  {
+   "cls": "rc-node",
+   "w": 106,
+   "h": 70
+  },
+  {
+   "cls": "rc-o-motion",
+   "w": 22,
+   "h": 44
+  },
+  {
+   "cls": "rc-o-ambient",
+   "w": 22,
+   "h": 44
+  },
+  {
+   "cls": "rcp-cancel",
+   "w": 68,
+   "h": 44
+  }
+ ],
+ "fonts": {
+  "min": 12
+ },
+ "smallFontEls": [],
+ "detailAfterTap": "策略回測\n執行中\n事件 18 筆\n\n17 / 166 · obv\n\n已回測 17 個策略,合計 2.11 秒。耗時最長的 5 個:\n\nhma · 204 ms\nttm · 169 ms\nsixline · 147 ms\ndiadx · 142 ms\ncci · 140 ms\n此階段最近 8 筆事件",
+ "afterCancel": {
+  "state": "cancelled",
+  "now": "已取消",
+  "overflowX": false,
+  "stats": {
+   "loopOn": false,
+   "fps": 2,
+   "frameCost": 0.32853037275078834,
+   "particles": 0,
+   "pulses": 0,
+   "events": 28,
+   "state": "cancelled",
+   "lowPower": false,
+   "forced": false,
+   "static": true,
+   "ambient": false,
+   "motion": true
+  }
+ },
+ "console": []
+}

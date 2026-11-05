@@ -67,14 +67,17 @@ def _job_endpoint(kind):
             q = request.args
             job = JOBS.begin(q.get('job'), kind, symbol=q.get('symbol'), timeframe=q.get('timeframe'),
                              strategy=q.get('strategy'), period=q.get('period'))
-            tok = _RC_JOB.set(job); ok = False
+            tok = _RC_JOB.set(job); ok = False; cancelled = False
             try:
                 resp = fn(*a, **k)
                 code = resp[1] if isinstance(resp, tuple) else getattr(resp, 'status_code', 200)
                 ok = code < 400
                 return resp
+            except _rev.JobCancelled:                       # 使用者取消:不回傳半套結果
+                cancelled = True
+                return jsonify({'error': '已取消', 'cancelled': True}), 499
             finally:
-                _RC_JOB.reset(tok); job.finish(ok)
+                _RC_JOB.reset(tok); job.finish(ok, cancelled)
         return wrapper
     return deco
 
@@ -842,6 +845,14 @@ def job_events():
     return jsonify(j)
 
 
+@app.route('/api/job_cancel', methods=['POST'])
+def job_cancel():
+    """請求取消某個『執行中』的分析工作(合作式:分析流程在下一個策略開始前停止)。不會影響其他工作,也不會動到交易機器人。"""
+    job_id = request.args.get('job', '')
+    found = bool(job_id and _rev.JOB_ID_RE.match(job_id) and JOBS.cancel(job_id))
+    return jsonify({'ok': True, 'found': found})
+
+
 @app.route('/api/config')
 def get_config():
     return jsonify({
@@ -1008,6 +1019,7 @@ def rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=Tru
     _job.start('backtest', n=len(pool), phase='in_sample')
     _k = 0
     for strat_key in pool:
+        _job.check()                                                   # 合作式取消點(沒取消時是空操作)
         _t0 = _time.perf_counter()
         try:
             ck = cost_kwargs(symbol, strat_key)
@@ -1038,6 +1050,7 @@ def rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=Tru
     else: _job.skip('validation', reason='資料太短或選了快速模式,沒有樣本外')
     _j = 0
     for r in top:
+        _job.check()
         _tj = _time.perf_counter()
         r.update({'oos': None, 'full': None, 'oosStatus': 'unavailable', 'oosPf': None, 'oosTotal': None,
                   'oosTrades': None, 'oosPass': None, 'oosInsufficient': None, 'oosIndependent': bool(split),

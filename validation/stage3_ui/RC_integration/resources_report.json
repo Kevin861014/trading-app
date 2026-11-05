@@ -1,0 +1,363 @@
+{
+ "raw": {
+  "A1 待機(預設:靜態、裝飾關)": [
+   {
+    "wall_s": 10.4,
+    "cpu_pct_1core": -3.61,
+    "gpu_3d_pct": 0.0,
+    "main_thread_pct": 0.0
+   },
+   {
+    "wall_s": 10.4,
+    "cpu_pct_1core": 1.65,
+    "gpu_3d_pct": 0.0,
+    "main_thread_pct": 0.14
+   },
+   {
+    "wall_s": 10.4,
+    "cpu_pct_1core": -0.3,
+    "gpu_3d_pct": 0.0,
+    "main_thread_pct": 0.0
+   }
+  ],
+  "A2 待機 + 使用者開啟裝飾旋轉": [
+   {
+    "wall_s": 10.4,
+    "cpu_pct_1core": 11.11,
+    "gpu_3d_pct": 0.13,
+    "main_thread_pct": 2.36
+   },
+   {
+    "wall_s": 10.4,
+    "cpu_pct_1core": 11.86,
+    "gpu_3d_pct": 0.13,
+    "main_thread_pct": 2.17
+   },
+   {
+    "wall_s": 10.4,
+    "cpu_pct_1core": 12.91,
+    "gpu_3d_pct": 0.11,
+    "main_thread_pct": 2.34
+   }
+  ],
+  "A3 分析中(真實 SOL-USD 1H 深度分析,事件流動動畫開)": [
+   {
+    "wall_s": 21.0,
+    "cpu_pct_1core": 39.48,
+    "gpu_3d_pct": 0.27,
+    "main_thread_pct": 3.77
+   },
+   {
+    "wall_s": 20.5,
+    "cpu_pct_1core": 15.08,
+    "gpu_3d_pct": 0.25,
+    "main_thread_pct": 3.71
+   },
+   {
+    "wall_s": 20.4,
+    "cpu_pct_1core": 13.49,
+    "gpu_3d_pct": 0.29,
+    "main_thread_pct": 3.68
+   }
+  ],
+  "A3_events": 183,
+  "A4 分析完成後待機": [
+   {
+    "wall_s": 8.4,
+    "cpu_pct_1core": 0.37,
+    "gpu_3d_pct": 0.0,
+    "main_thread_pct": 0.0
+   },
+   {
+    "wall_s": 8.4,
+    "cpu_pct_1core": 1.3,
+    "gpu_3d_pct": 0.0,
+    "main_thread_pct": 0.0
+   }
+  ],
+  "A5 分析中,事件流動動畫關閉(文字/進度列仍即時更新)": [
+   {
+    "wall_s": 20.3,
+    "cpu_pct_1core": 3.61,
+    "gpu_3d_pct": 0.13,
+    "main_thread_pct": 0.81
+   },
+   {
+    "wall_s": 20.4,
+    "cpu_pct_1core": 3.82,
+    "gpu_3d_pct": 0.08,
+    "main_thread_pct": 0.76
+   },
+   {
+    "wall_s": 20.3,
+    "cpu_pct_1core": 4.39,
+    "gpu_3d_pct": 0.1,
+    "main_thread_pct": 0.78
+   }
+  ],
+  "A6 分析中,分頁在背景(隱藏)": [
+   {
+    "wall_s": 17.1,
+    "cpu_pct_1core": 4.49,
+    "gpu_3d_pct": 0.08,
+    "main_thread_pct": 0.78
+   },
+   {
+    "wall_s": 17.1,
+    "cpu_pct_1core": 4.65,
+    "gpu_3d_pct": 0.08,
+    "main_thread_pct": 0.79
+   }
+  ],
+  "A6_loopOn_after": false,
+  "A7_static": true,
+  "A7 分析中,prefers-reduced-motion": [
+   {
+    "wall_s": 19.4,
+    "cpu_pct_1core": 4.35,
+    "gpu_3d_pct": 0.14,
+    "main_thread_pct": 0.77
+   },
+   {
+    "wall_s": 19.3,
+    "cpu_pct_1core": 3.57,
+    "gpu_3d_pct": 0.08,
+    "main_thread_pct": 0.79
+   }
+  ],
+  "B1 手機 待機": [
+   {
+    "wall_s": 8.4,
+    "cpu_pct_1core": 0.74,
+    "gpu_3d_pct": 0.0,
+    "main_thread_pct": 0.02
+   },
+   {
+    "wall_s": 8.4,
+    "cpu_pct_1core": 0.19,
+    "gpu_3d_pct": 0.0,
+    "main_thread_pct": 0.0
+   }
+  ],
+  "B2 手機 分析中(簡化:靜態球體 + 節點按鈕格)": [
+   {
+    "wall_s": 20.2,
+    "cpu_pct_1core": 3.32,
+    "gpu_3d_pct": 0.0,
+    "main_thread_pct": 0.65
+   },
+   {
+    "wall_s": 20.2,
+    "cpu_pct_1core": 6.72,
+    "gpu_3d_pct": 0.0,
+    "main_thread_pct": 0.51
+   }
+  ],
+  "B_loopOn": false,
+  "C1 舊版原型 99fd0e0 待機": [
+   {
+    "wall_s": 10.4,
+    "cpu_pct_1core": 5.26,
+    "gpu_3d_pct": 0.12,
+    "main_thread_pct": 2.41
+   },
+   {
+    "wall_s": 10.4,
+    "cpu_pct_1core": 7.81,
+    "gpu_3d_pct": 0.15,
+    "main_thread_pct": 2.56
+   }
+  ],
+  "C1 舊版原型 99fd0e0 重播真實紀錄(約 6.5 秒)": [
+   {
+    "wall_s": 8.9,
+    "cpu_pct_1core": 24.46,
+    "gpu_3d_pct": 0.4,
+    "main_thread_pct": 9.9
+   },
+   {
+    "wall_s": 8.9,
+    "cpu_pct_1core": 19.88,
+    "gpu_3d_pct": 0.49,
+    "main_thread_pct": 8.58
+   }
+  ],
+  "C2 新版原型(共用新引擎) 待機": [
+   {
+    "wall_s": 10.4,
+    "cpu_pct_1core": -4.05,
+    "gpu_3d_pct": 0.0,
+    "main_thread_pct": 0.0
+   },
+   {
+    "wall_s": 10.4,
+    "cpu_pct_1core": 1.2,
+    "gpu_3d_pct": 0.0,
+    "main_thread_pct": 0.05
+   }
+  ],
+  "C2 新版原型(共用新引擎) 重播真實紀錄(約 6.5 秒)": [
+   {
+    "wall_s": 8.9,
+    "cpu_pct_1core": 19.71,
+    "gpu_3d_pct": 0.52,
+    "main_thread_pct": 8.58
+   },
+   {
+    "wall_s": 8.9,
+    "cpu_pct_1core": 19.9,
+    "gpu_3d_pct": 0.5,
+    "main_thread_pct": 8.15
+   }
+  ]
+ },
+ "median": {
+  "A1 待機(預設:靜態、裝飾關)": {
+   "runs": 3,
+   "cpu_pct_1core_median": -0.3,
+   "cpu_all": [
+    -3.61,
+    1.65,
+    -0.3
+   ],
+   "gpu_3d_pct_median": 0.0,
+   "main_thread_pct_median": 0.0,
+   "wall_s": 10.4
+  },
+  "A2 待機 + 使用者開啟裝飾旋轉": {
+   "runs": 3,
+   "cpu_pct_1core_median": 11.86,
+   "cpu_all": [
+    11.11,
+    11.86,
+    12.91
+   ],
+   "gpu_3d_pct_median": 0.13,
+   "main_thread_pct_median": 2.34,
+   "wall_s": 10.4
+  },
+  "A3 分析中(真實 SOL-USD 1H 深度分析,事件流動動畫開)": {
+   "runs": 3,
+   "cpu_pct_1core_median": 15.08,
+   "cpu_all": [
+    39.48,
+    15.08,
+    13.49
+   ],
+   "gpu_3d_pct_median": 0.27,
+   "main_thread_pct_median": 3.71,
+   "wall_s": 21.0
+  },
+  "A4 分析完成後待機": {
+   "runs": 2,
+   "cpu_pct_1core_median": 0.83,
+   "cpu_all": [
+    0.37,
+    1.3
+   ],
+   "gpu_3d_pct_median": 0.0,
+   "main_thread_pct_median": 0.0,
+   "wall_s": 8.4
+  },
+  "A5 分析中,事件流動動畫關閉(文字/進度列仍即時更新)": {
+   "runs": 3,
+   "cpu_pct_1core_median": 3.82,
+   "cpu_all": [
+    3.61,
+    3.82,
+    4.39
+   ],
+   "gpu_3d_pct_median": 0.1,
+   "main_thread_pct_median": 0.78,
+   "wall_s": 20.3
+  },
+  "A6 分析中,分頁在背景(隱藏)": {
+   "runs": 2,
+   "cpu_pct_1core_median": 4.57,
+   "cpu_all": [
+    4.49,
+    4.65
+   ],
+   "gpu_3d_pct_median": 0.08,
+   "main_thread_pct_median": 0.79,
+   "wall_s": 17.1
+  },
+  "A7 分析中,prefers-reduced-motion": {
+   "runs": 2,
+   "cpu_pct_1core_median": 3.96,
+   "cpu_all": [
+    4.35,
+    3.57
+   ],
+   "gpu_3d_pct_median": 0.11,
+   "main_thread_pct_median": 0.78,
+   "wall_s": 19.4
+  },
+  "B1 手機 待機": {
+   "runs": 2,
+   "cpu_pct_1core_median": 0.46,
+   "cpu_all": [
+    0.74,
+    0.19
+   ],
+   "gpu_3d_pct_median": 0.0,
+   "main_thread_pct_median": 0.01,
+   "wall_s": 8.4
+  },
+  "B2 手機 分析中(簡化:靜態球體 + 節點按鈕格)": {
+   "runs": 2,
+   "cpu_pct_1core_median": 5.02,
+   "cpu_all": [
+    3.32,
+    6.72
+   ],
+   "gpu_3d_pct_median": 0.0,
+   "main_thread_pct_median": 0.58,
+   "wall_s": 20.2
+  },
+  "C1 舊版原型 99fd0e0 待機": {
+   "runs": 2,
+   "cpu_pct_1core_median": 6.54,
+   "cpu_all": [
+    5.26,
+    7.81
+   ],
+   "gpu_3d_pct_median": 0.14,
+   "main_thread_pct_median": 2.49,
+   "wall_s": 10.4
+  },
+  "C1 舊版原型 99fd0e0 重播真實紀錄(約 6.5 秒)": {
+   "runs": 2,
+   "cpu_pct_1core_median": 22.17,
+   "cpu_all": [
+    24.46,
+    19.88
+   ],
+   "gpu_3d_pct_median": 0.45,
+   "main_thread_pct_median": 9.24,
+   "wall_s": 8.9
+  },
+  "C2 新版原型(共用新引擎) 待機": {
+   "runs": 2,
+   "cpu_pct_1core_median": -1.42,
+   "cpu_all": [
+    -4.05,
+    1.2
+   ],
+   "gpu_3d_pct_median": 0.0,
+   "main_thread_pct_median": 0.03,
+   "wall_s": 10.4
+  },
+  "C2 新版原型(共用新引擎) 重播真實紀錄(約 6.5 秒)": {
+   "runs": 2,
+   "cpu_pct_1core_median": 19.8,
+   "cpu_all": [
+    19.71,
+    19.9
+   ],
+   "gpu_3d_pct_median": 0.51,
+   "main_thread_pct_median": 8.37,
+   "wall_s": 8.9
+  }
+ }
+}

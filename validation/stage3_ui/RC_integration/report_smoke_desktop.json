@@ -1,0 +1,6 @@
+{
+ "labCore": true,
+ "stats": "{\"loopOn\":false,\"fps\":0,\"frameCost\":0.3659000007510186,\"particles\":0,\"pulses\":0,\"events\":0,\"state\":\"idle\",\"lowPower\":false,\"forced\":false,\"static\":false,\"ambient\":false,\"motion\":true}",
+ "rcpHiddenWhenIdle": "none",
+ "console": []
+}

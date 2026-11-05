@@ -1,0 +1,34 @@
+{
+ "reachedBacktest": true,
+ "before": {
+  "i": 10,
+  "n": 166
+ },
+ "afterClick": {
+  "state": "cancelled",
+  "now": "已取消",
+  "stages": {
+   "data": "done",
+   "indicators": "idle",
+   "backtest": "stopped",
+   "signal": "idle",
+   "validation": "idle",
+   "summary": "idle"
+  },
+  "loopOn": false,
+  "cancelHidden": true,
+  "results": "已取消分析。"
+ },
+ "server_after_cancel": [
+  {
+   "status": "cancelled",
+   "last": 23
+  },
+  {
+   "status": "cancelled",
+   "last": 23
+  }
+ ],
+ "serverStoppedGrowing": true,
+ "console": []
+}

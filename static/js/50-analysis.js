@@ -103,32 +103,39 @@ function detailRankRow(key, i){
   if(typeof openSymbolView === 'function') openSymbolView(st.stockId, r.strat, {symbol: st.symbol, tf: st.tf, period: st.period});
 }
 
-// ── 共用流程:顯示進度 → 呼叫 API → 渲染 ──────────────────────────────
-// ui: {setProgress(pct,text), setSub(html), setResults(html), busy(bool)}
+// ── 共用流程:送出請求 → 以後端真實事件顯示進度 → 渲染結果 ───────────────────
+// ui: {begin(handle), event(e), tick(ms), end(kind, {note,data,summary}), hideProgress(), setSub(html), setResults(html), busy(bool)}
+// 進度只來自 /api/job_events 的真實事件(見 rc-job.js):後端知道『第 i 個/共 n 個』才顯示計數,不知道就顯示「處理中」。
+// 這裡不再有依時間推算的百分比;也不會為了進度重跑策略或重新下載 K 線(輪詢端點不做任何運算)。
 async function rankingFlow(kind, key, ctx, ui){
   const isDeep = kind === 'deep';
   const useOos = ctx.useOos !== false;
   const unsup = tfUnsupported(ctx.symbol, ctx.tf);
-  if(unsup){ ui.setResults(`<div class="state-card warn"><b>此時框不支援</b>：${esc(unsup)}</div>`); ui.setProgress(null); return; }
-  ui.busy(true); ui.setResults(''); ui.setProgress(0, '連線中…');
-  let prog = 0;
-  const step = isDeep ? 0.02 : 0.04, every = isDeep ? 1000 : 800;
-  const timer = setInterval(()=>{
-    prog = Math.min(prog + (100 - prog) * step, 92);
-    ui.setProgress(prog, `${isDeep?'深度分析':'分析'}中… ${Math.round(prog)}%（約需 ${isDeep?'60~120':'20~40'} 秒）`);
-  }, every);
+  if(unsup){ ui.setResults(`<div class="state-card warn"><b>此時框不支援</b>：${esc(unsup)}</div>`); ui.hideProgress(); return; }
+  ui.busy(true); ui.setResults('');
+  const buildUrl = jobId => isDeep
+    ? `/api/deep_analysis?symbol=${encodeURIComponent(ctx.symbol)}&timeframe=${ctx.tf}&use_oos=${useOos?1:0}&job=${jobId}`
+    : `/api/best_strategy?symbol=${encodeURIComponent(ctx.symbol)}&period=${ctx.period}&timeframe=${ctx.tf}&use_oos=${useOos?1:0}&job=${jobId}`;
+  const handle = RCJob.run({buildUrl, onEvent: e => ui.event(e), onTick: ms => ui.tick(ms)});
+  ui.begin(handle);
   try{
-    const url = isDeep
-      ? `/api/deep_analysis?symbol=${encodeURIComponent(ctx.symbol)}&timeframe=${ctx.tf}&use_oos=${useOos?1:0}`
-      : `/api/best_strategy?symbol=${encodeURIComponent(ctx.symbol)}&period=${ctx.period}&timeframe=${ctx.tf}&use_oos=${useOos?1:0}`;
-    const r = await fetch(url);
-    const data = await r.json();
-    clearInterval(timer);
-    if(data.error){
-      ui.setResults(`<div class="state-card err">❌ ${esc(data.error)}</div>`);
-      ui.setProgress(null); return;
+    const res = await handle.done;
+    if(res.cancelled){
+      ui.end('cancelled', {note: '已取消：後端在下一個策略開始前停止，沒有產生半套結果。'});
+      ui.setResults(`<div class="state-card warn">已取消分析。</div>`); return;
     }
-    ui.setProgress(100, `✅ ${isDeep?'深度分析':'分析'}完成！共測試 ${data.total_tested ?? '—'} 個策略；排名只看樣本內（IS），樣本外（OOS）只用來驗證`);
+    if(res.error){
+      ui.end('stopped', {note: '連線中斷，沒有收到完整結果。', summary: '連線中斷'});
+      ui.setResults(`<div class="state-card err">連線失敗：${esc(res.error)}。請確認本機伺服器仍在執行。</div>`); return;
+    }
+    const data = res.data;
+    if(!res.ok || !data || data.error){
+      ui.end('error', {note: (data && data.error) || '分析失敗', data});
+      ui.setResults(`<div class="state-card err">❌ ${esc((data && data.error) || '分析失敗')}</div>`); return;
+    }
+    ui.end('ok', {data,
+      note: `${isDeep?'深度分析':'分析'}完成！共測試 ${data.total_tested ?? '—'} 個策略；排名只看樣本內（IS），樣本外（OOS）只用來驗證`,
+      summary: `共測試 ${data.total_tested ?? '—'} 個策略，入選 ${(data.results||[]).length} 名`});
     const ch = data.character;
     if(ch && ch.code && ch.code!=='na'){
       const icon={up:'🔼',down:'🔽',range:'↔️'}[ch.code]||'';
@@ -137,24 +144,23 @@ async function rankingFlow(kind, key, ctx, ui){
     }
     ui.setResults(rankingHtml(key, data, ctx));
   }catch(e){
-    clearInterval(timer);
-    ui.setResults(`<div class="state-card err">連線失敗：${esc(e.message)}。請確認本機伺服器仍在執行。</div>`);
-    ui.setProgress(null);
+    ui.end('stopped', {note: '處理結果時發生錯誤。'});
+    ui.setResults(`<div class="state-card err">處理結果時發生錯誤：${esc(e.message)}。</div>`);
   }finally{
     ui.busy(false);
   }
 }
 
 // ── 彈窗版(自選清單卡片上的按鈕)──────────────────────────────────────
+let modalHandle = null, modalPv = null;
 function modalUi(){
   const $ = id => document.getElementById(id);
   return {
-    setProgress(p, text){
-      if(p == null){ $('analysisProgress').style.display = 'none'; return; }
-      $('analysisProgress').style.display = 'block';
-      $('progressBar').style.width = p + '%';
-      if(text) $('progressText').textContent = text;
-    },
+    begin(h){ modalHandle = h; const el = $('analysisProgress'); el.style.display = 'block'; modalPv = RCJob.progressView(el); modalPv.begin(h); },
+    event(e){ if(modalPv) modalPv.event(e); },
+    tick(ms){ if(modalPv) modalPv.tick(ms); },
+    end(kind, o){ if(modalPv) modalPv.end(kind, o); modalHandle = null; },
+    hideProgress(){ $('analysisProgress').style.display = 'none'; },
     setSub(html){ $('analysisSub').innerHTML = html; },
     setResults(html){ $('analysisResults').innerHTML = html; },
     busy(){},
@@ -202,11 +208,14 @@ function applyBestStrategy(id, strat, name){
   }, 100);
 }
 
+// 關閉彈窗 = 不再需要這次結果 → 一併取消還在跑的分析,不讓它繼續耗用這台電腦的 CPU
+function cancelModalJob(){ if(modalHandle){ modalHandle.cancel(); } }
 function closeAnalysis(e){
   if(e&&e.target!==document.getElementById('analysisBg')) return;
+  cancelModalJob();
   document.getElementById('analysisBg').classList.remove('open');
 }
-document.addEventListener('keydown',e=>{if(e.key==='Escape') document.getElementById('analysisBg').classList.remove('open');});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){ cancelModalJob(); document.getElementById('analysisBg').classList.remove('open'); }});
 
 function closeIntro(){
   const bar=document.getElementById('introBar');

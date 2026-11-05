@@ -16,6 +16,7 @@
 <title>順勢策略分析</title>
 <link rel="stylesheet" href="/static/css/app.css">
 <link rel="stylesheet" href="/static/css/ui.css">
+<link rel="stylesheet" href="/static/css/research-core.css">
 <link rel="stylesheet" href="/static/css/mobile.css">
 <script src="/static/vendor/lightweight-charts/lightweight-charts.standalone.production.js"></script>
 <script src="/static/stocks_data.js"></script>
@@ -181,10 +182,7 @@
     <button class="sheet-x" onclick="closeAnalysis()" aria-label="關閉">✕</button>
     <div class="analysis-title" id="analysisTitle">🔍 分析最佳策略</div>
     <div class="analysis-sub" id="analysisSub"></div>
-    <div class="analysis-progress" id="analysisProgress" style="display:none;">
-      <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
-      <div class="progress-text" id="progressText">準備分析...</div>
-    </div>
+    <div class="analysis-progress" id="analysisProgress" style="display:none;"></div>
     <div id="analysisResults"></div>
     <button class="btn-close-analysis" onclick="closeAnalysis()">關閉</button>
   </div>
@@ -218,6 +216,8 @@
 </div>
 
 <script src="/static/js/00-core.js"></script>
+<script src="/static/js/rc-job.js"></script>
+<script src="/static/js/rc-engine.js"></script>
 <script src="/static/js/05-ui-helpers.js"></script>
 <script src="/static/js/10-cards.js"></script>
 <script src="/static/js/20-charts.js"></script>
@@ -225,6 +225,7 @@
 <script src="/static/js/40-signals-nav.js"></script>
 <script src="/static/js/50-analysis.js"></script>
 <script src="/static/js/60-views.js"></script>
+<script src="/static/js/65-research-lab.js"></script>
 <script src="/static/js/70-mobile.js"></script>
 <script src="/static/js/90-main.js"></script>
 </body>

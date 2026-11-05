@@ -1,0 +1,95 @@
+/* Research Core:精簡進度列(.rcp)+ 球形網絡面板(.rc-*)+ 節點詳情(.rcd-*) */
+
+/* ── 精簡進度列(彈窗、最佳策略頁、實驗室共用) ── */
+.rcp{padding:2px 0;}
+.rcp-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px;}
+.rcp-now{font-size:13px;font-weight:600;color:var(--text);}
+.rcp-el{font-size:12px;color:var(--text2);margin-left:auto;}
+.rcp-cancel{min-height:32px;padding:4px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg3);color:var(--text);font-size:13px;cursor:pointer;}
+.rcp-cancel:hover{border-color:var(--red);color:var(--red);}
+.rcp-cancel[hidden]{display:none;}
+.rcp .progress-bar{transition:none;}              /* 事件驅動的離散更新;不做寬度動畫(width 動畫每個影格都會觸發排版,實測會讓分析期間的 CPU/GPU 多出一倍) */
+.rcp .progress-bar.ok{background:var(--green);}
+.rcp .progress-bar.err{background:var(--red);}
+.rcp .progress-bar.warn{width:0 !important;}
+/* 『處理中』:後端知道正在做、但不知道完成比例 → 不顯示百分比,只用一段來回滑動的亮條表示工作仍在進行。
+   只動 transform(由合成器處理,不會讓主執行緒反覆重繪);減少動態時改成靜態斜紋。 */
+.rcp .progress-bar.indet{position:relative;overflow:hidden;background:rgba(55,138,221,.28);}
+.rcp .progress-bar.indet::after{content:'';position:absolute;top:0;left:0;height:100%;width:30%;background:var(--blue);border-radius:3px;animation:rcpSlide 1.6s linear infinite;will-change:transform;}
+@keyframes rcpSlide{from{transform:translateX(-100%);}to{transform:translateX(340%);}}
+.rcp-stages{list-style:none;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin:8px 0 2px;padding:0;}
+.rcp-stages li{display:flex;flex-direction:column;gap:1px;padding:5px 7px;border:1px solid var(--border);border-radius:8px;background:var(--bg);font-size:12px;color:var(--text3);min-width:0;}
+.rcp-stages li i{width:7px;height:7px;border-radius:50%;background:var(--text3);display:inline-block;margin-bottom:2px;}
+.rcp-stages li span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rcp-stages li em{font-style:normal;font-size:11px;min-height:14px;}
+.rcp-stages li.running{color:#4fd1ff;border-color:rgba(79,209,255,.5);} .rcp-stages li.running i{background:#4fd1ff;}
+.rcp-stages li.done{color:#2dd4bf;border-color:rgba(45,212,191,.35);} .rcp-stages li.done i{background:#2dd4bf;}
+.rcp-stages li.error{color:var(--red);border-color:rgba(239,83,80,.5);} .rcp-stages li.error i{background:var(--red);}
+.rcp-stages li.stopped{color:#f5a623;border-color:rgba(245,166,35,.4);} .rcp-stages li.stopped i{background:#f5a623;}
+.rcp-stages li.skip{border-style:dashed;opacity:.65;}
+.rcp-note{font-size:12px;color:var(--text2);margin-top:6px;line-height:1.6;}
+.rcp-note:empty{display:none;}
+
+/* ── 實驗室:研究核心面板 ── */
+.rc-lab .panel-b{padding:10px 12px;}
+.rc-lab-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+.rc-lab-head b{font-size:14px;}
+.rc-lab-head .vb-note{margin-left:auto;}
+.rc-host{--rc-line:rgba(130,150,255,.18);}
+.rc-box{position:relative;height:440px;border:1px solid var(--rc-line);border-radius:14px;overflow:hidden;background:radial-gradient(520px 340px at 50% 48%,rgba(80,64,210,.28),rgba(30,40,130,.10) 55%,rgba(5,7,20,.2) 78%),#080b1c;}
+.rc-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:pan-y;}
+.rc-nodes{position:absolute;inset:0;pointer-events:none;}
+.rc-node{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:76px;min-height:56px;padding:2px 6px;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--text2);cursor:pointer;font:inherit;text-shadow:0 0 8px #000;}
+.rc-node:hover,.rc-node:focus-visible{background:rgba(20,26,60,.7);border-color:var(--rc-line);outline:none;}
+.rc-node.sel{background:rgba(20,26,60,.85);border-color:rgba(130,150,255,.55);}
+.rc-node .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;border:1px solid var(--rc-line);background:rgba(10,14,34,.85);}
+.rc-node .l{font-size:13px;white-space:nowrap;} .rc-node .s{font-size:11.5px;opacity:.85;white-space:nowrap;}
+.rc-node.running{color:#4fd1ff;} .rc-node.running .n{border-color:#4fd1ff;}
+.rc-node.done{color:#2dd4bf;} .rc-node.done .n{border-color:#2dd4bf;}
+.rc-node.error{color:#ff5d73;} .rc-node.error .n{border-color:#ff5d73;}
+.rc-node.stopped{color:#f5a623;} .rc-node.stopped .n{border-color:#f5a623;}
+.rc-node.skip{color:#778;} .rc-node.skip .n{border-style:dashed;} .rc-node.skip .l{text-decoration:line-through;}
+.rc-center{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:min(280px,42%);padding:12px 14px;text-align:center;border:1px solid var(--rc-line);border-radius:14px;background:rgba(8,11,30,.78);pointer-events:none;}
+.rc-center .k{font-size:11px;letter-spacing:.3em;color:var(--text2);} .rc-center .t{font-size:19px;font-weight:600;margin-top:2px;} .rc-center .b{font-size:12.5px;color:var(--text2);margin-top:4px;min-height:18px;word-break:break-word;}
+.rc-center.running{border-color:rgba(79,209,255,.5);} .rc-center.running .t{color:#4fd1ff;}
+.rc-center.done{border-color:rgba(45,212,191,.5);} .rc-center.done .t{color:#2dd4bf;}
+.rc-center.error{border-color:rgba(255,93,115,.55);} .rc-center.error .t{color:#ff5d73;}
+.rc-center.stopped{border-color:rgba(245,166,35,.5);} .rc-center.stopped .t{color:#f5a623;}
+.rc-opts{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;margin-top:6px;font-size:12px;color:var(--text2);}
+.rc-opts label{display:flex;align-items:center;gap:6px;cursor:pointer;} .rc-stats{margin-left:auto;font:11px ui-monospace,Consolas,monospace;color:var(--text3);}
+
+/* 節點詳情 */
+.rcd{margin-top:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);font-size:13px;line-height:1.7;}
+.rcd:empty{display:none;}
+.rcd-empty{color:var(--text3);font-size:12px;}
+.rcd-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;} .rcd-head b{font-size:14px;}
+.rcd-st{font-size:12px;padding:1px 8px;border-radius:999px;border:1px solid var(--border);}
+.rcd-st.done{color:#2dd4bf;border-color:rgba(45,212,191,.4);} .rcd-st.running{color:#4fd1ff;border-color:rgba(79,209,255,.5);} .rcd-st.error{color:var(--red);border-color:rgba(239,83,80,.5);} .rcd-st.stopped{color:#f5a623;border-color:rgba(245,166,35,.45);}
+.rcd-ms,.rcd-n{font-size:12px;color:var(--text2);}
+.rcd-p{margin:4px 0;} .rcd-small{font-size:12px;color:var(--text2);} .rcd-err{color:var(--red);}
+.rcd-ul{margin:4px 0 4px 18px;padding:0;}
+.rcd-tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:6px 0;}
+.rcd-t{border-collapse:collapse;font-size:12.5px;min-width:100%;} .rcd-t th,.rcd-t td{padding:4px 8px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap;} .rcd-t th:nth-child(2),.rcd-t td:nth-child(2){text-align:left;} .rcd-t th{color:var(--text2);font-weight:500;}
+.rcd-ev{margin-top:6px;font-size:12px;color:var(--text2);} .rcd-ev summary{cursor:pointer;min-height:28px;} .rcd-ev ol{margin:4px 0 0 18px;padding:0;} .rcd-ev li span{color:var(--text3);margin-right:4px;font-family:ui-monospace,Consolas,monospace;}
+.rcd-go{margin-top:6px;min-height:36px;padding:4px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg3);color:var(--text);cursor:pointer;font-size:13px;}
+
+/* ── 手機:簡化效果(靜態球體 + 節點按鈕格),資訊與功能不減少 ── */
+@media (max-width:720px){
+  .rcp-stages{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .rcp-stages li,.rcp-stages li em{font-size:12px;}
+  .rc-lab .rcp-stages{display:none;}                      /* 實驗室手機版:六個階段已在上方節點格,不重複顯示 */
+  .rc-opts label{min-height:44px;}
+  .rc-center .k{font-size:12px;}
+  .rcp-now{font-size:14px;} .rcp-el{font-size:13px;}
+  .rcp-cancel{min-height:44px;padding:6px 18px;font-size:15px;}
+  .rc-box{height:auto;display:flex;flex-direction:column;background:#080b1c;}
+  .rc-canvas{position:relative;inset:auto;height:190px;order:1;}
+  .rc-center{position:static;transform:none;width:auto;order:2;margin:0 10px 8px;pointer-events:none;}
+  .rc-nodes{position:static;order:3;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 8px 10px;pointer-events:auto;}
+  .rc-node{position:static;transform:none;min-width:0;min-height:62px;border-color:var(--rc-line);background:rgba(14,18,38,.7);}
+  .rc-node .l{font-size:13px;} .rc-node .s{font-size:12px;}
+  .rc-o-amb,.rc-stats{display:none;}
+  .rc-lab-head .vb-note{margin-left:0;flex-basis:100%;}
+  .rcd{font-size:14px;} .rcd-t{font-size:13px;}
+}
+@media (prefers-reduced-motion:reduce){ .rcp .progress-bar{transition:none;} .rcp .progress-bar.indet::after{animation:none;width:100%;opacity:.45;} }

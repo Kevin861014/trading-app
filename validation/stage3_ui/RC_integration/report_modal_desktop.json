@@ -1,0 +1,20 @@
+{
+ "symbol": "SOL-USD",
+ "countShown": true,
+ "text_mid": "策略回測 7 / 163 | 已 0.3 秒 | 取消 | 行情資料 | 0 ms | 指標計算 | 策略回測 | 7/163 | 訊號判斷 | 樣本外驗證 | 風險與成本",
+ "text_done": "完成 | 共 4.5 秒 | 行情資料 | 0 ms | 指標計算 | 未涉及 | 策略回測 | 4.26 秒 | 訊號判斷 | 未涉及 | 樣本外驗證 | 241 ms | 風險與成本 | 未涉及 | 分析完成！共測試 163 個策略；排名只看樣本內（IS），樣本外（OOS）只用來驗證",
+ "hasPercentText": false,
+ "sphereInModal": 0,
+ "cancelJobId": "rc-3da46b1a33863c2cbe",
+ "closeModalCancel": {
+  "after1.5s": {
+   "status": "cancelled",
+   "last": 18
+  },
+  "after4.5s": {
+   "status": "cancelled",
+   "last": 18
+  }
+ },
+ "console": []
+}

@@ -26,6 +26,7 @@ function route(){
   if(name === 'watchlist'){ redrawStaleCharts(); updateExpandAllBtn(); }
   if(name === 'symbol'){ refreshViewSelects(); consumeSymbolPending(); }
   if(name === 'best' || name === 'lab') refreshViewSelects();
+  if(name === 'lab') labEnsure();
   if(name === 'market') loadMarketView(false);
 }
 window.addEventListener('hashchange', route);
@@ -243,13 +244,16 @@ function applySymbolToList(){
 // ── 最佳策略 / 策略實驗室(視圖版)────────────────────────────────
 function viewUi(bodyId, btnId){
   const body = $id(bodyId), btn = $id(btnId);
-  body.innerHTML = `<div class="panel"><div class="panel-b">
-      <div class="progress-bar-wrap"><div class="progress-bar" data-pb style="width:0%"></div></div>
-      <div class="progress-text" data-pt>準備中…</div>
+  body.innerHTML = `<div class="panel"><div class="panel-b"><div data-prog></div>
       <div class="vb-note" data-sub style="margin-top:6px;"></div></div></div><div data-res></div>`;
   const q = s => body.querySelector(s);
+  const pv = RCJob.progressView(q('[data-prog]'));
   return {
-    setProgress(p, text){ if(p == null){ q('[data-pb]').parentElement.style.display = 'none'; return; } q('[data-pb]').style.width = p + '%'; if(text) q('[data-pt]').textContent = text; },
+    begin(h){ pv.begin(h); },
+    event(e){ pv.event(e); },
+    tick(ms){ pv.tick(ms); },
+    end(kind, o){ pv.end(kind, o); },
+    hideProgress(){ q('[data-prog]').style.display = 'none'; },
     setSub(html){ q('[data-sub]').innerHTML = html; },
     setResults(html){ q('[data-res]').innerHTML = html; },
     busy(on){ btn.disabled = on; },
@@ -266,11 +270,11 @@ async function runBestView(){
 async function runLabView(){
   const custom = normSymbol($id('labCustom').value);
   const symbol = custom || $id('labSel').value;
-  if(!symbol){ $id('labBody').innerHTML = '<div class="empty-state">請選擇標的，或輸入代號。</div>'; return; }
+  if(!symbol){ labEnsure(); $id('labRes').innerHTML = '<div class="empty-state">請選擇標的，或輸入代號。</div>'; return; }
   const stock = stocks.find(s => s.symbol === symbol);
   const tf = $id('labTf').value;
   const ctx = {symbol, period: ['4h','1h'].includes(tf) ? '2y' : '5y', tf, stockId: stock ? stock.id : null, useOos: $id('labOos').checked};
-  await rankingFlow('deep', 'lab', ctx, viewUi('labBody', 'labRun'));
+  await rankingFlow('deep', 'lab', ctx, labUi());
 }
 
 // ── 市場環境 ───────────────────────────────────────────

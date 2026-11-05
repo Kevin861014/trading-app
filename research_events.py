@@ -7,14 +7,20 @@
   * 呼叫端沒帶 job 代號(例如卡片、舊流程)→ 一律是 NullJob:所有方法都是空操作,沒有記憶體、沒有時間成本。
   * 事件只含:階段、狀態(start/progress/done/skip/error)、真實耗時(毫秒)、真實計數(K 棒數、策略數、交易筆數…)。
     不含任何 API 金鑰、持倉、帳號、機器人狀態。
-  * 記憶體有上限:最多保留 40 個工作、每個最多 600 筆事件、閒置 10 分鐘即清除。
+  * 記憶體有上限:最多保留 40 個工作、每個最多 600 筆事件;執行中的工作閒置 10 分鐘清除,已結束(完成/失敗/取消)的工作只保留 2 分鐘
+    (足夠前端取走最後一批事件),清除只發生在有人建立/讀取工作的當下,沒有計時器。
+  * 取消是『合作式』的:cancel() 只設一個旗標,分析流程在每個策略開始前呼叫 check(),看到旗標就停止後續運算(不做半套結果)。
 """
 import re, threading, time
 
 JOB_ID_RE = re.compile(r'^[A-Za-z0-9_-]{8,64}$')
 STAGES = ('data', 'indicators', 'backtest', 'signal', 'validation', 'summary')
 STATUSES = ('start', 'progress', 'done', 'skip', 'error')
-MAX_JOBS, MAX_EVENTS, TTL_SECONDS = 40, 600, 600
+MAX_JOBS, MAX_EVENTS, TTL_SECONDS, FINISHED_TTL_SECONDS = 40, 600, 600, 120
+
+
+class JobCancelled(BaseException):
+    """使用者取消。刻意繼承 BaseException:分析流程裡既有的『except Exception: continue』不會把它吞掉。"""
 
 
 class _NullJob:
@@ -25,6 +31,7 @@ class _NullJob:
     def skip(self, *a, **k): pass
     def error(self, *a, **k): pass
     def finish(self, *a, **k): pass
+    def check(self): pass
 
 
 NULL_JOB = _NullJob()
@@ -39,7 +46,9 @@ class _Job:
         self.wall0 = time.time()
         self.events = []
         self.seq = 0
-        self.status = 'running'          # running | ok | error
+        self.status = 'running'          # running | ok | error | cancelled
+        self.cancelled = False
+        self.finished_at = None
         self.last_touch = time.time()
         self._starts = {}                # stage -> perf_counter at start (for real elapsed ms)
 
@@ -61,10 +70,14 @@ class _Job:
     def skip(self, stage, **d): self._emit(stage, 'skip', **d)
     def error(self, stage, message, **d): self._emit(stage, 'error', message=str(message)[:200], **d)
 
-    def finish(self, ok=True):
+    def check(self):
+        """合作式取消點:被取消就中止後續工作。沒被取消時只是讀一個布林值。"""
+        if self.cancelled: raise JobCancelled()
+
+    def finish(self, ok=True, cancelled=False):
         with self.store._lock:
-            self.status = 'ok' if ok else 'error'
-            self.last_touch = time.time()
+            self.status = 'cancelled' if cancelled else ('ok' if ok else 'error')
+            self.last_touch = self.finished_at = time.time()
             self.total_ms = round((time.perf_counter() - self.t0) * 1000.0, 1)
 
 
@@ -84,14 +97,24 @@ class JobEvents:
 
     def _purge_locked(self):
         now = time.time()
-        for k in [k for k, j in self._jobs.items() if now - j.last_touch > TTL_SECONDS]:
+        for k in [k for k, j in self._jobs.items()
+                  if (j.finished_at is not None and now - j.finished_at > FINISHED_TTL_SECONDS) or now - j.last_touch > TTL_SECONDS]:
             del self._jobs[k]
         while len(self._jobs) >= MAX_JOBS:
             oldest = min(self._jobs, key=lambda k: self._jobs[k].last_touch)
             del self._jobs[oldest]
 
+    def cancel(self, job_id):
+        """要求取消。只有『執行中』的工作會被標記;回傳是否找到執行中的工作。"""
+        with self._lock:
+            j = self._jobs.get(job_id)
+            if not j or j.status != 'running': return False
+            j.cancelled = True; j.last_touch = time.time()
+            return True
+
     def get(self, job_id, after=0):
         with self._lock:
+            self._purge_locked()
             j = self._jobs.get(job_id)
             if not j: return None
             evs = [e for e in j.events if e['seq'] > after]
