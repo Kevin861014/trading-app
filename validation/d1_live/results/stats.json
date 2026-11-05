@@ -1,0 +1,239 @@
+{
+ "overall_net_pct": {
+  "n": 300,
+  "mean": 0.335,
+  "ci95": [
+   -0.268,
+   1.052
+  ]
+ },
+ "overall_net_usd": {
+  "n": 300,
+  "mean": 0.014,
+  "ci95": [
+   -0.087,
+   0.13
+  ]
+ },
+ "by_regime_net_pct": {
+  "down": {
+   "n": 63,
+   "mean": 0.628,
+   "ci95": [
+    -0.393,
+    1.709
+   ]
+  },
+  "range": {
+   "n": 65,
+   "mean": 1.07,
+   "ci95": [
+    -0.719,
+    3.692
+   ]
+  },
+  "transition": {
+   "n": 104,
+   "mean": 0.035,
+   "ci95": [
+    -0.912,
+    1.196
+   ]
+  },
+  "up": {
+   "n": 68,
+   "mean": -0.179,
+   "ci95": [
+    -1.034,
+    0.702
+   ]
+  }
+ },
+ "by_tf": {
+  "1h": {
+   "n": 58,
+   "net": -7.488,
+   "fees": 3.589,
+   "gross": -3.902,
+   "win": 17.2,
+   "median_hold_h": 5.0
+  },
+  "4h": {
+   "n": 121,
+   "net": 12.034,
+   "fees": 2.111,
+   "gross": 14.591,
+   "win": 34.7,
+   "median_hold_h": 12.0
+  }
+ },
+ "top_trades": [
+  {
+   "symbol": "XRP/USDT",
+   "strategy": null,
+   "attr": "unknown",
+   "entry": "2026-08-19 07:00",
+   "net": 9.964,
+   "ret_pct": 40.5,
+   "hold_h": 54.9,
+   "btc_regime": "transition"
+  },
+  {
+   "symbol": "ARB/USDT",
+   "strategy": "ttm",
+   "attr": "single",
+   "entry": "2026-08-31 20:00",
+   "net": 3.712,
+   "ret_pct": 67.6,
+   "hold_h": 164.0,
+   "btc_regime": "range"
+  },
+  {
+   "symbol": "SOL/USDT",
+   "strategy": null,
+   "attr": "unknown",
+   "entry": "2026-09-17 16:01",
+   "net": 3.634,
+   "ret_pct": 9.7,
+   "hold_h": 24.0,
+   "btc_regime": "down"
+  },
+  {
+   "symbol": "JUP/USDT",
+   "strategy": "tsi_cross",
+   "attr": "single",
+   "entry": "2026-09-06 04:00",
+   "net": 3.19,
+   "ret_pct": 15.47,
+   "hold_h": 8.0,
+   "btc_regime": "range"
+  },
+  {
+   "symbol": "XRP/USDT",
+   "strategy": null,
+   "attr": "unknown",
+   "entry": "2026-09-20 17:00",
+   "net": 3.083,
+   "ret_pct": 9.01,
+   "hold_h": 43.0,
+   "btc_regime": "up"
+  },
+  {
+   "symbol": "VET/USDT",
+   "strategy": "cci_pm100",
+   "attr": "single",
+   "entry": "2026-09-18 08:00",
+   "net": 2.862,
+   "ret_pct": 14.74,
+   "hold_h": 24.0,
+   "btc_regime": "transition"
+  }
+ ],
+ "worst_trades": [
+  {
+   "symbol": "XRP/USDT",
+   "strategy": null,
+   "entry": "2026-09-09 08:00",
+   "net": -1.284,
+   "ret_pct": -3.27
+  },
+  {
+   "symbol": "SOL/USDT",
+   "strategy": null,
+   "entry": "2026-10-02 04:00",
+   "net": -1.232,
+   "ret_pct": -3.08
+  },
+  {
+   "symbol": "INJ/USDT",
+   "strategy": "supertrend",
+   "entry": "2026-10-21 04:00",
+   "net": -1.171,
+   "ret_pct": -12.94
+  },
+  {
+   "symbol": "XRP/USDT",
+   "strategy": null,
+   "entry": "2026-09-11 14:01",
+   "net": -1.148,
+   "ret_pct": -4.5
+  },
+  {
+   "symbol": "PAXG/USDT",
+   "strategy": null,
+   "entry": "2026-09-26 08:00",
+   "net": -1.137,
+   "ret_pct": -2.95
+  }
+ ],
+ "halves": {
+  "first": {
+   "n": 150,
+   "net": 17.805,
+   "from": "2026-06-23 04:00",
+   "to": "2026-09-18 16:01"
+  },
+  "second": {
+   "n": 150,
+   "net": -13.713,
+   "from": "2026-09-19 04:00",
+   "to": "2026-11-05 14:56"
+  }
+ },
+ "fee_vs_gross": {
+  "TRX/USDT": {
+   "n": 55,
+   "gross": -4.02,
+   "fees": 3.488
+  },
+  "XRP/USDT": {
+   "n": 48,
+   "gross": 8.351,
+   "fees": 1.41
+  },
+  "PAXG/USDT": {
+   "n": 16,
+   "gross": -4.529,
+   "fees": 0.463
+  },
+  "SOL/USDT": {
+   "n": 19,
+   "gross": -2.5,
+   "fees": 0.403
+  },
+  "AAVE/USDT": {
+   "n": 22,
+   "gross": -4.735,
+   "fees": 0.369
+  },
+  "JUP/USDT": {
+   "n": 16,
+   "gross": 2.032,
+   "fees": 0.294
+  },
+  "ADA/USDT": {
+   "n": 15,
+   "gross": 0.182,
+   "fees": 0.281
+  },
+  "VET/USDT": {
+   "n": 12,
+   "gross": 4.392,
+   "fees": 0.229
+  }
+ },
+ "stop_clusters": [
+  {
+   "at": "2026-10-29 01:48",
+   "n": 3,
+   "symbols": [
+    "ADA",
+    "SOL",
+    "JUP"
+   ],
+   "net": -1.882,
+   "btc_6h_pct": 0.11,
+   "span_s": 49
+  }
+ ]
+}
