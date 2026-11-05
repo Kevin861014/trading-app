@@ -55,34 +55,89 @@ class TestReferenceImplementation(unittest.TestCase):
                 self.assertEqual(R.classify(adx, p, m), lab, (adx, p, m))
 
 
-class TestCurrentSiteAdx(unittest.TestCase):
-    """app.calc_adx(網站顯示用):+DI/-DI 是 Wilder,ADX 則是『最近 14 個 DX 的簡單平均』,不是 Wilder 的第二次平滑。"""
+class TestDisplayAdx(unittest.TestCase):
+    """C1.1 修正後的 app.calc_adx:預設是教科書 Wilder(14);舊算法 'sma_dx'(最近 14 個 DX 的簡單平均)只留給相容性比較。"""
 
-    def test_di_equals_wilder_and_adx_equals_sma_of_dx(self):
-        for name in ("BTC-USDT_1d", "2330.TW_1w", "AAPL_1h"):
-            rows, H, L, C = load(name); pdi, mdi, _ = R.wilder_adx(H, L, C); _, _, sma = R.sma_dx_adx(H, L, C)
+    def test_default_is_textbook_wilder_against_independent_reference(self):
+        for name in ("BTC-USDT_1d", "2330.TW_1w", "AAPL_1h", "SOL-USDT_4h"):
+            rows, H, L, C = load(name); pdi, mdi, w = R.wilder_adx(H, L, C)
             random.seed(1)
             for t in [len(C) - 1] + random.sample(range(60, len(C) - 1), 12):
                 a = A.calc_adx(rows[:t + 1])
-                self.assertEqual((a["adx"], a["plus_di"], a["minus_di"]), (round(sma[t], 1), round(pdi[t], 1), round(mdi[t], 1)), (name, t))
+                self.assertEqual((a["adx"], a["plus_di"], a["minus_di"], a["method"]), (round(w[t], 1), round(pdi[t], 1), round(mdi[t], 1), "wilder"), (name, t))
 
-    def test_it_differs_materially_from_wilder_adx(self):
-        # 審查結論:不是四捨五入的小差異。暖機後平均 |差| 約 3.5~4.7 點,最大可達 10~20 點。釘住這個事實。
+    def test_legacy_sma_dx_mode_still_reproduces_the_old_numbers(self):
+        for name in ("BTC-USDT_1d", "2330.TW_1w", "AAPL_1h"):
+            rows, H, L, C = load(name); pdi, mdi, _ = R.wilder_adx(H, L, C); _, _, sma = R.sma_dx_adx(H, L, C)
+            for t in (len(C) - 1, len(C) - 40, 200):
+                a = A.calc_adx(rows[:t + 1], method="sma_dx")
+                self.assertEqual((a["adx"], a["plus_di"], a["minus_di"], a["method"]), (round(sma[t], 1), round(pdi[t], 1), round(mdi[t], 1), "sma_dx"), (name, t))
+
+    def test_di_identical_in_both_methods_and_unknown_method_rejected(self):
+        rows = load("BTC-USDT_1d")[0]; a, b = A.calc_adx(rows), A.calc_adx(rows, method="sma_dx")
+        self.assertEqual((a["plus_di"], a["minus_di"]), (b["plus_di"], b["minus_di"]))
+        with self.assertRaises(ValueError): A.calc_adx(rows, method="ewm")
+
+    def test_the_two_methods_really_differ(self):
         for name in ("BTC-USDT_1d", "2330.TW_1w", "AAPL_1d"):
             _, H, L, C = load(name); _, _, w = R.wilder_adx(H, L, C); _, _, s = R.sma_dx_adx(H, L, C)
             d = [abs(s[t] - w[t]) for t in range(100, len(C))]
             self.assertGreater(sum(d) / len(d), 2.5, name); self.assertGreater(max(d), 9, name)
 
-    def test_pinned_last_values_so_an_accidental_replacement_is_noticed(self):
-        # 快照最後一根的既有輸出;若 calc_adx 被改成 Wilder,這幾個值會變(2330.TW 週線 16.1 → 27.4)
-        for name, adx in (("BTC-USDT_1d", 21.4), ("2330.TW_1w", 16.1), ("AAPL_1h", 40.0)):
-            self.assertEqual(A.calc_adx(load(name)[0])["adx"], adx, name)
+    def test_pinned_last_values_both_methods(self):
+        # 快照最後一根:新預設(Wilder)與舊算法(sma_dx)。2330.TW 週線 27.4 vs 16.1 就是 C1.1 發現的例子
+        for name, wil, sma in (("BTC-USDT_1d", 21.8, 21.4), ("2330.TW_1w", 27.4, 16.1), ("AAPL_1h", 32.2, 40.0)):
+            rows = load(name)[0]
+            self.assertEqual(A.calc_adx(rows)["adx"], wil, name); self.assertEqual(A.calc_adx(rows, method="sma_dx")["adx"], sma, name)
 
-    def test_label_changes_when_swapped_for_wilder(self):
-        # 同一個標的、同一根 K 棒,換成 Wilder 後市場性格標籤會不同的例子(2330.TW 週線:現有=盤整,Wilder=上/下趨勢)
+    def test_threshold_classification_20_and_25(self):
+        rows = load("BTC-USDT_1d")[0]
+        def lab(adx, p, m, method=None):
+            orig = A.calc_adx; A.calc_adx = lambda *_a, **_k: {"adx": adx, "plus_di": p, "minus_di": m, "method": "wilder"}
+            try: return A.market_character(rows, method=method)
+            finally: A.calc_adx = orig
+        for adx, p, m, want in ((19.9, 20, 10, "盤整"), (20.0, 20, 10, "趨勢轉換中"), (24.9, 10, 20, "趨勢轉換中"), (25.0, 20, 10, "上升趨勢"), (25.0, 10, 20, "下降趨勢"), (40, 15, 15, "上升趨勢")):
+            r = lab(adx, p, m); self.assertEqual(r["label"], want, (adx, p, m)); self.assertEqual(r["label"], R.classify(adx, p, m))
+            self.assertEqual((r["adxMethod"], r["adxLabel"]), ("wilder", "ADX (Wilder, 14)"))
+
+    def test_label_example_changes_for_2330_weekly(self):
         rows, H, L, C = load("2330.TW_1w"); pdi, mdi, w = R.wilder_adx(H, L, C)
-        self.assertEqual(A.market_character(rows)["label"], "盤整")
-        self.assertIn(R.classify(w[-1], pdi[-1], mdi[-1]), ("上升趨勢", "下降趨勢"))
+        new, old = A.market_character(rows), A.market_character(rows, method="sma_dx")
+        self.assertEqual(old["label"], "盤整"); self.assertIn(new["label"], ("上升趨勢", "下降趨勢")); self.assertEqual(new["label"], R.classify(w[-1], pdi[-1], mdi[-1]))
+        self.assertEqual(old["adxMethod"], "sma_dx")
+
+    def test_market_character_endpoint_reports_method(self):
+        from unittest import mock
+        rows = load("BTC-USDT_1d")[0][-130:]
+        with mock.patch.object(A, "fetch_data", lambda *a, **k: rows):
+            j = A.app.test_client().get("/api/market_character?symbol=BTC/USDT&timeframe=1d").get_json()
+        self.assertEqual((j["adxMethod"], j["adxLabel"]), ("wilder", "ADX (Wilder, 14)")); self.assertEqual(j["adx"], A.calc_adx(rows)["adx"])
+        with mock.patch.object(A, "fetch_data", lambda *a, **k: rows[:10]):
+            j = A.app.test_client().get("/api/market_character?symbol=BTC/USDT&timeframe=1d").get_json()
+        self.assertEqual((j["code"], j["adxMethod"]), ("na", "wilder"))
+
+    def test_ranking_signals_pf_oos_do_not_depend_on_the_display_adx_method(self):
+        # 排名/PF/勝率/回撤/OOS/訊號:換 ADX 顯示算法(wilder <-> sma_dx)後,best_strategy 與 analyze 的回應除了 character 之外逐欄相同
+        from unittest import mock
+        rows = load("BTC-USDT_1d")[0]
+        def run(method):
+            with mock.patch.object(A, "fetch_data", lambda *a, **k: rows), mock.patch.object(A, "ADX_METHOD_DEFAULT", method):
+                c = A.app.test_client()
+                best = c.get("/api/best_strategy?symbol=BTC/USDT&period=2y&timeframe=1d&use_oos=1").get_json()
+                ana = c.get("/api/analyze?symbol=BTC/USDT&strategy=diadx&period=2y&timeframe=1d").get_json()
+            return best, ana
+        (b1, a1), (b2, a2) = run("wilder"), run("sma_dx")
+        self.assertEqual(b1["character"]["adxMethod"], "wilder"); self.assertEqual(b2["character"]["adxMethod"], "sma_dx")
+        self.assertNotEqual(b1["character"]["adx"], b2["character"]["adx"])
+        strip = lambda d: {k: v for k, v in d.items() if k != "character"}
+        self.assertTrue(b1["results"]); self.assertEqual(strip(b1), strip(b2)); self.assertEqual(a1, a2)
+
+    def test_front_end_labels(self):
+        st = os.path.join(ROOT, "static")
+        rd = lambda p: open(os.path.join(st, p), encoding="utf-8").read()
+        for f in ("js/50-analysis.js", "js/60-views.js", "js/66-mtf.js", "js/10-cards.js"):
+            self.assertIn("ADX (Wilder, 14)", rd(f), f)
+        self.assertIn("ADX (Wilder, 14)", rd("index.html"))
 
 
 class TestStrategyAdx(unittest.TestCase):

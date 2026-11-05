@@ -424,12 +424,24 @@ def equity_window_metrics(dates, equity, cutoff_dt=None, years=None):
     cagr = ((seg[-1] / base) ** (1.0 / yrs) - 1) * 100 if seg[-1] > 0 else 0.0
     return round(total, 2), round(mdd, 2), round(cagr, 2)
 
-def calc_adx(ohlcv, period=14):
+ADX_METHOD_DEFAULT = 'wilder'
+ADX_METHODS = ('wilder', 'sma_dx')
+ADX_LABEL = 'ADX (Wilder, 14)'          # 介面標示(只有 wilder 方法才用這個名稱)
+
+
+def calc_adx(ohlcv, period=14, method=None):
     """
     計算 ADX（趨勢強度）與方向。
-    回傳 dict: {adx, plus_di, minus_di} 或 None（資料不足）。
+    回傳 dict: {adx, plus_di, minus_di, method} 或 None（資料不足）。
     純 Python 實作，不依賴 numpy/pandas。ohlcv 格式 [ts,o,h,l,c,v]。
+    method:
+      'wilder'(預設)  教科書 Wilder ADX:前 period 個 DX 的平均當第一個值,之後 ADX=(ADX_prev*(period-1)+DX)/period。
+      'sma_dx'        舊算法(C1.1 之前):ADX = 最近 period 個 DX 的簡單平均。只留給相容性比較與測試,不要用在畫面上。
+    ±DI、DX 在兩種方法完全相同。這個函式只供顯示用(市場性格、多週期);策略用的是 sim.dmi。
     """
+    method = method or ADX_METHOD_DEFAULT
+    if method not in ADX_METHODS:
+        raise ValueError('unknown ADX method: %r' % (method,))
     n = len(ohlcv)
     if n < period * 2 + 1:
         return None
@@ -475,34 +487,41 @@ def calc_adx(ohlcv, period=14):
 
     if len(dx_list) < period:
         adx = sum(dx_list) / len(dx_list) if dx_list else 0.0
-    else:
+    elif method == 'sma_dx':
         adx = sum(dx_list[-period:]) / period
+    else:                                   # Wilder:第一個 ADX = 前 period 個 DX 的平均,之後再做一次 Wilder 平滑
+        adx = sum(dx_list[:period]) / period
+        for dx in dx_list[period:]:
+            adx = (adx * (period - 1) + dx) / period
 
     last_pdi = 100 * pdm[-1] / atr[-1] if atr[-1] else 0.0
     last_mdi = 100 * mdm[-1] / atr[-1] if atr[-1] else 0.0
-    return {'adx': round(adx, 1), 'plus_di': round(last_pdi, 1), 'minus_di': round(last_mdi, 1)}
+    return {'adx': round(adx, 1), 'plus_di': round(last_pdi, 1), 'minus_di': round(last_mdi, 1), 'method': method}
 
 
-def market_character(ohlcv, period=14):
+def market_character(ohlcv, period=14, method=None):
     """
     判斷市場性格：結合 ADX（趨勢強度）與 +DI/-DI（方向）。
-    回傳 {adx, label, dir, code}。
+    回傳 {adx, label, dir, code, adxMethod, adxLabel}。
       code: 'up'(上升趨勢) / 'down'(下降趨勢) / 'range'(盤整) / 'na'(資料不足)
+    門檻:ADX>=25 趨勢(+DI>=-DI 上升,否則下降);ADX<20 盤整;20~25 趨勢轉換中。ADX 預設為教科書 Wilder(14)。
     """
-    a = calc_adx(ohlcv, period)
+    method = method or ADX_METHOD_DEFAULT
+    meta = {'adxMethod': method, 'adxLabel': ADX_LABEL if method == 'wilder' else 'ADX (SMA-of-DX, 14, 舊算法)'}
+    a = calc_adx(ohlcv, period, method)
     if a is None:
-        return {'adx': None, 'label': '資料不足', 'dir': '', 'code': 'na'}
+        return dict({'adx': None, 'label': '資料不足', 'dir': '', 'code': 'na'}, **meta)
     adx = a['adx']
     up = a['plus_di'] >= a['minus_di']
     if adx >= 25:
         if up:
-            return {'adx': adx, 'label': '上升趨勢', 'dir': 'up', 'code': 'up'}
-        return {'adx': adx, 'label': '下降趨勢', 'dir': 'down', 'code': 'down'}
+            return dict({'adx': adx, 'label': '上升趨勢', 'dir': 'up', 'code': 'up'}, **meta)
+        return dict({'adx': adx, 'label': '下降趨勢', 'dir': 'down', 'code': 'down'}, **meta)
     elif adx < 20:
-        return {'adx': adx, 'label': '盤整', 'dir': '', 'code': 'range'}
+        return dict({'adx': adx, 'label': '盤整', 'dir': '', 'code': 'range'}, **meta)
     else:
         # 20~25 過渡帶：方向不明
-        return {'adx': adx, 'label': '趨勢轉換中', 'dir': 'up' if up else 'down', 'code': 'range'}
+        return dict({'adx': adx, 'label': '趨勢轉換中', 'dir': 'up' if up else 'down', 'code': 'range'}, **meta)
 
 
 def calc_oos_pf(trade_log, split_date):
@@ -932,7 +951,7 @@ def tf_indicators(rows):
     return {'close': f2(close), 'ema20': f2(e20), 'ema50': f2(e50), 'ema200': f2(e200),
             'above': {'ema20': close > e20, 'ema50': close > e50, 'ema200': (close > e200) if e200 is not None else None},
             'emaAlign': align, 'emaAlignText': align_txt,
-            'adx': adx.get('adx'), 'plusDi': pdi, 'minusDi': mdi, 'trendCode': mc.get('code'), 'trendLabel': mc.get('label'),
+            'adx': adx.get('adx'), 'adxMethod': ADX_METHOD_DEFAULT, 'adxLabel': ADX_LABEL, 'plusDi': pdi, 'minusDi': mdi, 'trendCode': mc.get('code'), 'trendLabel': mc.get('label'),
             'atr': f2(at), 'atrPct': round(at / close * 100, 2) if at and close else None,
             'bias': bias, 'biasText': {'bull': '偏多(收盤 > EMA50、EMA20 > EMA50、+DI > -DI)', 'bear': '偏空(收盤 < EMA50、EMA20 < EMA50、+DI < -DI)', 'neutral': '中性/分歧(上述條件未同時成立)'}[bias]}
 
@@ -1056,10 +1075,10 @@ def api_market_character():
     try:
         ohlcv = fetch_data(symbol, start_date, interval=yf_tf)
         if not ohlcv or len(ohlcv) < 30:
-            return jsonify({'adx': None, 'label': '資料不足', 'dir': '', 'code': 'na'})
+            return jsonify({'adx': None, 'label': '資料不足', 'dir': '', 'code': 'na', 'adxMethod': ADX_METHOD_DEFAULT, 'adxLabel': ADX_LABEL})
         return jsonify(market_character(ohlcv))
     except Exception as e:
-        return jsonify({'adx': None, 'label': '偵測失敗', 'dir': '', 'code': 'na', 'error': str(e)})
+        return jsonify({'adx': None, 'label': '偵測失敗', 'dir': '', 'code': 'na', 'adxMethod': ADX_METHOD_DEFAULT, 'adxLabel': ADX_LABEL, 'error': str(e)})
 
 
 # 策略分類：順勢 / 均值回歸 / 突破，給市場性格篩選用
@@ -1320,7 +1339,7 @@ def best_strategy():
         market = classify_market(symbol)
         top, split, tested = rank_strategies(ohlcv, symbol, yf_tf, strategy_pool(market),
                                              min_trades_for(market), days, use_oos=use_oos)
-        mc = market_character(ohlcv) if ohlcv else {'code': 'na', 'label': '資料不足', 'adx': None}
+        mc = market_character(ohlcv) if ohlcv else {'code': 'na', 'label': '資料不足', 'adx': None, 'adxMethod': ADX_METHOD_DEFAULT, 'adxLabel': ADX_LABEL}
         for _st in ('indicators', 'signal', 'summary'): _job.skip(_st, reason='排名流程不含此階段')
         return jsonify({'results': top, 'total_tested': tested, 'character': mc,
                         'split': split, 'oosAvailable': bool(split), 'oosRequested': use_oos,

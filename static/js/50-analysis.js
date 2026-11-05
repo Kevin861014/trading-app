@@ -141,7 +141,7 @@ async function rankingFlow(kind, key, ctx, ui){
     if(ch && ch.code && ch.code!=='na'){
       const icon={up:'🔼',down:'🔽',range:'↔️'}[ch.code]||'';
       const fit = (ch.code==='up'||ch.code==='down') ? ['順勢','突破'] : ch.code==='range' ? ['均值回歸'] : [];
-      ui.setSub(`目前市場性格：<b>${icon} ${esc(ch.label)}</b>（ADX ${ch.adx}）${fit.length?`　→ 通常 <b>${fit.join(' / ')}</b> 類策略較合（已標 ✓；這只是環境參考，不影響排名）`:''}`);
+      ui.setSub(`目前市場性格：<b>${icon} ${esc(ch.label)}</b>（${esc(ch.adxLabel||'ADX (Wilder, 14)')} ${ch.adx}）${fit.length?`　→ 通常 <b>${fit.join(' / ')}</b> 類策略較合（已標 ✓；這只是環境參考，不影響排名）`:''}`);
     }
     ui.setResults(rankingHtml(key, data, ctx));
   }catch(e){

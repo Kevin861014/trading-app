@@ -5,6 +5,7 @@ from unittest import mock
 warnings.filterwarnings("ignore")
 os.environ.setdefault("RENDER", "true")
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import app as A
 import data_quality as DQ
 import sim as S
@@ -86,6 +87,11 @@ class TestCryptoMtf(Base):
         C = [r[4] for r in rows]; H = [r[2] for r in rows]; L = [r[3] for r in rows]
         adx = A.calc_adx(rows); mc = A.market_character(rows)
         self.assertEqual((e['adx'], e['plusDi'], e['minusDi']), (adx['adx'], adx['plus_di'], adx['minus_di'])); self.assertEqual(e['trendCode'], mc['code'])
+        # C1.1:數字必須等於『獨立的教科書 Wilder 參考實作』(不是只跟 calc_adx 自己比),並標明方法
+        import adx_reference as R
+        pdi, mdi, w = R.wilder_adx(H[:len(C)], L[:len(C)], C)[0], R.wilder_adx(H, L, C)[1], R.wilder_adx(H, L, C)[2]
+        self.assertEqual((e['adx'], e['plusDi'], e['minusDi']), (round(w[-1], 1), round(pdi[-1], 1), round(mdi[-1], 1)))
+        self.assertEqual((e['adxMethod'], e['adxLabel']), ('wilder', 'ADX (Wilder, 14)')); self.assertEqual(e['trendLabel'], R.classify(w[-1], pdi[-1], mdi[-1]))
         self.assertAlmostEqual(e['ema20'], S.ema(C, 20)[-1], places=2); self.assertAlmostEqual(e['ema50'], S.ema(C, 50)[-1], places=2); self.assertAlmostEqual(e['ema200'], S.ema(C, 200)[-1], places=2)
         self.assertAlmostEqual(e['atr'], S.atr(H, L, C, 14)[-1], places=2); self.assertAlmostEqual(e['atrPct'], S.atr(H, L, C, 14)[-1] / C[-1] * 100, places=2)
 

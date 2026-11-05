@@ -1,0 +1,18 @@
+SAME analyze|BTC/USDT|4h|sixline status 200
+SAME analyze|BTC/USDT|1d|supertrend status 200
+SAME analyze|SOL/USDT|4h|ttm status 200
+SAME analyze|SOL/USDT|1d|sixline status 200
+SAME analyze|2330.TW|1d|diadx status 200
+SAME analyze|AAPL|1d|tsmom status 200
+SAME analyze|NVDA|1d|tsmom status 200
+SAME analyze|2330.TW|1h|supertrend status 200
+SAME analyze|AAPL|1h|supertrend status 200
+DIFF best|BTC/USDT|4h|2y 1 [(' > json > character > adx', '23.7', '23.6')]
+DIFF best|SOL/USDT|4h|2y 1 [(' > json > character > adx', '27.5', '27.2')]
+DIFF best|2330.TW|1d|2y 3 [(' > json > character > adx', '15.3', '21.0'), (' > json > character > dir', "''", "'down'"), (' > json > character > label', "'盤整'", "'趨勢轉換中'")]
+DIFF best|AAPL|1d|2y 3 [(' > json > character > adx', '20.2', '18.6'), (' > json > character > dir', "'up'", "''"), (' > json > character > label', "'趨勢轉換中'", "'盤整'")]
+DIFF best|NVDA|1d|2y 3 [(' > json > character > adx', '25.8', '23.7'), (' > json > character > code', "'down'", "'range'"), (' > json > character > label', "'下降趨勢'", "'趨勢轉換中'")]
+SAME deep|SOL/USDT|4h status 200
+SAME deep|NVDA|1d status 200
+endpoints compared: 16 with differences: 5
+new (additive) top-level fields: ['json > character > adxLabel', 'json > character > adxMethod']

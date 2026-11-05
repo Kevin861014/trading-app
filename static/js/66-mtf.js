@@ -42,7 +42,7 @@ function mtfTimeText(d){
 function mtfTrendText(i){
   if(!i) return '—';
   const icon = {up: '🔼', down: '🔽', range: '↔️'}[i.trendCode] || '';
-  return `${icon} ${esc(i.trendLabel || '—')}<div class="vb-sub">ADX ${i.adx ?? '—'} · +DI ${i.plusDi ?? '—'} / −DI ${i.minusDi ?? '—'}</div>`;
+  return `${icon} ${esc(i.trendLabel || '—')}<div class="vb-sub">${esc(i.adxLabel || 'ADX (Wilder, 14)')} ${i.adx ?? '—'} · +DI ${i.plusDi ?? '—'} / −DI ${i.minusDi ?? '—'}</div>`;
 }
 function mtfPriceText(i){
   if(!i) return '—';

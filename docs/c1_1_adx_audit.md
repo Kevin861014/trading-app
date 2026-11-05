@@ -84,3 +84,13 @@
 ## 7. 限制
 - 比較用的 14 條序列來自某一天抓到的行情快照(2026-11-05),不同日期數字會變,但結構性結論(SMA vs Wilder 的差異、約 21%/11% 的標籤改變)不依賴日期。
 - 沒有檢查 `integration/` 以外是否有人手動複製 ADX 邏輯(搜尋 `def .*adx|dmi` 沒有其他實作)。
+
+## 8. 已實施:顯示用 ADX 改為教科書 Wilder(14)(C1.1 第一部分,獨立 commit)
+
+- `app.calc_adx(ohlcv, period=14, method=None)`:預設 `wilder`(前 14 個 DX 平均當第一個值,之後 `(ADX×13+DX)/14`);`method='sma_dx'` 保留舊算法,**僅供相容性比較與測試**,畫面不使用。±DI、DX 兩種方法相同;未知方法會丟 `ValueError`。回傳多一個 `method`。
+- `market_character(ohlcv, period=14, method=None)`:門檻不變(ADX≥25 趨勢,+DI≥−DI 為上升、否則下降;<20 盤整;20~25 趨勢轉換中),回傳多 `adxMethod`、`adxLabel`("ADX (Wilder, 14)")。
+- 所有顯示用欄位都用新版:`/api/market_character`(含資料不足/失敗的回應)、`/api/mtf` 的 `indicators.{adx,adxMethod,adxLabel,trendCode,trendLabel}`、`best_strategy` 的 `character`。前端標示 `ADX (Wilder, 14)`:卡片徽章(提示文字)、標的分析頁、排名頁、市場環境表頭、多週期表。
+- **不變的東西**:`sim.py`、全部策略、回測、OOS、成本、`/api/analyze`、`/api/deep_analysis`、排名結果。`sim.dmi` 沒動。
+- 驗證:
+  - 16 個既有 API 呼叫以同一份真實快照重播(修改前 vs 修改後,同一時間點):`analyze` 9 個、`deep_analysis` 2 個**逐欄完全相同**;`best_strategy` 5 個除了 `character`(ADX 數字與市場性格標籤)之外**逐欄相同**,即排名、PF、勝率、回撤、OOS、`total_tested` 全部不變(`validation/stage3_ui/C1_1_adx/display_fix_regression.txt`)。5 個 `character` 的改變:BTC/USDT 4H 23.7→23.6、SOL/USDT 4H 27.5→27.2(標籤不變);2330.TW 日線 15.3→21.0(盤整→趨勢轉換中);AAPL 日線 20.2→18.6(趨勢轉換中→盤整);NVDA 日線 25.8→23.7(下降趨勢→趨勢轉換中)。
+  - 自動化測試(`tests/test_adx_audit.py`、`tests/test_mtf_api.py`):預設與獨立參考實作逐根相同;`sma_dx` 模式重現舊數字;20/25 門檻邊界(19.9、20.0、24.9、25.0 與方向);換 ADX 方法後 `best_strategy`/`analyze` 除 `character` 外逐欄相同;端點與前端標示。原本「釘住舊數字」的測試沒有改預期值,而是改成同時釘住新預設(Wilder)與舊模式(sma_dx)的各自數字。

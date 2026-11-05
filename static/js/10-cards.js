@@ -240,6 +240,7 @@ async function loadCharacter(id){
     const cls={up:'char-up',down:'char-down',range:'char-range',na:'char-na'}[d.code]||'char-na';
     el.className=`char-badge show ${cls}`;
     el.textContent=`${icon} ${d.label}${d.adx!=null?` ADX${d.adx}`:''}`;
+    el.title=`${d.adxLabel||'ADX (Wilder, 14)'}${d.adx!=null?' = '+d.adx:''}`;
     stock._marketCode = d.code; // 記住，換策略時不用重打 API 就能重新比對
     updateMismatchWarn(id);
   }catch(e){ /* 靜默失敗，不影響卡片 */ }

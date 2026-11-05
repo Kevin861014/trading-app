@@ -226,7 +226,7 @@ function renderSymbolBody(body, data, ctx){
   fetch(`/api/market_character?symbol=${encodeURIComponent(ctx.symbol)}&timeframe=${ctx.tf}`).then(r => r.json()).then(d => {
     const el = $id('symRegime'); if(!el) return;
     const icon = {up:'🔼', down:'🔽', range:'↔️', na:'⚪'}[d.code] || '⚪';
-    el.textContent = `市場性格：${icon} ${d.label}${d.adx != null ? `（ADX ${d.adx}）` : ''}`;
+    el.textContent = `市場性格：${icon} ${d.label}${d.adx != null ? `（${d.adxLabel || 'ADX (Wilder, 14)'} ${d.adx}）` : ''}`;
   }).catch(() => { const el = $id('symRegime'); if(el) el.textContent = '市場性格：暫時無法取得'; });
 }
 
@@ -296,10 +296,10 @@ async function loadMarketView(force){
       const msg = checkStratMismatch(d.code, getStratCat(s.strat));
       fit = d.code === 'na' ? '—' : (msg ? `<span style="color:#f5a623">${esc(msg.replace(/^⚠ /, ''))}</span>` : '類型相符');
     } else if(c === null){ ch = '<span style="color:var(--red)">暫時無法取得</span>'; }
-    return `<tr><td class="mk-name">${esc(s.name||s.symbol)}<div class="vb-sub">${esc(s.symbol)}</div></td><td data-l="市場">${MARKET_LABEL[getMarket(s.symbol)]}</td><td data-l="時框">${TF_LABELS[s.tf]||'日線'}</td><td data-l="目前市場性格">${ch}</td><td data-l="ADX">${adx}</td><td data-l="自選策略">${esc(getStratName(s.strat))}</td><td data-l="策略類型 vs 性格">${fit}</td></tr>`;
+    return `<tr><td class="mk-name">${esc(s.name||s.symbol)}<div class="vb-sub">${esc(s.symbol)}</div></td><td data-l="市場">${MARKET_LABEL[getMarket(s.symbol)]}</td><td data-l="時框">${TF_LABELS[s.tf]||'日線'}</td><td data-l="目前市場性格">${ch}</td><td data-l="ADX (Wilder, 14)">${adx}</td><td data-l="自選策略">${esc(getStratName(s.strat))}</td><td data-l="策略類型 vs 性格">${fit}</td></tr>`;
   };
   const draw = () => {
-    tbl.innerHTML = `<thead><tr><th>標的</th><th>市場</th><th>時框</th><th>目前市場性格</th><th>ADX</th><th>自選策略</th><th>策略類型 vs 性格</th></tr></thead><tbody>${stocks.map(rowHtml).join('')}</tbody>`;
+    tbl.innerHTML = `<thead><tr><th>標的</th><th>市場</th><th>時框</th><th>目前市場性格</th><th>ADX (Wilder, 14)</th><th>自選策略</th><th>策略類型 vs 性格</th></tr></thead><tbody>${stocks.map(rowHtml).join('')}</tbody>`;
   };
   draw();
   const todo = stocks.filter(s => { const c = mkCache[`${s.symbol}|${s.tf||'1d'}`]; return force || !c || (Date.now() - c.t > MK_TTL); });
