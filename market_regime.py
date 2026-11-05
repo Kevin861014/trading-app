@@ -71,14 +71,17 @@ def classify_series(rows):
     return [classify_values(adx[i], pdi[i], mdi[i]) for i in range(len(C))]
 
 
-def align_reference(main_ts, ref_ts, ref_codes, step_ms, max_gap_bars=5):
-    """把大盤（參考）的分類對到主標的每一根 K 棒:取『開盤時間 <= 主標的這一根開盤時間』的最後一根參考 K 棒。
-    同週期、同市場時,兩者收盤時間相同,所以決策當下已經確定;絕不使用比這根更晚的參考 K 棒。
-    參考 K 棒比主標的舊超過 max_gap_bars 根（長假、缺資料）→ 未分類,不拿很舊的環境來湊。"""
+def align_reference(main_close_ms, ref_close_ms, ref_codes, step_ms, max_gap_bars=5):
+    """把大盤（參考）的分類對到主標的每一根 K 棒。規則(C3 起以『收盤時間』為準):
+    主標的這一根的決策時間 = 它的收盤時間;只能使用『收盤時間 <= 決策時間』的參考 K 棒,取其中最後一根。
+    只比開盤時間不夠:例如參考是日線、主標的是 1H 時,同一天的日線開盤時間比 1H 早,但它要到收盤才完成,不可使用。
+    同市場、同週期時兩者收盤時間相同(例如美股 1H 最後一根 15:30–16:00、台股 1H 最後一根 13:00–13:30、夏令/冬令時間都以當地時間為準),所以決策當下已確定。
+    參考 K 棒比決策時間舊超過 max_gap_bars 根（長假、缺資料）→ 未分類,不拿很舊的環境湊。
+    兩個串列都必須依時間遞增。"""
     out = []
-    for ts in main_ts:
-        j = bisect.bisect_right(ref_ts, ts) - 1
-        out.append(ref_codes[j] if (j >= 0 and ts - ref_ts[j] <= max_gap_bars * step_ms) else NA)
+    for dc in main_close_ms:
+        j = bisect.bisect_right(ref_close_ms, dc) - 1
+        out.append(ref_codes[j] if (j >= 0 and dc - ref_close_ms[j] <= max_gap_bars * step_ms) else NA)
     return out
 
 

@@ -1051,6 +1051,23 @@ def api_regime_study():
         return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500
 
 
+@app.route('/api/rule_summary', methods=['POST'])
+def api_rule_summary():
+    """C3:免費規則式研究摘要。只讀前端已經拿到的 /api/regime_study 與 /api/mtf 回應,套固定規則整理成說明(沒有 AI、不連網、不重算績效、不產生交易訊號)。細節見 rule_summary.py。"""
+    import rule_summary as _RSUM
+    body = request.get_json(silent=True) or {}
+    study = body.get('study')
+    if not isinstance(study, dict) or not isinstance(study.get('overall'), dict):
+        return jsonify({'error': '需要 /api/regime_study 的回應（study）才能整理摘要。'}), 400
+    mtf = body.get('mtf') if isinstance(body.get('mtf'), dict) else None
+    tr = body.get('trials') if isinstance(body.get('trials'), dict) else {}
+    trials = {k: int(tr.get(k) or 0) for k in ('count', 'revealed') if isinstance(tr.get(k), (int, float))}
+    try:
+        return jsonify(_RSUM.summarize(study, mtf, trials))
+    except Exception as e:
+        return jsonify({'error': '摘要整理失敗：' + str(e)}), 500
+
+
 @app.route('/api/job_events')
 def job_events():
     """讀取某個分析工作『已經發生』的事件(輪詢用,只回傳 seq 大於 after 的新事件)。這個端點本身不做任何運算。"""

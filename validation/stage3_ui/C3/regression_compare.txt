@@ -1,0 +1,18 @@
+SAME analyze|BTC/USDT|4h|sixline status 200
+SAME analyze|BTC/USDT|1d|supertrend status 200
+SAME analyze|SOL/USDT|4h|ttm status 200
+SAME analyze|SOL/USDT|1d|sixline status 200
+SAME analyze|2330.TW|1d|diadx status 200
+SAME analyze|AAPL|1d|tsmom status 200
+SAME analyze|NVDA|1d|tsmom status 200
+SAME analyze|2330.TW|1h|supertrend status 200
+SAME analyze|AAPL|1h|supertrend status 200
+SAME best|BTC/USDT|4h|2y status 200
+SAME best|SOL/USDT|4h|2y status 200
+SAME best|2330.TW|1d|2y status 200
+SAME best|AAPL|1d|2y status 200
+SAME best|NVDA|1d|2y status 200
+SAME deep|SOL/USDT|4h status 200
+SAME deep|NVDA|1d status 200
+endpoints compared: 16 with differences: 0
+new (additive) top-level fields: []

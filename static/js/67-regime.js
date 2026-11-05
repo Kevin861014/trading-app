@@ -62,12 +62,30 @@ function regShareHtml(sh, labels){
 }
 
 function regViewKey(d){ return `${d.symbol}|${d.timeframe}|${d.strategy}|${d.period}`; }
-function regOosNote(d, cond){
+// 條件試驗紀錄:只存在「這個瀏覽器」的 localStorage,是給自己的提醒,不是可靠的防過度擬合機制(換瀏覽器/裝置、清除資料、直接呼叫 API 都會繞過;沒有帳號或伺服器端紀錄)。
+function regTrialsAll(){ try{ return JSON.parse(localStorage.getItem('rgTrials') || '{}'); }catch(e){ return {}; } }
+function regTrialsLoad(d){ return regTrialsAll()[regViewKey(d)] || []; }
+function regRecordTrial(d, f){
   try{
-    const m = JSON.parse(localStorage.getItem('rgOosViews') || '{}'), k = regViewKey(d); m[k] = m[k] || [];
-    if(!m[k].includes(cond)) m[k].push(cond);
-    localStorage.setItem('rgOosViews', JSON.stringify(m)); return m[k].length;
-  }catch(e){ return 1; }
+    const all = regTrialsAll(), k = regViewKey(d); all[k] = all[k] || [];
+    const cond = f.basis + ':' + f.allow.slice().sort().join(',');
+    let t = all[k].find(x => x.cond === cond);
+    if(!t){ t = {cond, basis: f.basis, allow: f.allow.slice(), at: new Date().toISOString(), revealed: false}; all[k].push(t); }
+    t.isTrades = f.B.is.trades; t.isPf = f.B.is.pf;
+    if(f.oos && f.oos.revealed) t.revealed = true;
+    localStorage.setItem('rgTrials', JSON.stringify(all));
+  }catch(e){ /* 沒有 localStorage 也不影響分析 */ }
+}
+function regTrialsHtml(d){
+  const list = regTrialsLoad(d); if(!list.length) return '';
+  const labels = d.labels, nRev = list.filter(t => t.revealed).length;
+  const rows = list.map((t, i) => `<tr><td>${i + 1}</td><td>${esc(new Date(t.at).toLocaleString('zh-TW', {hour12: false}))}</td><td>${t.basis === 'market' ? '大盤' : '標的自身'}</td><td>${t.allow.map(c => esc(labels[c])).join('、')}</td><td>${t.isTrades}（PF ${fmtPF(t.isPf)}）</td><td>${t.revealed ? '<b>已揭露</b>' : '未揭露'}</td></tr>`).join('');
+  let warn = '';
+  if(list.length >= 3) warn += `<div class="rg-warn">⚠ 在這個「標的／週期／策略／期間」你已試過 ${list.length} 個不同條件。條件試得越多，越容易挑到「碰巧」在樣本內表現好的組合（多重比較）；樣本內的好結果不該直接當成有效。</div>`;
+  if(nRev >= 2) warn += `<div class="rg-warn">⚠ 已對 ${nRev} 個不同條件揭露過樣本外：樣本外只有「事先決定一個條件、只看一次」時才有獨立性，現在它已經不再獨立。</div>`;
+  return `<details class="rg-trials" ${warn ? 'open' : ''}><summary>本次研究流程的條件試驗紀錄（${list.length} 個條件）</summary>${warn}
+    <div class="cmp-wrap"><table class="cmp-table rg-tbl"><thead><tr><th>#</th><th>時間</th><th>環境基準</th><th>允許進場的環境</th><th>樣本內（濾網後筆數）</th><th>樣本外</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="rg-sub">⚠ <b>這份紀錄只存在這個瀏覽器（localStorage）</b>：清除瀏覽器資料、換瀏覽器或裝置、或直接呼叫 API 都會繞過它，所以<b>不是可靠的防過度擬合機制</b>，只是提醒你自己；網站沒有帳號或伺服器端紀錄。</div></details>`;
 }
 
 function regCmpTable(title, seg, note){
@@ -82,11 +100,9 @@ function regFilterResultHtml(d, f){
   out += regCmpTable('樣本內（IS）', {A: f.A.is, B: f.B.is}, f.isNote);
   const o = f.oos;
   if(o.revealed){
-    const cond = f.basis + ':' + f.allow.slice().sort().join(',');
-    const n = regOosNote(d, cond);
-    out += `<div class="rg-oos-box">${regCmpTable('樣本外（OOS）— 已揭露', {A: o.A, B: o.B}, o.note)}${n >= 2 ? `<div class="rg-warn">⚠ 你已對這個「標的／週期／策略／期間」查看過 ${n} 個不同條件的樣本外結果。樣本外只有在「事先決定一個條件、只看一次」時才有獨立性；用它反覆挑條件，結果就不再是獨立驗證。</div>` : '<div class="rg-sub">這是第 1 個被揭露的條件。若之後再換條件來看樣本外，樣本外就不再獨立。</div>'}</div>`;
+    out += `<div class="rg-oos-box">${regCmpTable('樣本外（OOS）— 已揭露', {A: o.A, B: o.B}, o.note)}<div class="rg-sub">這個條件的樣本外已被揭露並記錄在下方「條件試驗紀錄」。若再換條件來看樣本外，樣本外就不再獨立。</div></div>`;
   } else out += `<div class="rg-oos-box"><div class="rg-sub">樣本外：${esc(o.note || '尚未揭露。')}</div></div>`;
-  return out;
+  return out + regTrialsHtml(d);
 }
 function regFilterBlockHtml(d){
   const labels = d.labels, f = d.filter, cand = d.candidate;
@@ -120,6 +136,7 @@ function regRender(d){
   const basisBtns = `<div class="rg-seg" role="group" aria-label="環境基準"><button type="button" class="${regState.basis === 'own' ? 'on' : ''}" onclick="regSetBasis('own')">標的自身環境</button><button type="button" class="${regState.basis === 'market' ? 'on' : ''}" onclick="regSetBasis('market')" ${ref.supported ? '' : 'disabled'}>大盤環境${ref.name ? '（' + esc(ref.name) + '）' : ''}</button></div>`;
   const dataTxt = d.data.cached === true ? `使用快取（${mtfAgeText(d.data.ageSec)}）` : (d.data.cached === false ? '重新取得' : '來源不明');
   let html = `<div class="rg-head"><b>${esc(d.symbol)}</b><span class="mk-badge">${esc(mk)}</span><span class="vb-note">${esc(d.strategyName)} · ${esc(TF_LABELS[d.timeframe] || d.timeframe)} · 近 ${esc(PERIOD_LABELS[d.period] || d.period)}（窗口自 ${esc(d.windowStart)}）· ${d.data.bars} 根 K 棒 · 資料：${esc(dataTxt)} · 檢查時間 ${esc(d.asOfUtc)} UTC</span></div>`;
+  html += '<div id="sumBody">' + sumShellHtml() + '</div>';
   html += `<details class="rg-def"><summary>環境分類條件與歸屬規則</summary><table>${d.definition.rules.map(r => `<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td></tr>`).join('')}</table>
     <div>${esc(d.definition.attribution)}</div><div>${esc(d.definition.reference)}</div><div>ADX 沿用卡片的市場性格（${esc(d.definition.indicator)}，門檻 ${d.definition.trendThreshold} / ${d.definition.rangeThreshold}）。成本（單邊）：手續費 ${(d.costModel.commission * 100).toFixed(3)}%、滑價 ${(d.costModel.slippage * 100).toFixed(3)}%${d.costModel.sell_tax ? '、賣出稅 ' + (d.costModel.sell_tax * 100).toFixed(2) + '%' : ''}。</div></details>`;
   html += `<div class="rg-sub"><b>窗口內各環境佔比</b>（${regState.basis === 'market' ? '大盤環境' : '標的自身環境'}，只是歷史描述）</div>${regShareHtml(d.share[regState.basis], labels)}`;
@@ -136,6 +153,7 @@ function regRender(d){
   html += `<div class="vb-note" style="padding:8px 2px;">${esc(d.disclaimer)}</div><ul class="vb-note" style="padding-left:18px;">${d.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>`;
   body.innerHTML = html;
   body.querySelectorAll('.rg-allow').forEach(e => e.addEventListener('change', regReadAllow));
+  if(regState.sumWanted) sumFromRegime(true);          // 已經產生過摘要:結果更新後自動重新整理(不重跑分析)
 }
 
 async function runRegimeView(opts){
@@ -161,6 +179,7 @@ async function runRegimeView(opts){
     const d = res.data;
     pv.end('ok', {note: `完成：${d.overall.all.trades} 筆交易，${d.data.cached === true ? '行情使用快取（沒有重新下載）' : '行情重新取得'}${d.reference && d.reference.cached === true ? '，大盤資料使用快取' : ''}。`});
     regState.data = d; if(d.filter && d.filter.allow) regState.allow = new Set(d.filter.allow);
+    if(opts.allow && d.filter && d.filter.status === 'ok') regRecordTrial(d, d.filter);
     if(!d.reference.supported && regState.basis === 'market') regState.basis = 'own';
     regRender(d);
   }catch(e){

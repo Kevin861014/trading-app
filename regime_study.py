@@ -9,12 +9,33 @@
 """
 import datetime, math
 import market_regime as MR
+import data_quality as DQ
 
 TIER_LABEL = {'insufficient': '樣本不足', 'preliminary': '初步觀察', 'evaluable': '可進一步評估'}
 STEP_MS = {'1h': 3600000, '4h': 14400000, '1d': 86400000}
 SEG_LABEL = {'all': '整個窗口', 'is': '樣本內（IS）', 'oos': '樣本外（OOS）'}
 DISCLAIMER = ('市場環境分類只使用進場決策當下已收盤的資料，是對「當時環境」的描述；各環境的績效是事後的歷史統計，不是預測，也不代表未來會重複。'
               '交易筆數少的環境標示「樣本不足」，不能據此宣稱策略在該環境有效。濾網對照是「假設只在某環境進場」的歷史回測，不是建議，也不會套用到任何實盤。')
+
+
+def bar_close_ms(ts_ms, tf, market):
+    """一根 K 棒收盤的 UTC 毫秒。加密 = 開盤 + 週期;股票日線 = 當地交易日收盤時間(台北 13:30、紐約 16:00,夏令/冬令自動換算);
+    股票 1H = min(開盤 + 1 小時, 當天收盤)——台股 13:00 那根 13:30 收、美股 15:30 那根 16:00 收(不是 +1 小時)。"""
+    c = DQ.bar_close_utc(ts_ms, tf, market)
+    if market in DQ.SESSION and tf in ('1h', '4h'):
+        tzname, _, close = DQ.SESSION[market]
+        from zoneinfo import ZoneInfo
+        tz = ZoneInfo(tzname)
+        start_local = datetime.datetime.fromtimestamp(ts_ms / 1000.0, tz=datetime.timezone.utc).astimezone(tz)
+        cap = datetime.datetime.combine(start_local.date(), datetime.time(*close), tzinfo=tz).astimezone(datetime.timezone.utc)
+        c = min(c, cap)
+    return int(c.timestamp() * 1000)
+
+
+def align_market_regime(main_ts, ref_rows, tf, market):
+    """主標的每一根 K 棒對應的大盤環境(只用收盤時間 <= 這一根收盤時間(決策時間)的大盤 K 棒)。"""
+    return MR.align_reference([bar_close_ms(t, tf, market) for t in main_ts], [bar_close_ms(r[0], tf, market) for r in ref_rows],
+                              MR.classify_series(ref_rows), STEP_MS.get(tf, 86400000))
 
 
 def reference_for(symbol, market, tf, ref_override=None):
@@ -143,12 +164,15 @@ def study(args, A, sim, job):
         mkt = list(own); ref_info['note'] = '這個標的本身就是大盤參考（BTC），大盤環境與自身環境相同。'
     elif ref_sym:
         if ref_rows and len(ref_rows) >= 60:
-            mkt = MR.align_reference(ts, [r[0] for r in ref_rows], MR.classify_series(ref_rows), STEP_MS.get(yf_tf, 86400000))
+            mkt = align_market_regime(ts, ref_rows, yf_tf, market)
             ref_info.update({'bars': len(ref_rows), 'cached': ref_meta.get('cached'), 'ageSec': ref_meta.get('ageSec')})
         else:
             ref_info.update({'supported': False, 'reason': '取不到足夠的大盤資料（%d 根）。%s' % (len(ref_rows or []), ref_err or '')})
         job.progress('indicators', i=2, n=2, role='reference', symbol=ref_sym, bars=len(ref_rows or []))
     job.done('indicators', n=n_fetch)
+    cur_bar = datetime.datetime.utcfromtimestamp(ts[-1] / 1000).strftime('%Y-%m-%d %H:%M')
+    current = {'barTime': cur_bar, 'own': own[-1], 'market': (mkt[-1] if mkt is not None else None)}
+    dq = A.quality_for_series(symbol, yf_tf, ohlcv, meta)
 
     ck = sim.cost_kwargs(symbol, strat); split = A.is_oos_split(ohlcv, ws, now)
     first_w = next((i for i, t in enumerate(ts) if t >= int(ws.replace(tzinfo=datetime.timezone.utc).timestamp() * 1000)), 0)
@@ -195,10 +219,11 @@ def study(args, A, sim, job):
             'asOfUtc': now.strftime('%Y-%m-%d %H:%M:%S'), 'windowStart': ws.strftime('%Y-%m-%d'), 'costModel': ck,
             'data': {'bars': len(ohlcv), 'source': meta.get('source'), 'cached': meta.get('cached'), 'ageSec': meta.get('ageSec'), 'firstBar': datetime.datetime.utcfromtimestamp(ts[0] / 1000).strftime('%Y-%m-%d %H:%M'),
                      'lastBar': datetime.datetime.utcfromtimestamp(ts[-1] / 1000).strftime('%Y-%m-%d %H:%M')},
+            'dataQuality': dq, 'currentRegime': current,
             'reference': ref_info, 'split': ({'boundary': split['boundary_dt'].strftime('%Y-%m-%d'), 'isBars': split['is_bars'], 'oosBars': split['oos_bars']} if split else None),
             'definition': {'rules': MR.RULES, 'indicator': 'ADX (Wilder, 14) 與 ±DI', 'trendThreshold': MR.TREND_TH, 'rangeThreshold': MR.RANGE_TH,
                            'attribution': '交易歸到「進場決策當下已收盤的那一根 K 棒」的環境（訊號棒；成交在下一根開盤）。分類只用該根及之前已收盤的資料，沒有任何事後資料。',
-                           'reference': '大盤環境取「開盤時間不晚於這根 K 棒」的最後一根大盤 K 棒；只用同市場、同週期的資料。'},
+                           'reference': '大盤環境取「收盤時間不晚於這根 K 棒收盤（決策時間）」的最後一根大盤 K 棒（不是只看開盤時間）；只用同市場、同週期的資料；台股／美股依當地交易時段與夏令時間換算。'},
             'labels': MR.LABEL, 'tierLabels': TIER_LABEL,
             'overall': {s: blk(evA, s) for s in segs}, 'share': shares, 'breakdown': bd, 'candidate': cand, 'filter': filt,
             'notes': ['績效欄位：報酬 = 每筆交易扣除成本後的報酬率（不含倉位大小）；「合計報酬」與「最大回撤」是這組交易依時間順序、每筆全額投入複利累積的結果，所以和策略排名／標的分析用權益曲線（含 1.5% 風險倉位）算出的報酬、回撤數字不同（「整體」列另附本站回測的數字）；筆數、勝率、淨 PF（獲利總和 / 虧損總和，已扣成本）則是同一份回測。',

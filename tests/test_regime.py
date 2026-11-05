@@ -252,7 +252,7 @@ class TestFrontEnd(unittest.TestCase):
 
     def test_wording_and_guards(self):
         js = self.rd("js/67-regime.js"); h = self.rd("index.html")
-        for needle in ("樣本不足", "不是預測", "reveal_oos", "不再獨立", "只看樣本內", "資料不足", "歷史回測", "樣本外測試"): self.assertIn(needle, js + h, needle)
+        for needle in ("樣本不足", "不是預測", "reveal_oos", "不再獨立", "不是可靠的防過度擬合機制", "條件試驗紀錄", "多重比較", "只看樣本內", "資料不足", "歷史回測", "樣本外測試"): self.assertIn(needle, js + h, needle)
         for banned in ("保證", "穩賺", "建議買進", "推薦買入", "一定賺"): self.assertNotIn(banned, js + h, banned)
 
     def test_js_tier_text_matches_backend(self):

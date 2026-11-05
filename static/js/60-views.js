@@ -209,7 +209,7 @@ function renderSymbolBody(body, data, ctx){
       此期間共 <b>${c.tradesInWindow}</b> 筆交易，累計成本約為期初權益的 <b>${c.paidPctOfEquity}%</b>。${esc(c.note)}</div>` : '';
   const period = bt && bt.available ? `${bt.period.start} → ${bt.period.end}（${bt.period.bars} 根，${bt.period.trades} 筆交易）` : '';
 
-  body.innerHTML = head + `
+  body.innerHTML = head + sumSymbolShellHtml() + `
     <div class="two-col" style="margin-top:8px;">
       <div class="panel"><div class="panel-h"><span class="rtag hist">歷史回測</span> <span style="color:var(--text2);font-size:12px;">${period}</span></div><div class="panel-b">${kpis}${costBox}</div></div>
       <div class="panel"><div class="panel-h"><span class="rtag oos">樣本內／樣本外</span></div><div class="panel-b">${validationTableHtml(v)}</div></div>
