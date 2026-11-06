@@ -19,7 +19,8 @@ function splitBannerHtml(data){
       <span class="rtag hist">樣本內 IS</span> ${sp.windowStart} → ${sp.boundary}（<b>排名只用這段</b>）
       <span class="rtag oos">樣本外 OOS</span> ${sp.boundary} → ${sp.end}（只驗證前幾名，<b>不影響排名</b>）<br>
       OOS 展示分級（依筆數）：&lt;${sp.tierThresholds?sp.tierThresholds.preliminary:20} 筆＝樣本不足；${sp.tierThresholds?sp.tierThresholds.preliminary:20}～${sp.tierThresholds?sp.tierThresholds.evaluable-1:49} 筆＝初步觀察；≥${sp.tierThresholds?sp.tierThresholds.evaluable:50} 筆＝可進一步評估。
-      這只是樣本量分級，<b>不是統計顯著性，也不代表策略有效或能獲利</b>。排名與所有績效皆已扣除成本。
+      這只是樣本量分級，<b>不是統計顯著性，也不代表策略有效或能獲利</b>。排名與所有績效皆已扣除成本。<br>
+      <b>排名依樣本內結果產生，樣本外資料用於驗證，不參與策略排名。</b>
     </div>`;
   }
   return `<div class="split-banner" style="color:#f5a623;">⚠ 這次沒有切出樣本外（資料太短或選了快速模式）：下列績效都是樣本內，<b>沒有獨立驗證</b>。</div>`;
@@ -63,7 +64,7 @@ function rankingHtml(key, data, ctx){
     const fullCells = (f && o) ? (()=>{ const none=!f.trades; return `<td class="sep full">${none?'—':fmtPct(f.total,1)}</td><td class="full">${none?'—':fmtPF(f.pf)}</td><td class="full">${none?'—':pctPlain(f.mdd)}</td><td class="full">${f.trades}</td>`; })() : '<td colspan="4" class="sep full" style="text-align:center;">—</td>';
     return `<tr class="${i===0?'top':''}">
       <td class="rank">${MEDALS[i]||i+1}</td>
-      <td class="name"><b>${esc(r.name)}</b> ${catBadge(r)}<div class="vb-sub">綜合分數 ${r.score??''}（僅樣本內）</div></td>
+      <td class="name"><b>${esc(r.name)}</b> ${catBadge(r)}<div class="vb-sub">綜合分數 ${r.score??''}（僅樣本內）${is.mdd!=null?` · 樣本內回撤 ${pctPlain(is.mdd)}`:''}${is.win!=null?` · 勝率 ${pctPlain(is.win,1)}`:''}</div></td>
       <td>${tfLabel}</td>${isCells}${oosFixed}${fullCells}
       <td class="left">${tierCell(r)}</td><td class="left">${actions(i)}</td></tr>`;
   }).join('');
@@ -87,8 +88,9 @@ function rankingHtml(key, data, ctx){
 
   const note = `<div class="vb-note" style="padding:6px 2px;">排名前 ${results.length} 名（共測試 ${data.total_tested ?? '—'} 個策略）。<b>排名高不代表未來會賺</b>：我們從很多策略裡挑出歷史上表現最好的，本來就容易挑到湊巧的；請看樣本外的實際 PF、報酬、回撤與筆數，而不是只看分級。「舊版技術門檻」是程式內部舊條件（OOS ≥5 筆且 PF>1），不是研究可信度。</div>`;
   const dqWarn = (data.dataQuality && data.dataQuality.blocking) ? `<div class="state-card warn"><b>資料品質警告：${esc(data.dataQuality.label)}</b>　${esc(data.dataQuality.detail||'')}　以下排名是根據這份資料算的，不代表目前行情。</div>` : '';
-  if(!results.length) return dqWarn + splitBannerHtml(data) + `<div class="empty-state">此標的在目前設定下，沒有策略在樣本內通過篩選條件。<br>可以換更長的期間，或改用深度分析。</div>`;
-  return dqWarn + splitBannerHtml(data) + `<div class="cmp-wrap"><table class="cmp-table"><thead>${head}</thead><tbody>${rows}</tbody></table></div><div class="cmp-cards">${cards}</div>` + note;
+  if(!results.length) return dqWarn + splitBannerHtml(data) + `<div class="empty-state">此標的在目前設定下，沒有策略在樣本內通過篩選條件。<br>可以換更長的期間，或改用深度分析。</div>` + ((typeof labAllHtml === 'function') ? labAllHtml(key, data) : '');   // 沒有任何策略通過時,全部策略表(含淘汰原因)反而最有用
+  const allBlock = (typeof labAllHtml === 'function') ? labAllHtml(key, data) : '';       // 只有深度分析的回應帶 allStrategyResults;最佳策略沒有這個欄位時回傳空字串
+  return dqWarn + splitBannerHtml(data) + `<div class="cmp-wrap"><table class="cmp-table"><thead>${head}</thead><tbody>${rows}</tbody></table></div><div class="cmp-cards">${cards}</div>` + note + allBlock;
 }
 
 function applyRankRow(key, i){

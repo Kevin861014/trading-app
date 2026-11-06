@@ -1,0 +1,58 @@
+{
+ "info": {
+  "w": 1440,
+  "panel": "panel rc-lab rc-m-u",
+  "c3": false,
+  "canvas3d": false,
+  "h": 274,
+  "errs": 0
+ },
+ "idle": {
+  "label": "idle",
+  "seconds": 3.0,
+  "raf_fps": 60.2,
+  "cpu_pct_single_core": {
+   "browser": 1.7,
+   "renderer": 3.4,
+   "GPU": 1.8,
+   "network.mojom.NetworkService": 0.4,
+   "storage.mojom.StorageService": 0.0
+  },
+  "c3": null
+ },
+ "stress_running": {
+  "label": "forced-running(test only)",
+  "seconds": 6.0,
+  "raf_fps": 60.1,
+  "cpu_pct_single_core": {
+   "browser": 12.2,
+   "renderer": 5.0,
+   "GPU": 5.8,
+   "network.mojom.NetworkService": 11.3,
+   "storage.mojom.StorageService": 0.0
+  },
+  "c3": null
+ },
+ "analysis_seconds": 7.0,
+ "after_done": {
+  "label": "after_done(settled)",
+  "seconds": 3.0,
+  "raf_fps": 60.7,
+  "cpu_pct_single_core": {
+   "browser": 2.4,
+   "renderer": 6.3,
+   "GPU": 1.8,
+   "network.mojom.NetworkService": 0.3,
+   "storage.mojom.StorageService": 0.0
+  },
+  "c3": null
+ },
+ "done_info": {
+  "h": 296.6875,
+  "status": "分析完成 ｜ 166 候選 ｜ 55 通過 ｜ 前 8 名共 4.6 秒取消行情資料0 ms指標計算未涉及策略回測4.33 秒訊號判斷未涉及樣本外驗證254 m",
+  "top8": true,
+  "allbox": true,
+  "allRows": 166
+ },
+ "console_errors": []
+}

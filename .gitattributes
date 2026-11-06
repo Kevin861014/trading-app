@@ -1,0 +1,2 @@
+# 第三方函式庫(Three.js)必須與官方發佈的檔案逐位元相同(PROVENANCE.json 記錄了雜湊),不做換行轉換
+static/vendor/three/** -text

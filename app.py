@@ -1270,9 +1270,11 @@ def _perf_block(trades, dates, equity, cutoff_dt):
     return {'pf': s['pf'], 'total': total, 'cagr': cagr, 'mdd': mdd, 'win': s['win'], 'trades': s['trades']}
 
 
-def rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=True, top_n=8, now_dt=None):
+def rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=True, top_n=8, now_dt=None, collect=None):
     """跑 allowed 內所有策略,只用 IS 資料排名,回傳 (前 top_n 名, 切分資訊 或 None, 測試的策略數)。
-    use_oos=False(快速模式)或資料不夠切 → 不切分,用全窗口排名,沒有 OOS。"""
+    use_oos=False(快速模式)或資料不夠切 → 不切分,用全窗口排名,沒有 OOS。
+    collect:選用的 dict。給了就把『每個候選策略的樣本內摘要與篩選結果』(allStrategyResults)與統計(strategyStats)放進去;
+    只是把迴圈裡本來就算出來的數字留下來,不重跑任何回測,也不改變篩選、排序與回傳值。"""
     now_dt = now_dt or _utcnow()
     _job = _RC_JOB.get()
     window_start_dt = now_dt - datetime.timedelta(days=days)
@@ -1282,35 +1284,53 @@ def rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=Tru
 
     pool = [k for k in STRATS if k not in SCALPERS and k in allowed]
     cands = []
-    _job.start('backtest', n=len(pool), phase='in_sample')
+    _job.start('backtest', n=len(pool), phase='in_sample', pfAbove=1.0, minTrades=min_trades, mddBelow=50.0, topN=top_n)
     _k = 0
+    rows = []                                   # 給 collect:每個候選策略一列(依 pool 順序)
     for strat_key in pool:
         _job.check()                                                   # 合作式取消點(沒取消時是空操作)
         _t0 = _time.perf_counter()
+        row = {'strat': strat_key, 'name': STRATS[strat_key]['name'], 'cat': STRAT_CATEGORY.get(strat_key, ''), 'status': 'error', 'reasons': [], 'is': None,
+               'score': None, 'rank': None, 'oosDone': False, 'oos': None, 'errorKind': None}
+        rows.append(row)
         try:
             ck = cost_kwargs(symbol, strat_key)
             res = run_backtest(rank_data, strategy=strat_key, risk_pct=0.015, timeframe=yf_tf, **ck)
             if not res:
+                row['status'] = 'no_result'
                 continue
             dates, equity, st = res
             tl = [t for t in st.get('trade_log', [])
                   if not t.get('open') and t.get('entry_date') and t['entry_date'] >= window_start_dt]
             blk = _perf_block(tl, dates, equity, window_start_dt)
+            row['is'] = {'pf': blk['pf'], 'total': blk['total'], 'mdd': blk['mdd'], 'win': blk['win'], 'trades': blk['trades'], 'cagr': blk['cagr']}
             if not (blk['pf'] > 1 and blk['trades'] >= min_trades and blk['mdd'] < 50):
+                # 所有沒過的條件都記下來(可能同時有多項);判斷本身與上一行完全相同
+                row['status'] = 'filtered'
+                row['reasons'] = [c for c, bad in (('pf', not blk['pf'] > 1), ('trades', not blk['trades'] >= min_trades), ('mdd', not blk['mdd'] < 50)) if bad]
                 continue
             ret_bonus = 1.5 if blk['total'] >= 20 else (1.2 if blk['total'] >= 10 else 1.0)
             score = round(blk['pf'] * math.log(max(blk['trades'], 2)) * ret_bonus / (1 + blk['mdd'] / 100), 2)
+            row['status'] = 'passed'; row['score'] = score
             cands.append({'strat': strat_key, 'name': STRATS[strat_key]['name'], 'cat': STRAT_CATEGORY.get(strat_key, ''),
                           'score': score, **blk, 'is': dict(blk)})
-        except Exception:
+        except Exception as _e:
+            row['status'] = 'error'; row['errorKind'] = type(_e).__name__          # 只留例外類別名稱,不留訊息與堆疊
             continue
         finally:
             _k += 1
-            _job.progress('backtest', i=_k, n=len(pool), strat=strat_key, ms=round((_time.perf_counter() - _t0) * 1000.0, 1), kept=len(cands))
+            _job.progress('backtest', i=_k, n=len(pool), strat=strat_key, ms=round((_time.perf_counter() - _t0) * 1000.0, 1), kept=len(cands),
+                          outcome={'passed': 'kept', 'filtered': 'filtered', 'no_result': 'no_result'}.get(row['status'], 'error'), why=','.join(row['reasons']))
     _job.done('backtest', tested=len(pool), kept=len(cands))
 
     cands.sort(key=lambda x: x['score'], reverse=True)               # 排序只看 IS 分數
     top = cands[:top_n]
+    _rank = {c['strat']: i + 1 for i, c in enumerate(cands)}
+    _in_top = {c['strat'] for c in top}
+    for row in rows:
+        if row['status'] == 'passed':
+            row['rank'] = _rank[row['strat']]
+            if row['strat'] in _in_top: row['status'] = 'top'
 
     if split: _job.start('validation', n=len(top), phase='out_of_sample')
     else: _job.skip('validation', reason='資料太短或選了快速模式,沒有樣本外')
@@ -1355,6 +1375,26 @@ def rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=Tru
                 _j += 1
                 _job.progress('validation', i=_j, n=len(top), strat=r['strat'], ms=round((_time.perf_counter() - _tj) * 1000.0, 1), oosTrades=r.get('oosTrades'))
     if split: _job.done('validation', n=len(top))
+
+    if collect is not None:
+        by = {r['strat']: r for r in rows}
+        for r in top:                                                  # 只有『實際做過 OOS』的才有 OOS 摘要;其他一律 oosDone=False、oos=None
+            if r.get('oos'):
+                by[r['strat']]['oosDone'] = True
+                by[r['strat']]['oos'] = {'status': r.get('oosStatus'), 'trades': r['oos']['trades'], 'pf': r['oos']['pf'], 'total': r['oos']['total'], 'tier': r.get('oosTier')}
+        cnt = lambda st: sum(1 for x in rows if x['status'] == st)
+        reasons = {c: sum(1 for x in rows if c in x['reasons']) for c in ('pf', 'trades', 'mdd')}
+        collect['allStrategyResults'] = rows
+        collect['strategyStats'] = {
+            'candidates': len(pool), 'backtested': cnt('top') + cnt('passed') + cnt('filtered'), 'noResult': cnt('no_result'), 'errors': cnt('error'),
+            'passed': len(cands), 'filtered': cnt('filtered'), 'passedNotTop': len(cands) - len(top), 'top': len(top),
+            'reasonCounts': reasons, 'multiReason': sum(1 for x in rows if len(x['reasons']) > 1),
+            'thresholds': {'pfAbove': 1.0, 'minTrades': min_trades, 'mddBelow': 50.0, 'topN': top_n},
+            'oos': {'requested': bool(use_oos), 'available': bool(split), 'attempted': len(top) if split else 0,
+                    'pass': sum(1 for r in top if r.get('oosStatus') == 'pass'), 'fail': sum(1 for r in top if r.get('oosStatus') == 'fail'),
+                    'insufficient': sum(1 for r in top if r.get('oosStatus') == 'insufficient'),
+                    'unavailable': sum(1 for r in top if split and r.get('oosStatus') == 'unavailable'),
+                    'skipReason': None if split else ('沒有切出樣本外(資料太短或選了快速模式)' if use_oos else '使用者取消了樣本外驗證')}}
 
     info = None
     if split:
@@ -1449,12 +1489,16 @@ def deep_analysis():
             allowed = strategy_pool(market)
             min_trades = min_trades_for(market, deep=True)
 
-        _job.done('data', bars=len(ohlcv), **_data_fields(symbol, start, yf_tf))
-        top, split, tested = rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=use_oos)
+        _fmt_bar = '%Y-%m-%d %H:%M' if intraday else '%Y-%m-%d'
+        _job.done('data', bars=len(ohlcv), **_data_fields(symbol, start, yf_tf),
+                  firstBar=datetime.datetime.utcfromtimestamp(ohlcv[0][0] / 1000.0).strftime(_fmt_bar), lastBar=datetime.datetime.utcfromtimestamp(ohlcv[-1][0] / 1000.0).strftime(_fmt_bar))
+        _collect = {}
+        top, split, tested = rank_strategies(ohlcv, symbol, yf_tf, allowed, min_trades, days, use_oos=use_oos, collect=_collect)
         for _st in ('indicators', 'signal', 'summary'): _job.skip(_st, reason='排名流程不含此階段')
         for r in top:
             r['trust'] = 2 if r.get('oosStatus') == 'pass' else 1     # 只代表 OOS 是否通過,不影響排序
         return jsonify({'results': top, 'hasOos': use_oos, 'isDeep': True, 'isCrypto': intraday,
+                        'allStrategyResults': _collect.get('allStrategyResults'), 'strategyStats': _collect.get('strategyStats'),
                         'total_tested': tested, 'split': split, 'oosAvailable': bool(split),
                         'dataQuality': quality_for_series(symbol, yf_tf, ohlcv, fetch_meta(symbol, start, yf_tf))})
     except DataSourceError as e:

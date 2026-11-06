@@ -1,0 +1,104 @@
+{
+ "info": {
+  "w": 1440,
+  "panel": "panel rc-lab rc-m-u",
+  "c3": false,
+  "canvas3d": false,
+  "h": 274,
+  "errs": 0
+ },
+ "idle": {
+  "label": "idle",
+  "seconds": 3.0,
+  "raf_fps": 60.3,
+  "cpu_pct_single_core": {
+   "browser": 1.5,
+   "renderer": 3.7,
+   "GPU": 2.2,
+   "network.mojom.NetworkService": 0.6,
+   "storage.mojom.StorageService": 0.0
+  },
+  "c3": null
+ },
+ "stress_running": {
+  "label": "forced-running(test only)",
+  "seconds": 6.0,
+  "raf_fps": 60.2,
+  "cpu_pct_single_core": {
+   "browser": 20.3,
+   "renderer": 6.0,
+   "GPU": 8.1,
+   "network.mojom.NetworkService": 15.4,
+   "storage.mojom.StorageService": 0.0
+  },
+  "c3": null
+ },
+ "analysis_seconds": 7.0,
+ "after_done": {
+  "label": "after_done(settled)",
+  "seconds": 3.0,
+  "raf_fps": 60.6,
+  "cpu_pct_single_core": {
+   "browser": 4.4,
+   "renderer": 6.5,
+   "GPU": 1.8,
+   "network.mojom.NetworkService": 0.1,
+   "storage.mojom.StorageService": 0.0
+  },
+  "c3": null
+ },
+ "done_info": {
+  "h": 296.6875,
+  "status": "分析完成 ｜ 166 候選 ｜ 55 通過 ｜ 前 8 名共 5.8 秒取消行情資料0 ms指標計算未涉及策略回測5.52 秒訊號判斷未涉及樣本外驗證307 m",
+  "top8": true,
+  "allbox": true,
+  "allRows": 166
+ },
+ "events": {
+  "total": 183,
+  "state": "ok",
+  "per": {
+   "data": {
+    "status": "done",
+    "events": 2
+   },
+   "indicators": {
+    "status": "skip",
+    "events": 1
+   },
+   "backtest": {
+    "status": "done",
+    "events": 168
+   },
+   "signal": {
+    "status": "skip",
+    "events": 1
+   },
+   "validation": {
+    "status": "done",
+    "events": 10
+   },
+   "summary": {
+    "status": "skip",
+    "events": 1
+   }
+  },
+  "events_to_3d": 0,
+  "top8": [
+   "一目先行帶扭轉|9.16|pass",
+   "Donchian 40/20 雙向|8.79|fail",
+   "前1週高低突破|8.79|pass",
+   "Williams Alligator 13/8/5|8.15|fail",
+   "TRIX(15) 零軸交叉雙向|7.85|pass",
+   "PVI 交叉 EMA40|7.83|fail",
+   "SMA10/20/40 排列|7.64|fail",
+   "Guppy MMA 短組長組排列|7.48|fail"
+  ],
+  "stats": {
+   "c": 166,
+   "p": 55,
+   "t": 8
+  }
+ },
+ "console_errors": []
+}

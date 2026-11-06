@@ -1,0 +1,189 @@
+{
+ "info": {
+  "w": 1440,
+  "panel": "panel rc-lab rc-3d rc-m-full",
+  "c3": true,
+  "canvas3d": true,
+  "h": 505.328125,
+  "errs": 0
+ },
+ "idle": {
+  "label": "idle",
+  "seconds": 3.0,
+  "raf_fps": 60.5,
+  "cpu_pct_single_core": {
+   "browser": 1.2,
+   "renderer": 4.1,
+   "GPU": 2.3,
+   "network.mojom.NetworkService": 0.7,
+   "storage.mojom.StorageService": 0.0
+  },
+  "c3": {
+   "loopOn": false,
+   "fps": 0,
+   "frameCost": 0,
+   "calls": 1,
+   "triangles": 1,
+   "particles": 3792,
+   "packets": 0,
+   "pending": 0,
+   "eventRate": 0,
+   "runner": {
+    "on": false,
+    "ring": 0,
+    "ang": 0,
+    "lapLeft": 6.283,
+    "moving": false,
+    "hop": false
+   },
+   "state": "idle",
+   "lowPower": false,
+   "forced": false,
+   "static": false,
+   "ambient": false,
+   "pixelRatio": 1,
+   "size": [
+    635,
+    338
+   ]
+  }
+ },
+ "stress_running": {
+  "label": "forced-running(test only)",
+  "seconds": 6.0,
+  "raf_fps": 60.0,
+  "cpu_pct_single_core": {
+   "browser": 15.6,
+   "renderer": 6.8,
+   "GPU": 9.9,
+   "network.mojom.NetworkService": 12.4,
+   "storage.mojom.StorageService": 0.0
+  },
+  "c3": {
+   "loopOn": true,
+   "fps": 30,
+   "frameCost": 1.15,
+   "calls": 1,
+   "triangles": 1,
+   "particles": 3792,
+   "packets": 0,
+   "pending": 0,
+   "eventRate": 0,
+   "runner": {
+    "on": false,
+    "ring": 0,
+    "ang": 0,
+    "lapLeft": 6.283,
+    "moving": false,
+    "hop": false
+   },
+   "state": "running",
+   "lowPower": false,
+   "forced": false,
+   "static": false,
+   "ambient": false,
+   "pixelRatio": 1,
+   "size": [
+    635,
+    338
+   ]
+  }
+ },
+ "analysis_seconds": 5.8,
+ "after_done": {
+  "label": "after_done(settled)",
+  "seconds": 3.0,
+  "raf_fps": 60.7,
+  "cpu_pct_single_core": {
+   "browser": 3.6,
+   "renderer": 3.6,
+   "GPU": 1.8,
+   "network.mojom.NetworkService": 0.2,
+   "storage.mojom.StorageService": 0.0
+  },
+  "c3": {
+   "loopOn": false,
+   "fps": 29,
+   "frameCost": 1.95,
+   "calls": 1,
+   "triangles": 1,
+   "particles": 3792,
+   "packets": 0,
+   "pending": 0,
+   "eventRate": 0.1,
+   "runner": {
+    "on": true,
+    "ring": 1,
+    "ang": 12.784,
+    "lapLeft": 5.782,
+    "moving": false,
+    "hop": false
+   },
+   "state": "done",
+   "lowPower": false,
+   "forced": false,
+   "static": false,
+   "ambient": false,
+   "pixelRatio": 1,
+   "size": [
+    635,
+    338
+   ]
+  }
+ },
+ "done_info": {
+  "h": 566.5625,
+  "status": "分析完成 ｜ 166 候選 ｜ 51 通過 ｜ 前 8 名共 4.7 秒取消行情資料0 ms指標計算未涉及策略回測4.44 秒訊號判斷未涉及樣本外驗證255 m",
+  "top8": true,
+  "allbox": true,
+  "allRows": 166
+ },
+ "events": {
+  "total": 183,
+  "state": "ok",
+  "per": {
+   "data": {
+    "status": "done",
+    "events": 2
+   },
+   "indicators": {
+    "status": "skip",
+    "events": 1
+   },
+   "backtest": {
+    "status": "done",
+    "events": 168
+   },
+   "signal": {
+    "status": "skip",
+    "events": 1
+   },
+   "validation": {
+    "status": "done",
+    "events": 10
+   },
+   "summary": {
+    "status": "skip",
+    "events": 1
+   }
+  },
+  "events_to_3d": 183,
+  "top8": [
+   "一目先行帶扭轉|9.16|pass",
+   "Donchian 40/20 雙向|8.32|fail",
+   "前1週高低突破|8.32|pass",
+   "Williams Alligator 13/8/5|8.15|fail",
+   "TRIX(15) 零軸交叉雙向|7.85|pass",
+   "SMA10/20/40 排列|7.64|fail",
+   "PVI 交叉 EMA40|7.43|fail",
+   "SMI(20,5,5) 對 EMA3 交叉|7.08|fail"
+  ],
+  "stats": {
+   "c": 166,
+   "p": 51,
+   "t": 8
+  }
+ },
+ "compact_h": 376.84375,
+ "console_errors": []
+}

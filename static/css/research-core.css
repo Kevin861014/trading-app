@@ -59,6 +59,59 @@
 .rc-opts{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;margin-top:6px;font-size:12px;color:var(--text2);}
 .rc-opts label{display:flex;align-items:center;gap:6px;cursor:pointer;} .rc-stats{margin-left:auto;font:11px ui-monospace,Consolas,monospace;color:var(--text3);}
 
+/* ── 實驗室:U 型研究核心(左三塊資訊 + 中央球體 + 右三塊資訊,底部一條狀態列)。只改尺寸與排版,不動動畫引擎 ── */
+.rc-lab .rc-lab-head{margin-bottom:6px;gap:6px 10px;}
+.rc-lab .rc-lab-head .vb-note{margin-left:0;flex:1 1 260px;min-width:0;font-size:11.5px;line-height:1.5;}
+.rc-toggle{min-height:32px;padding:4px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg3);color:var(--text);font-size:13px;cursor:pointer;white-space:nowrap;margin-left:auto;}
+.rc-toggle:hover,.rc-toggle:focus-visible{border-color:var(--rc-line,rgba(130,150,255,.4));outline:none;}
+.rc-lab .rcp-stages,.rc-lab .rcp-note{display:none;}                    /* 階段不再另排一排卡片:球體節點與左右區塊已經顯示 */
+.rcu-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,300px) minmax(0,1fr);gap:8px;align-items:stretch;}
+.rcu-col{display:flex;flex-direction:column;gap:6px;min-width:0;}
+.rcu-blk{flex:1 1 auto;border:1px solid var(--border);border-radius:8px;background:var(--bg);padding:4px 9px;font-size:11.5px;line-height:1.4;min-width:0;overflow-wrap:anywhere;}
+.rcu-blk h5{font-size:11.5px;font-weight:600;color:var(--text2);margin:0 0 1px;letter-spacing:.02em;}
+.rcu-b b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums;}
+.rcu-b.warn{border-left:0;} .rcu-blk:has(.rcu-b.warn){border-color:rgba(245,166,35,.45);} .rcu-blk:has(.rcu-b.bad){border-color:rgba(239,83,80,.5);}
+.rcu-dim{color:var(--text3);} .rcu-bad{color:#f5a623 !important;} .rcu-link{color:#4fd1ff;text-decoration:none;} .rcu-link:hover{text-decoration:underline;}
+.rcu-center{min-width:0;position:relative;} .rcu-center #labCore{height:100%;} .rcu-center .rc-host{height:100%;display:flex;flex-direction:column;}
+.rcu-status{margin-top:8px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);min-height:34px;display:flex;align-items:center;}
+.rcu-idle{font-size:13px;color:var(--text2);} .rcu-idle[hidden]{display:none;}
+.rcu-status #labProg{flex:1;min-width:0;} .rcu-status .rcp{padding:0;} .rcu-status .rcp-top{margin-bottom:3px;gap:0 6px;flex-wrap:nowrap;}
+.rcu-status .rcp-now{font-size:13px;white-space:nowrap;} .rcu-seg{font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto;}
+.rcu-status .rcp-el{margin-left:auto;white-space:nowrap;} .rcu-status .progress-bar-wrap{height:4px;}
+.rcu-status .rcu-ok .rcp-now{color:#2dd4bf;} .rcu-status .rcu-warn .rcp-now{color:#f5a623;} .rcu-status .rcu-err .rcp-now{color:var(--red);}
+/* u(預設):中央球體縮小,階段節點只留編號圓點(點一下展開並看該階段細節),選項與說明收起 */
+.rc-lab.rc-m-u .rc-box{height:100%;min-height:176px;border-radius:10px;}
+.rc-lab.rc-m-u .rc-opts,.rc-lab.rc-m-u #labDetail,.rc-lab.rc-m-u .rc-lab-note{display:none;}
+.rc-lab.rc-m-u .rc-lab-head{margin-bottom:6px;} .rc-lab.rc-m-u .rc-lab-head::after{content:'';}
+.rc-lab.rc-m-u .rc-node{min-width:0;min-height:0;padding:0;gap:0;} .rc-lab.rc-m-u .rc-node .l,.rc-lab.rc-m-u .rc-node .s{display:none;}
+.rc-lab.rc-m-u .rc-node .n{width:22px;height:22px;font-size:11px;}
+.rc-lab.rc-m-u .rc-center{width:min(210px,78%);padding:6px 10px;top:50%;}
+.rc-lab.rc-m-u .rc-center .k{display:none;} .rc-lab.rc-m-u .rc-center .t{font-size:15px;margin-top:0;} .rc-lab.rc-m-u .rc-center .b{font-size:12px;margin-top:2px;min-height:0;}
+.rc-lab.rc-m-u .panel-b{padding:8px 12px 8px;}
+/* full:使用者展開。完整球體(原本 440px 版面、節點標籤、選項)在上,六個資訊區塊在下排成兩欄,階段細節在最下面 */
+.rc-lab.rc-m-full .rcu-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
+.rc-lab.rc-m-full .rcu-center{grid-column:1 / -1;order:-1;} .rc-lab.rc-m-full .rcu-center #labCore{height:auto;} .rc-lab.rc-m-full .rcu-center .rc-host{height:auto;}
+.rc-lab.rc-m-full .rc-box{height:440px;}
+#labSub{margin:8px 2px 0;} #labSub:empty{display:none;}
+
+/* ── 全部策略分析結果(前 8 名下方,預設收合) ── */
+.all-box{margin-top:14px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);}
+.all-box>summary{cursor:pointer;padding:10px 14px;font-size:14px;font-weight:600;min-height:40px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.all-box>summary .vb-note{font-weight:400;}
+.all-in{padding:4px 12px 12px;}
+.all-ctrl{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;}
+.all-ctrl input,.all-ctrl select{min-height:34px;padding:4px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:13px;}
+.all-ctrl .all-q{flex:1 1 200px;min-width:0;}
+.all-pager{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap;font-size:12px;color:var(--text2);margin:6px 0;}
+.all-pager .linkbtn[disabled]{opacity:.4;cursor:default;}
+.all-tbl{min-width:1180px;}
+.all-st{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;border:1px solid var(--border);white-space:nowrap;}
+.all-st.top{color:#2dd4bf;border-color:rgba(45,212,191,.5);} .all-st.passed{color:#4fd1ff;border-color:rgba(79,209,255,.45);} .all-st.filtered{color:var(--text2);}
+.all-st.noresult{color:#f5a623;border-color:rgba(245,166,35,.5);} .all-st.error{color:var(--red);border-color:rgba(239,83,80,.55);}
+.all-why{display:inline-block;font-size:11.5px;margin:1px 4px 1px 0;padding:0 6px;border-radius:6px;background:rgba(255,255,255,.05);white-space:nowrap;}
+.all-why.warn{color:#f5a623;} .all-why.bad{color:var(--red);} .all-ok{color:#2dd4bf;font-size:11.5px;} .all-dim{color:var(--text3);}
+.all-cwhy{margin:6px 0 2px;}
+
 /* 節點詳情 */
 .rcd{margin-top:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);font-size:13px;line-height:1.7;}
 .rcd:empty{display:none;}
@@ -93,4 +146,81 @@
   .rc-lab-head .vb-note{margin-left:0;flex-basis:100%;}
   .rcd{font-size:14px;} .rcd-t{font-size:13px;}
 }
+@media (max-width:900px){ .rcu-grid{grid-template-columns:minmax(0,1fr) minmax(200px,240px) minmax(0,1fr);} }
+@media (max-width:720px){
+  /* 手機:不硬塞 U 型。球體在最上面(縮小),六個資訊區塊依序兩欄排列,狀態列在最下面 */
+  .rcu-grid{grid-template-columns:1fr 1fr;gap:6px;} .rcu-center{grid-column:1 / -1;order:-1;} .rcu-col{display:contents;}
+  .rcu-blk{font-size:12.5px;padding:6px 8px;}
+  .rc-toggle{min-height:36px;}
+  .rc-lab.rc-m-u .rc-box{height:auto;min-height:0;} .rc-lab.rc-m-u .rc-canvas{height:84px;}
+  .rc-lab.rc-m-u .rc-center{display:none;}                                   /* 目前階段與進度已在底部狀態列 */
+  .rc-lab.rc-m-u .rc-nodes{display:flex;justify-content:center;gap:10px;padding:0 8px 8px;grid-template-columns:none;}
+  .rc-lab.rc-m-u .rc-node{min-height:0;border-color:transparent;background:transparent;position:static;}
+  .rc-lab.rc-m-u .rc-node .n{width:26px;height:26px;}
+  .rcu-status .rcp-top{flex-wrap:wrap;} .rcu-seg{white-space:normal;}
+  .all-ctrl select,.all-ctrl input{flex:1 1 100%;min-height:42px;font-size:15px;}
+  .all-pager{font-size:13px;} .all-pager .linkbtn{min-height:42px;}
+  .all-box>summary{font-size:15px;}
+}
 @media (prefers-reduced-motion:reduce){ .rcp .progress-bar{transition:none;} .rcp .progress-bar.indet::after{animation:none;width:100%;opacity:.45;} }
+
+/* ── 策略實驗室:3D 研究核心控制台(原型)。只作用在 .rc-3d(桌面寬度且支援 WebGL);手機與不支援 WebGL 時完全不套用,維持上面的 Canvas 球體版面 ──
+   配色/邊框/發光/字型層級參考開源專案 JEV 的舞台畫面(深色底、1px #232a3a 邊框、青色小標題加字距、等寬字體、青色發光外框);沒有複製其 AI 角色或下單相關元素。 */
+.lab3d-opt,.lab-flow,.lab3d-host,.lab3d-stat{display:none;}
+@media (min-width:721px){
+  .rc-lab.rc-3d{--j-line:#232a3a;--j-panel:rgba(8,12,22,.88);--j-cyan:#37e0ff;--j-pink:#ff2ea6;--j-dim:#8fa2c8;--j-txt:#dbe4f5;border-color:var(--j-line);background:radial-gradient(1100px 420px at 50% -8%,rgba(16,23,54,.95) 0%,#04060c 62%);font-family:Consolas,"Microsoft JhengHei",monospace;}
+  .rc-3d .rc-lab-head b{color:var(--j-cyan);letter-spacing:3px;font-size:13px;}
+  .rc-3d .rc-lab-head .vb-note{color:var(--j-dim);}
+  .rc-3d .lab3d-opt{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--j-dim);cursor:pointer;margin-left:auto;}
+  .rc-3d .lab3d-opt + .rc-toggle{margin-left:0;}
+  .rc-3d .rc-toggle{border-radius:2px;background:#131c30;border-color:#2b3852;font-family:inherit;font-size:12.5px;}
+  .rc-3d .rc-toggle:hover,.rc-3d .rc-toggle:focus-visible{border-color:var(--j-cyan);color:#fff;}
+  /* 三欄:左 市場資料/回測進度/篩選資訊,中 球體+星環+流程列,右 樣本外驗證/失敗原因/最終入選 */
+  .rc-3d .rcu-grid{grid-template-columns:minmax(220px,1fr) minmax(380px,1.75fr) minmax(220px,1fr);gap:8px;}
+  .rc-3d.rc-m-full .rcu-grid{grid-template-columns:minmax(220px,1fr) minmax(380px,1.75fr) minmax(220px,1fr);}
+  .rc-3d.rc-m-full .rcu-center{grid-column:auto;order:0;}
+  .rc-3d .rcu-blk{border:1px solid var(--j-line);border-radius:2px;background:var(--j-panel);padding:7px 11px;font-size:12px;line-height:1.5;color:var(--j-txt);}
+  .rc-3d .rcu-blk h5{color:var(--j-cyan);font-size:12px;letter-spacing:1.5px;margin:0 0 4px;font-weight:700;}
+  .rc-3d .rcu-b b{color:#fff;}
+  .rc-3d .rcu-dim{color:#6f7fa3;}
+  .rc-3d .rcu-blk:has(.rcu-b.warn){border-color:rgba(255,176,32,.55);} .rc-3d .rcu-blk:has(.rcu-b.bad){border-color:rgba(255,77,109,.6);}
+  /* 中央:球體區 + 流程列 */
+  .rc-3d .rcu-center{display:flex;flex-direction:column;gap:8px;}
+  .rc-3d .rcu-center #labCore{height:auto;flex:1 1 auto;min-height:340px;display:flex;} .rc-3d .rcu-center .rc-host{flex:1;display:flex;flex-direction:column;}
+  .rc-3d.rc-m-full .rc-box,.rc-3d.rc-m-u .rc-box{height:auto;flex:1;min-height:340px;border-radius:2px;border:1px solid rgba(255,255,255,.08);background:radial-gradient(560px 300px at 50% 42%,rgba(255,46,166,.12),transparent 65%),rgba(4,6,12,.65);box-shadow:inset 0 0 40px rgba(55,224,255,.05);}
+  .rc-3d.rc-m-u .rc-box,.rc-3d.rc-m-u .rcu-center #labCore{min-height:200px;}
+  .rc-3d .rc-canvas,.rc-3d .rc-nodes,.rc-3d .rc-opts{display:none;}                     /* Canvas 球體與六個環繞節點:3D 啟用時由 3D 與下方流程列取代(資料模型仍是同一個) */
+  .rc-3d .lab3d-host{display:block;position:absolute;inset:0;} .rc-3d .lab3d-canvas{display:block;width:100%;height:100%;cursor:grab;} .rc-3d .lab3d-canvas:active{cursor:grabbing;}
+  .rc-3d .lab3d-stat{display:block;position:absolute;right:8px;top:6px;font-size:10.5px;color:#6f7fa3;pointer-events:none;letter-spacing:.5px;}
+  /* 目前分析狀態:放在球體區左下角(對應原專案的 now-doing 面板) */
+  .rc-3d .rc-center{left:10px;bottom:10px;top:auto;transform:none;width:auto;max-width:62%;text-align:left;padding:7px 11px;border-radius:2px;background:rgba(5,8,15,.85);border:1px solid var(--j-cyan);box-shadow:0 0 18px rgba(55,224,255,.18);}
+  .rc-lab.rc-3d .rc-center,.rc-lab.rc-3d.rc-m-u .rc-center{top:auto;height:auto;width:auto;}
+  .rc-3d.rc-m-u .rc-center .b{display:block;font-size:11.5px;}
+  .rc-3d .rc-center .k{display:none;} .rc-3d .rc-center .t{font-size:15px;margin-top:0;line-height:1.3;color:#fff;text-shadow:0 0 12px rgba(55,224,255,.7);} .rc-3d .rc-center .b{font-size:12px;color:#b9c8e8;margin-top:2px;min-height:0;}
+  .rc-3d .rc-center.idle{border-color:rgba(143,162,200,.45);box-shadow:none;} .rc-3d .rc-center.idle .t{text-shadow:none;color:var(--j-txt);}
+  .rc-3d .rc-center.done{border-color:#2dd4bf;box-shadow:0 0 18px rgba(45,212,191,.2);} .rc-3d .rc-center.error{border-color:#ff4d6d;box-shadow:0 0 18px rgba(255,77,109,.2);} .rc-3d .rc-center.stopped{border-color:#ffb020;box-shadow:none;}
+  /* 流程列:球體下方,只列真實執行的階段 */
+  .rc-3d .lab-flow{display:flex;align-items:stretch;gap:0;border:1px solid var(--j-line);background:var(--j-panel);padding:6px 8px;border-radius:2px;}
+  .rc-3d .lf-link{flex:0 0 16px;align-self:center;height:1px;background:linear-gradient(90deg,#2b3852,#37e0ff66,#2b3852);}
+  .rc-3d .lf-node{flex:1 1 0;min-width:0;display:grid;grid-template-columns:22px 1fr;grid-template-rows:auto auto;column-gap:7px;align-items:center;text-align:left;padding:3px 6px;border:1px solid transparent;border-radius:2px;background:transparent;color:var(--j-dim);cursor:pointer;font:inherit;}
+  .rc-3d .lf-node:hover,.rc-3d .lf-node:focus-visible{background:rgba(20,30,60,.7);border-color:#2b3852;outline:none;} .rc-3d .lf-node.sel{background:rgba(20,30,60,.85);border-color:rgba(55,224,255,.5);}
+  .rc-3d .lf-node i{grid-row:1/3;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:700;border:1px solid #2b3852;background:rgba(10,14,34,.9);}
+  .rc-3d .lf-node .l{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--j-txt);} .rc-3d .lf-node .s{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .rc-3d .lf-node.running{color:#37e0ff;} .rc-3d .lf-node.running i{border-color:#37e0ff;box-shadow:0 0 8px rgba(55,224,255,.7);}
+  .rc-3d .lf-node.done{color:#2dd4bf;} .rc-3d .lf-node.done i{border-color:#2dd4bf;} .rc-3d .lf-node.error{color:#ff5d73;} .rc-3d .lf-node.error i{border-color:#ff5d73;}
+  .rc-3d .lf-node.stopped{color:#ffb020;} .rc-3d .lf-node.stopped i{border-color:#ffb020;} .rc-3d .lf-node.skip{color:#6b7390;} .rc-3d .lf-node.skip i{border-style:dashed;} .rc-3d .lf-node.skip .l{text-decoration:line-through;}
+  .rc-3d.rc-m-u .lf-node .s{display:none;} .rc-3d.rc-m-u .lf-node{grid-template-rows:auto;} .rc-3d.rc-m-u .lf-node i{grid-row:auto;}
+  /* 底部狀態列沿用深色風格 */
+  .rc-3d .rcu-status{border-radius:2px;border-color:var(--j-line);background:var(--j-panel);}
+}
+@media (max-width:1100px) and (min-width:721px){
+  .rc-3d .rcu-grid,.rc-3d.rc-m-full .rcu-grid{grid-template-columns:minmax(190px,1fr) minmax(300px,1.5fr) minmax(190px,1fr);}
+  .rc-3d .lf-node{grid-template-columns:16px 1fr;column-gap:5px;padding:3px 4px;} .rc-3d .lf-node i{width:16px;height:16px;font-size:10px;} .rc-3d .lf-node .l{font-size:11.5px;} .rc-3d .lf-node .s{font-size:10.5px;} .rc-3d .lf-link{flex-basis:8px;}
+}
+
+/* 3D 研究核心:小人的對話泡泡(文字全部來自真實事件) */
+.lab3d-host .lab3d-bubble, .rc-3d .lab3d-bubble { position: absolute; left: 0; top: 0; z-index: 4; pointer-events: none; max-width: 250px; padding: 5px 10px 6px; border-radius: 12px;
+  background: rgba(8, 14, 30, .9); border: 1px solid rgba(55, 224, 255, .55); box-shadow: 0 0 14px rgba(55, 224, 255, .22); font-size: 12px; line-height: 1.4; color: #cfe8ff; transition: opacity .2s; will-change: transform; }
+.lab3d-bubble b { display: block; font-weight: 600; color: #e9fbff; white-space: nowrap; }
+.lab3d-bubble span { display: block; color: #8fb4d9; font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lab3d-bubble::after { content: ''; position: absolute; left: 50%; bottom: -7px; width: 7px; height: 7px; margin-left: -3px; border-radius: 50%; background: rgba(8, 14, 30, .9); border: 1px solid rgba(55, 224, 255, .55); }
