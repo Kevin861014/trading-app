@@ -5,7 +5,7 @@
   "note": "只讀取「組合清單」(交易對/週期/策略/權重);不含也不讀任何金鑰",
   "sha256": "ae188f1da96296aee2b6bc944dc71e6b5f3df93451a870dcfec8dd88df1744d3"
  },
- "created_utc": "2026-11-05 16:31:51",
+ "created_utc": "2026-11-06 01:47:58",
  "data_source": {
   "closed_bars_only": true,
   "exchange": "Binance USDT-M perpetual (fapi, public endpoints only)",
@@ -185,7 +185,7 @@
    0.0
   ]
  },
- "experiment_id": "d4-v1",
+ "experiment_id": "d4-v2",
  "initial_equity": 310.0,
  "markets": {
   "1000PEPE/USDT": {
@@ -353,6 +353,20 @@
    "LIVE_FORWARD": "即時前向:記帳時距離最後輸入 K 棒收盤 ≤ live_max_lag_ms,且之前沒有中斷/缺口/修訂/補跑"
   },
   "fills": "SIMULATED(下一根 1H 開盤價 × (1+滑價));與市場實際價的差異另行記錄",
+  "funding_policy": {
+   "allowed_interval_hours": [
+    1,
+    2,
+    4,
+    8
+   ],
+   "completeness_check": true,
+   "fetch_failed": "process only through last successful fetch minus funding_lag_ms",
+   "grid_tolerance_ms": 5000,
+   "info_endpoint": "/fapi/v1/fundingInfo (current interval, cross-check only)",
+   "missing_funding_is_never_zero": true,
+   "on_incomplete": "stop processing before the gap; list symbol, time range and reason; never skip or fabricate"
+  },
   "live_max_lag_ms": 28800000,
   "no_live_connection": true,
   "same_bars_for_A_and_B": true,
@@ -667,5 +681,5 @@
   "XLM/USDT",
   "XRP/USDT"
  ],
- "version": 1
+ "version": 2
 }

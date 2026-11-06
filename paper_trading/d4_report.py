@@ -82,7 +82,8 @@ def build_report(exp_dir):
                        'flags': [{'type': f['type'], 'taint_from_utc': E.iso(f['taint_from_ts']), 'recorded_utc': f['recorded_utc']} for f in flags],
                        'clean_through_utc': E.iso(clean_mk['A'][-1]['h']) if clean_mk['A'] else None, 'A_clean': scen_stats(ex, 'A', init, clean_ev, clean_mk['A']) if mixed else None, 'B_clean': scen_stats(ex, 'B', init, clean_ev, clean_mk['B']) if mixed else None,
                        'backfill_events': sum(1 for e in ev if e.get('is_backfill')), 'max_record_lag_s': max([e['record_lag_s'] for e in ev if e.get('record_lag_s') is not None] or [0])}
-    rep['limits'] = {'tick_runs': len(ticks), 'ticks_with_errors': sum(1 for t in ticks if t['errors']), 'ticks_with_gaps': sum(1 for t in ticks if t['gaps']), 'lock_takeovers': sum(1 for t in ticks if t.get('lock_takeover')),
+    fi = (ticks[-1].get('funding_issues') or []) if ticks else []
+    rep['limits'] = {'funding_incomplete_ticks': sum(1 for t in ticks if t.get('funding_issues')), 'funding_open_issues': [{'sym': i['sym'], 'kind': i['kind'], 'from_utc': i['from_utc'], 'to_utc': i['to_utc'], 'reason': i['detail']} for i in fi], 'tick_runs': len(ticks), 'ticks_with_errors': sum(1 for t in ticks if t['errors']), 'ticks_with_gaps': sum(1 for t in ticks if t['gaps']), 'lock_takeovers': sum(1 for t in ticks if t.get('lock_takeover')),
                      'bar_mismatches': sum(len(t['bar_mismatches']) for t in ticks), 'divergences_logged': len(div), 'corrupt_lines_isolated': len(_ro(ex.corrupt)),
                      'wall_gap_hours_between_ticks_max': round(max([(_ts(b['wall_utc']) - _ts(a['wall_utc'])) / 3600 for a, b in zip(ticks, ticks[1:])] or [0]), 1)}
     return rep
@@ -127,6 +128,8 @@ def render(r):
     else: L.append('BTC 參考資料不足,尚無分類。')
     lm = r['limits']
     L.append('\n## 4 限制與資料狀況\n- tick %d 次;有錯誤 %d、有資料缺口 %d、鎖接管(前次異常中斷)%d、tick 最大間隔 %.1f 小時\n- K 棒與已存紀錄不一致 %d 次、事件重跑與原紀錄不一致 %d 筆(皆只記錄,不覆蓋原始紀錄)、殘缺行隔離 %d' % (lm['tick_runs'], lm['ticks_with_errors'], lm['ticks_with_gaps'], lm['lock_takeovers'], lm['wall_gap_hours_between_ticks_max'], lm['bar_mismatches'], lm['divergences_logged'], lm['corrupt_lines_isolated']))
+    if lm['funding_incomplete_ticks']:
+        L.append('- ⚠ **資金費率不完整,處理已停在缺口之前**(缺漏的資金費率不會被當成 0;曾發生 %d 次 tick)。目前仍未解決的:%s' % (lm['funding_incomplete_ticks'], ('；'.join('%s %s → %s UTC(%s):%s' % (i['sym'], i['from_utc'], i['to_utc'], i['kind'], i['reason']) for i in lm['funding_open_issues']) or '無(最近一次 tick 已完整)')))
     L.append('- **所有成交都是模擬(SIMULATED)**:進場 = 訊號棒後下一根開盤 ×(1+0.03%);市價出場 ×(1−0.01%);交易所保護停損 = min(觸發價, 開盤)×(1−0.042%)。真實成交可能因流動性、延遲、拒單而不同。')
     L.append('- 模擬器在程式中斷期間不會「漏跑」:下次 tick 會依已存的已收盤 K 棒補算,但若交易所端缺 K 棒,處理會停在缺口之前並記錄,不補造資料。')
     L.append('- 處理範圍落後現在至少 2 小時(等資金費率公布)。B 的 Σ權重沿用 A 的 16(其餘 21 組分配金額不因移除而增加)。')

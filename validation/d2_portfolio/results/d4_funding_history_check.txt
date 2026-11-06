@@ -1,0 +1,10 @@
+{'series': 50, 'pairs': 209297, 'issues': 9}
+('D3 long.pkl', 'JUP/USDT', 'possible_missing_settlement', '2026-06-24 00:00:00', '2026-06-24 08:00:00')
+('D3 long.pkl', 'KAVA/USDT', 'possible_missing_settlement', '2026-06-24 00:00:00', '2026-06-24 08:00:00')
+('D3 long.pkl', 'PAXG/USDT', 'possible_missing_settlement', '2026-06-24 00:00:00', '2026-06-24 08:00:00')
+('D3 long.pkl', 'PYTH/USDT', 'possible_missing_settlement', '2026-06-24 00:00:00', '2026-06-24 08:00:00')
+('D2 data.pkl', 'IMX/USDT', 'possible_missing_settlement', '2026-06-24 00:00:00', '2026-06-24 08:00:00')
+('D2 data.pkl', 'JUP/USDT', 'possible_missing_settlement', '2026-06-24 00:00:00', '2026-06-24 08:00:00')
+('D2 data.pkl', 'KAVA/USDT', 'possible_missing_settlement', '2026-06-24 00:00:00', '2026-06-24 08:00:00')
+('D2 data.pkl', 'PAXG/USDT', 'possible_missing_settlement', '2026-06-24 00:00:00', '2026-06-24 08:00:00')
+('D2 data.pkl', 'PYTH/USDT', 'possible_missing_settlement', '2026-06-24 00:00:00', '2026-06-24 08:00:00')

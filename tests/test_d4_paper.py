@@ -41,7 +41,7 @@ SERIES, FUND = synth(7)
 
 class FakeFeed:
     def __init__(self, now, series=SERIES, fund=FUND):
-        self.now = now; self.series = series; self.fund = fund; self.drop = set(); self.tamper = {}; self.leak_forming = False; self.calls = []
+        self.now = now; self.series = series; self.fund = fund; self.drop = set(); self.tamper = {}; self.leak_forming = False; self.calls = []; self.ffail = set(); self.info = {}
     def now_ms(self): return self.now
     def klines(self, sid, tf, start_ms):
         step = E.STEP[tf]; self.calls.append((sid, tf, start_ms)); out = []
@@ -53,7 +53,10 @@ class FakeFeed:
             if (sid, tf, r[0]) in self.tamper: r[4] = self.tamper[(sid, tf, r[0])]
             out.append(r)
         return out
-    def funding(self, sid, start_ms): return [(t, x) for t, x in self.fund[sid] if t >= start_ms and t <= self.now - 1]
+    def funding(self, sid, start_ms):
+        if sid in self.ffail: raise RuntimeError('funding endpoint down')
+        return [(t, x) for t, x in self.fund[sid] if t >= start_ms and t <= self.now - 1]
+    def funding_info(self): return dict(self.info)
     def markets(self, symbols): return {s: dict(MARKETS[s]) for s in symbols}
 
 
@@ -396,7 +399,7 @@ class TestIsolationAndSafety(unittest.TestCase):
 
     def test_only_public_market_endpoints_are_used(self):
         t = open(os.path.join(P4, 'd4_feed.py'), encoding='utf-8').read()
-        self.assertEqual(sorted(set(re.findall(r'fapi\w+', t))), ['fapiPublicGetFundingRate', 'fapiPublicGetKlines']); self.assertIn('load_markets', t); self.assertIn('binanceusdm', t)
+        self.assertEqual(sorted(set(re.findall(r'fapi\w+', t))), ['fapiPublicGetFundingInfo', 'fapiPublicGetFundingRate', 'fapiPublicGetKlines']); self.assertIn('load_markets', t); self.assertIn('binanceusdm', t)
 
     def test_subprocess_is_only_used_for_git_and_nothing_is_resident(self):
         for f in self.FILES:
@@ -437,3 +440,176 @@ def tuple_or_list(s): return [s.get('atr_stop') or 0.0, s.get('atr_trail') or 0.
 
 if __name__ == '__main__':
     unittest.main()
+
+
+# ───────────────── 資金費率完整性(缺漏不能默默當成 0) ─────────────────
+import d4_funding as F
+
+
+def regime(segments, jitter=3, rate=0.0001):
+    """segments = [(起, 迄, 間隔小時)]:依序產生結算時間(每筆加幾毫秒偏移,像官方資料)。"""
+    out = []
+    for a, b, h in segments:
+        t = a
+        while t < b: out.append((t + jitter, rate)); t += h * HOUR
+    return out
+
+
+def fund_variant(replace=None, drop=None):
+    f = {k: list(v) for k, v in FUND.items()}
+    for sid, rows in (replace or {}).items(): f[sid] = rows
+    for sid, times in (drop or {}).items(): f[sid] = [r for r in f[sid] if r[0] not in {t + 3 for t in times}]
+    return f
+
+
+class TestFundingCheck(unittest.TestCase):
+    """d4_funding.check:純函式。結算間隔不假設 8 小時,只看實際相鄰間距與 UTC 格線。"""
+    A, B = T0 - DAY, T0 + 10 * DAY
+    kinds = staticmethod(lambda iss: [i['kind'] for i in iss])
+
+    def test_normal_8h_and_4h_series_are_complete(self):
+        self.assertEqual(F.check(regime([(self.A, self.B, 8)]), T0, T0 + 3 * DAY), [])
+        self.assertEqual(F.check(regime([(self.A, self.B, 4)]), T0, T0 + 3 * DAY), [])
+        self.assertEqual(F.check(regime([(self.A, self.B, 1)]), T0, T0 + 3 * DAY), [])
+        self.assertEqual(F.check(regime([(self.A, self.B, 8)], jitter=47), T0, T0 + 3 * DAY), [], '官方資料常見的幾十毫秒偏移要容許')
+
+    def test_interval_change_is_not_a_gap(self):
+        shorten = regime([(self.A, T0 + DAY, 8), (T0 + DAY, self.B, 4)])                               # 8h → 4h
+        lengthen = regime([(self.A, T0 + DAY, 2), (T0 + DAY, self.B, 8)])                              # 2h → 8h 且持續(像 SOL 2022-11)
+        stepwise = regime([(self.A, T0 + DAY + 18 * HOUR, 1), (T0 + DAY + 18 * HOUR, T0 + DAY + 20 * HOUR, 2), (T0 + DAY + 20 * HOUR, self.B, 4)])    # 1h → 2h → 4h(像 KAVA 2025-12-20)
+        for rows in (shorten, lengthen, stepwise): self.assertEqual(F.check(rows, T0, T0 + 3 * DAY), [])
+
+    def test_lengthening_without_a_following_record_is_undetermined(self):
+        rows = regime([(self.A, T0 + DAY + 4 * HOUR, 4)]) + [(T0 + DAY + 8 * HOUR + 3, 0.0001)]      # 4h 制後接一個 8h 的間距(24h → 32h),後面還沒有資料
+        self.assertIn('undetermined_after_lengthening', self.kinds(F.check(rows, T0, T0 + 30 * HOUR)))
+
+    def test_hole_in_4h_regime_is_detected_even_when_it_looks_like_an_8h_gap(self):
+        base = regime([(self.A, self.B, 4)])
+        on8 = [r for r in base if r[0] != T0 + DAY + 4 * HOUR + 3]                                     # 少 04:00:兩端都在 8h 格線上 → 4→8→4
+        off8 = [r for r in base if r[0] != T0 + DAY + 8 * HOUR + 3]                                    # 少 08:00:04:00→12:00 不在 8h 格線上
+        self.assertEqual(self.kinds(F.check(on8, T0, T0 + 3 * DAY)), ['possible_missing_settlement'])
+        self.assertEqual(self.kinds(F.check(off8, T0, T0 + 3 * DAY)), ['off_grid'])
+
+    def test_holes_in_8h_and_1h_regimes(self):
+        r8 = [r for r in regime([(self.A, self.B, 8)]) if r[0] != T0 + DAY + 3]
+        r1 = [r for r in regime([(self.A, self.B, 1)]) if r[0] not in (T0 + DAY + 3, T0 + DAY + HOUR + 3)]
+        i8, i1 = F.check(r8, T0, T0 + 3 * DAY), F.check(r1, T0, T0 + 3 * DAY)
+        self.assertEqual(self.kinds(i8), ['irregular_spacing']); self.assertEqual(self.kinds(i1), ['irregular_spacing'])
+        self.assertEqual((i8[0]['from_utc'], i8[0]['to_utc']), (E.iso(T0 + DAY - 8 * HOUR + 3), E.iso(T0 + DAY + 8 * HOUR + 3)))        # 清楚列出時間範圍
+
+    def test_issue_outside_the_processed_range_does_not_stop_anything(self):
+        rows = [r for r in regime([(self.A, self.B, 8)]) if r[0] != T0 - 16 * HOUR + 3]                 # 起始之前缺一筆
+        self.assertEqual(F.check(rows, T0, T0 + 3 * DAY), [])
+        rows = [r for r in regime([(self.A, self.B, 8)]) if r[0] != T0 + 6 * DAY + 3]                   # 處理範圍之後缺一筆
+        self.assertEqual(F.check(rows, T0, T0 + 3 * DAY), [])
+
+    def test_coverage_uses_the_actual_interval_not_8_hours(self):
+        r4 = regime([(self.A, T0 + 2 * DAY, 4)]); last = r4[-1][0]
+        self.assertEqual(F.check(r4, T0, last + 3 * HOUR), [])
+        self.assertEqual(self.kinds(F.check(r4, T0, last + 5 * HOUR)), ['coverage_end'], '4 小時制:5 小時後就該有下一筆(用 8 小時假設會漏掉)')
+        r8 = regime([(self.A, T0 + 2 * DAY, 8)]); last8 = r8[-1][0]
+        self.assertEqual(F.check(r8, T0, last8 + 7 * HOUR), []); self.assertEqual(self.kinds(F.check(r8, T0, last8 + 8 * HOUR)), ['coverage_end'])
+
+    def test_official_funding_info_can_only_tighten_coverage(self):
+        r8 = regime([(self.A, T0 + 2 * DAY, 8)]); last = r8[-1][0]
+        self.assertEqual(F.check(r8, T0, last + 3 * HOUR, info_h=None), []); self.assertEqual(F.check(r8, T0, last + 3 * HOUR, info_h=8), [])
+        self.assertEqual(self.kinds(F.check(r8, T0, last + 3 * HOUR, info_h=2)), ['coverage_end'])
+
+    def test_start_coverage_and_empty(self):
+        self.assertEqual(self.kinds(F.check([], T0, T0 + DAY)), ['no_records'])
+        self.assertEqual(self.kinds(F.check(regime([(T0 + 16 * HOUR, self.B, 8)]), T0, T0 + 3 * DAY)), ['coverage_start'])
+        self.assertEqual(F.limit_ts({'kind': 'coverage_start', 'from_ts': T0}, T0), T0 - HOUR)
+
+    def test_limit_is_the_hour_of_the_last_good_settlement(self):
+        iss = F.check([r for r in regime([(self.A, self.B, 8)]) if r[0] != T0 + DAY + 3], T0, T0 + 3 * DAY)[0]
+        self.assertEqual(F.limit_ts(iss, T0), T0 + DAY - 8 * HOUR)
+
+
+class TestFundingGuard(Base):
+    def at(self, k, d=None, **kw):
+        f = FakeFeed(T0 + k * HOUR + 30000, **({'fund': kw.pop('fund')} if 'fund' in kw else {}))
+        for a, v in kw.items(): setattr(f, a, v)
+        return E.tick(d or self.dir, f), f
+
+    def events(self, d=None): return {e['id']: e for e in read_jsonl(os.path.join(d or self.dir, 'ledger', 'events.jsonl'))[0]}
+
+    def test_policy_is_in_the_snapshot_and_the_module_is_hash_tracked(self):
+        self.init(); s = json.load(open(os.path.join(self.dir, 'config_snapshot.json'), encoding='utf-8')); pol = s['rules']['funding_policy']
+        self.assertTrue(pol['missing_funding_is_never_zero']); self.assertEqual(pol['allowed_interval_hours'], [1, 2, 4, 8]); self.assertEqual(s['version'], 2)
+        self.assertIn('paper_trading/d4_funding.py', E.TRACKED_FILES); self.assertIn('paper_trading/d4_funding.py', json.load(open(os.path.join(self.dir, 'MANIFEST.json')))['files_sha256'])
+
+    def test_normal_settlement_has_no_issue_and_records_the_successful_fetch(self):
+        self.init()
+        for k in (2, 8, 14, 20, 30, 40):
+            rec, _ = self.at(k); self.assertEqual(rec['funding_issues'], [], k); self.assertEqual(rec['errors'], [], k)
+            self.assertEqual(set(rec['funding_ok']), set(SYMS)); self.assertEqual(rec['T1'], T0 + (k - 2) * HOUR)             # 處理範圍沒有被縮短
+
+    def test_missing_record_stops_processing_and_lists_symbol_range_and_reason(self):
+        self.init(); hole = T0 + DAY
+        rec, _ = self.at(36, fund=fund_variant(drop={'TRXUSDT': [hole]}))
+        g = [x for x in rec['gaps'] if x.get('kind') == 'funding_incomplete']
+        self.assertEqual([(x['sym'], x['funding_issue']) for x in g], [('TRX/USDT', 'irregular_spacing')])
+        self.assertEqual((g[0]['from_utc'], g[0]['to_utc']), (E.iso(hole - 8 * HOUR + 3), E.iso(hole + 8 * HOUR + 3))); self.assertIn('缺漏', g[0]['reason'])
+        self.assertEqual(rec['T1'], hole - 8 * HOUR)                                                                          # 停在缺口之前
+        fl = read_jsonl(os.path.join(self.dir, 'ledger', 'data_flags.jsonl'))[0]; self.assertTrue([f for f in fl if f['type'] == 'DATA_GAP' and f['detail'].get('sym') == 'TRX/USDT'])
+        st = json.load(open(os.path.join(self.dir, 'status.json'), encoding='utf-8')); self.assertTrue([x for x in st['gaps'] if x.get('kind') == 'funding_incomplete'])
+        for e in self.events().values(): self.assertLessEqual(e.get('ts') or e['decision_ts'], rec['T1'] + HOUR, e['id'])          # 缺口之後沒有任何事件,沒有『當成 0』的結果
+
+    def test_recovery_repairs_by_requery_and_matches_a_clean_run_without_touching_old_records(self):
+        self.init(); hole = T0 + DAY
+        r1, _ = self.at(36, fund=fund_variant(drop={'TRXUSDT': [hole]})); path = os.path.join(self.dir, 'ledger', 'events.jsonl'); before = open(path, 'rb').read()
+        r2, _ = self.at(40)                                                                                                   # 官方資料補齊(例如之前只是沒抓全)
+        self.assertEqual(r2['funding_repaired'], [{'sym': 'TRX/USDT', 'new_records': 1}]); self.assertEqual(r2['funding_issues'], []); self.assertEqual(r2['T1'], T0 + 38 * HOUR)
+        self.assertTrue(open(path, 'rb').read().startswith(before), '先前紀錄必須逐位元組不變'); self.assertEqual(r2['divergences'], 0)
+        clean = os.path.join(self.tmp, 'clean'); self.init(d=clean); self.at(40, d=clean)
+        a, b = self.events(), self.events(clean); self.assertEqual(set(a), set(b))
+        for i in a:
+            for k in E.COMPARE_KEYS:
+                if k in a[i]: self.assertTrue(E._close(a[i][k], b[i].get(k)), (i, k))
+
+    def test_hole_in_a_4h_regime_is_found_and_4h_is_not_treated_as_a_gap(self):
+        self.init(); s4 = regime([(T0 - 80 * DAY, T0 + 14 * DAY, 4)])
+        rec, _ = self.at(36, fund=fund_variant(replace={'SOLUSDT': s4}))
+        self.assertEqual(rec['funding_issues'], [], '4 小時制本身不是缺漏(不假設 8 小時)')
+        hole = T0 + DAY + 4 * HOUR
+        d2 = os.path.join(self.tmp, 'h4'); self.init(d=d2)
+        rec2, _ = self.at(36, d=d2, fund=fund_variant(replace={'SOLUSDT': [r for r in s4 if r[0] != hole + 3]}))
+        self.assertEqual([(x['sym'], x['kind']) for x in rec2['funding_issues']], [('SOL/USDT', 'possible_missing_settlement')]); self.assertEqual(rec2['T1'], T0 + DAY)
+
+    def test_interval_change_in_either_direction_runs_normally(self):
+        self.init(); trx = regime([(T0 - 80 * DAY, T0 + DAY, 4), (T0 + DAY, T0 + 14 * DAY, 8)]); sol = regime([(T0 - 80 * DAY, T0 + 2 * DAY, 8), (T0 + 2 * DAY, T0 + 14 * DAY, 4)])
+        pend, _ = self.at(36, fund=fund_variant(replace={'TRXUSDT': trx, 'SOLUSDT': sol}))                                    # 4h→8h 剛改制:第一個 8h 間距之後還沒有下一筆,暫停(無法和缺漏區分)
+        self.assertEqual([(x['sym'], x['kind']) for x in pend['funding_issues']], [('TRX/USDT', 'undetermined_after_lengthening')]); self.assertEqual(pend['T1'], T0 + DAY)
+        for k in (44, 60, 76):                                                                                                # 下一筆出現後確認是改制,恢復處理
+            rec, _ = self.at(k, fund=fund_variant(replace={'TRXUSDT': trx, 'SOLUSDT': sol})); self.assertEqual(rec['funding_issues'], [], k); self.assertEqual(rec['T1'], T0 + (k - 2) * HOUR)
+
+    def test_long_interruption_then_resume_is_not_a_false_stop(self):
+        self.init(); self.at(4); self.at(10)
+        rec, _ = self.at(24 * 5 + 3)                                                                                          # 幾乎 5 天沒執行
+        self.assertEqual(rec['funding_issues'], []); self.assertEqual(rec['T1'], T0 + (24 * 5 + 1) * HOUR)
+        self.assertEqual(rec['divergences'], 0)
+
+    def test_fetch_failure_stops_at_last_verified_time_and_later_recovers(self):
+        self.init(); self.at(30)
+        rec, _ = self.at(40, ffail={'TRXUSDT'})
+        g = [x for x in rec['funding_issues'] if x['kind'] == 'fetch_not_verified']; self.assertEqual([x['sym'] for x in g], ['TRX/USDT'])
+        self.assertEqual(rec['T1'], (T0 + 30 * HOUR + 30000 - 2 * HOUR) // HOUR * HOUR); self.assertTrue([e for e in rec['errors'] if 'funding TRX/USDT' in e])
+        rec2, _ = self.at(44); self.assertEqual(rec2['funding_issues'], []); self.assertEqual(rec2['T1'], T0 + 42 * HOUR)
+        d2 = os.path.join(self.tmp, 'first'); self.init(d=d2)
+        r0, _ = self.at(6, d=d2, ffail={'TRXUSDT'}); self.assertTrue([x for x in r0['funding_issues'] if x['sym'] == 'TRX/USDT']); self.assertLessEqual(r0['T1'], T0)     # 第一次就失敗:沒有任何可確認的範圍
+        self.assertEqual(self.events(d2), {})
+
+    def test_official_funding_info_shorter_interval_tightens_coverage(self):
+        self.init(); rec, _ = self.at(30, info={'TRXUSDT': 1})
+        self.assertTrue([x for x in rec['funding_issues'] if x['sym'] == 'TRX/USDT' and x['kind'] == 'coverage_end']); self.assertEqual(rec['funding_info_hours']['TRXUSDT'], 1)
+
+    def test_report_shows_symbol_range_and_reason_until_resolved(self):
+        import d4_report as R
+        self.init(); hole = T0 + DAY; self.at(36, fund=fund_variant(drop={'TRXUSDT': [hole]})); txt = R.render(R.build_report(self.dir))
+        for w in ('資金費率不完整', 'TRX/USDT', E.iso(hole - 8 * HOUR + 3), E.iso(hole + 8 * HOUR + 3), 'irregular_spacing', '不會被當成 0'): self.assertIn(w, txt)
+        self.at(40); txt2 = R.render(R.build_report(self.dir)); self.assertIn('最近一次 tick 已完整', txt2)
+
+    def test_formulas_and_formal_results_are_untouched(self):
+        import subprocess
+        out = subprocess.run(['git', 'diff', '--stat', 'HEAD', '--', 'sim.py', 'validation/d2_portfolio/d2_sim.py', 'validation/d3_walkforward/results', 'validation/d3_walkforward/raw'], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+        self.assertEqual(out, '', 'strategy formulas / simulator / D2-D3 formal results must not change')

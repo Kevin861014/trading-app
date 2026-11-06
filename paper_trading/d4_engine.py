@@ -9,6 +9,7 @@ import bisect, datetime, json, os, platform, subprocess, sys, time
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(ROOT, 'validation', 'd2_portfolio')); sys.path.insert(0, ROOT)
 import d2_sim as S
+import d4_funding as FUND
 from d4_store import FileLock, append_jsonl, dumps, read_jsonl, read_jsonl_ro, sha256_bytes, sha256_file
 
 HOUR = 3600000; STEP = {'1h': HOUR, '4h': 4 * HOUR}
@@ -17,7 +18,7 @@ FUNDING_LAG_MS = 2 * HOUR                          # 處理範圍落後 2 小時
 LIVE_MAX_LAG_MS = 8 * HOUR                         # 即時前向的容許延遲(2 小時結構性延遲 + 6 小時 tick 間隔);超過 = 補跑(BACKFILL)。寫進快照、受雜湊保護
 REF_SYMBOL = 'BTC/USDT'                            # 只用來分類市場環境,不交易
 INTEGRATION_FILES = ['extra_strats.py', 'extra_strats_v3.py', 'extra_strats_v4.py', 'extra_strats_v5.py', 'extra_strats_v6.py', 'extra_strats_v7.py', 'extra_strats_v8.py', 'extra_strats_v9.py', 'extra_strats_loop.py']
-TRACKED_FILES = ['sim.py'] + ['integration/' + f for f in INTEGRATION_FILES] + ['validation/d2_portfolio/d2_sim.py', 'paper_trading/d4_store.py', 'paper_trading/d4_feed.py', 'paper_trading/d4_engine.py', 'paper_trading/d4_tick.py']
+TRACKED_FILES = ['sim.py'] + ['integration/' + f for f in INTEGRATION_FILES] + ['validation/d2_portfolio/d2_sim.py', 'paper_trading/d4_store.py', 'paper_trading/d4_feed.py', 'paper_trading/d4_funding.py', 'paper_trading/d4_engine.py', 'paper_trading/d4_tick.py']
 PARAMS = {'risk': 0.0403, 'max_lev': 3.0, 'max_lev_int': 3, 'max_total': 3.0, 'taker': 0.0005, 'slip_entry': 0.0003, 'slip_exit': 0.0001, 'slip_stop': 0.00042, 'latency_s': 13.8, 'sumw_override': 16.0}
 INIT_EQUITY = 310.0
 B_EXCLUDED = ['TRX/USDT|1h|tsmom', 'XRP/USDT|1h|vortex']
@@ -111,12 +112,12 @@ def build_snapshot(exp_id, start_ms, combos, markets, created_ms, source_info):
     Bc = [c for c in A if key_of(c) not in B_EXCLUDED]
     assert len(Bc) == len(A) - len(B_EXCLUDED), 'B must exclude exactly the two 1H combos'
     syms = sorted({c['symbol'] for c in A})
-    return {'experiment_id': exp_id, 'version': 1, 'created_utc': iso(created_ms), 'start_ts': int(start_ms), 'start_utc': iso(start_ms), 'initial_equity': INIT_EQUITY,
+    return {'experiment_id': exp_id, 'version': 2, 'created_utc': iso(created_ms), 'start_ts': int(start_ms), 'start_utc': iso(start_ms), 'initial_equity': INIT_EQUITY,
             'scenarios': {'A': {'label': 'A 維持目前全部 23 組', 'combos': A, 'sumw': sum(c['weight'] for c in A)},
                           'B': {'label': 'B 排除 TRX 1H、XRP 1H(其餘 21 組配置/風險參數/資金分配公式不變;Σ權重沿用 A 的 16,與 D3 相同)', 'combos': Bc, 'sumw': sum(c['weight'] for c in A), 'excluded': B_EXCLUDED}},
             'params': dict(PARAMS), 'exit_params': exit_params(STR, {c['strategy'] for c in A}), 'symbols': syms, 'reference_symbol': REF_SYMBOL, 'markets': markets,
             'data_source': {'exchange': 'Binance USDT-M perpetual (fapi, public endpoints only)', 'klines': '/fapi/v1/klines', 'funding': '/fapi/v1/fundingRate', 'closed_bars_only': True, 'safety_ms': 5000, 'funding_lag_ms': FUNDING_LAG_MS, 'warmup_bars': WARMUP_BARS},
-            'rules': {'live_max_lag_ms': LIVE_MAX_LAG_MS, 'evidence_classes': {'LIVE_FORWARD': '即時前向:記帳時距離最後輸入 K 棒收盤 ≤ live_max_lag_ms,且之前沒有中斷/缺口/修訂/補跑', 'BACKFILL': '補跑:記帳或取得行情時已超過 live_max_lag_ms', 'AFTER_INTERRUPTION': '中斷/缺口/修訂/補跑之後才記的決策(路徑已受影響,不是未中斷的即時證據)'}, 'warmup_not_counted': '開始時間之前的 K 棒只用於指標暖機,所有績效從 start_ts 起算;開始時全部空手。', 'same_bars_for_A_and_B': True, 'no_live_connection': True, 'fills': 'SIMULATED(下一根 1H 開盤價 × (1+滑價));與市場實際價的差異另行記錄'},
+            'rules': {'live_max_lag_ms': LIVE_MAX_LAG_MS, 'evidence_classes': {'LIVE_FORWARD': '即時前向:記帳時距離最後輸入 K 棒收盤 ≤ live_max_lag_ms,且之前沒有中斷/缺口/修訂/補跑', 'BACKFILL': '補跑:記帳或取得行情時已超過 live_max_lag_ms', 'AFTER_INTERRUPTION': '中斷/缺口/修訂/補跑之後才記的決策(路徑已受影響,不是未中斷的即時證據)'}, 'funding_policy': {'completeness_check': True, 'allowed_interval_hours': list(FUND.ALLOWED_H), 'grid_tolerance_ms': FUND.TOL_MS, 'missing_funding_is_never_zero': True, 'on_incomplete': 'stop processing before the gap; list symbol, time range and reason; never skip or fabricate', 'fetch_failed': 'process only through last successful fetch minus funding_lag_ms', 'info_endpoint': '/fapi/v1/fundingInfo (current interval, cross-check only)'}, 'warmup_not_counted': '開始時間之前的 K 棒只用於指標暖機,所有績效從 start_ts 起算;開始時全部空手。', 'same_bars_for_A_and_B': True, 'no_live_connection': True, 'fills': 'SIMULATED(下一根 1H 開盤價 × (1+滑價));與市場實際價的差異另行記錄'},
             'config_source': source_info}
 
 
@@ -130,7 +131,7 @@ def init_experiment(exp_dir, exp_id, start_ms, combos, markets, created_ms, sour
     for d in (ex.dir, ex.bars, ex.funding, ex.signals, ex.ledger, ex.reports): os.makedirs(d)
     sb = dumps(snap).encode('utf-8')
     with open(ex.snapshot, 'wb') as f: f.write(sb)
-    man = {'experiment_id': exp_id, 'version': 1, 'created_utc': iso(created_ms), 'start_utc': iso(start_ms), 'snapshot_sha256': sha256_bytes(sb), 'markets_sha256': sha256_bytes(dumps(markets).encode('utf-8')),
+    man = {'experiment_id': exp_id, 'version': 2, 'created_utc': iso(created_ms), 'start_utc': iso(start_ms), 'snapshot_sha256': sha256_bytes(sb), 'markets_sha256': sha256_bytes(dumps(markets).encode('utf-8')),
            'files_sha256': tracked_hashes(), 'python': platform.python_version(), 'git': git_info(), 'rule': '任何一個雜湊不符,tick 會拒絕執行;要修改必須建立新的實驗版本(新目錄),不得覆蓋本紀錄。'}
     mb = json.dumps(man, ensure_ascii=False, indent=1, sort_keys=True).encode('utf-8'); open(ex.manifest, 'wb').write(mb); open(ex.manifest_sha, 'w').write(sha256_bytes(mb) + '\n')
     for p in (ex.snapshot, ex.manifest, ex.manifest_sha):
@@ -178,6 +179,39 @@ def store_funding(ex, sym, rows, fetched_ms):
 
 def load_funding(ex, sym):
     recs, _ = read_jsonl(ex.fund_file(sym), ex.corrupt); return sorted((r['t'], r['rate']) for r in recs)
+
+
+def _last_funding_ok(prev_ticks, sym):
+    for t in reversed(prev_ticks):
+        v = (t.get('funding_ok') or {}).get(sym)
+        if v: return v
+    return None
+
+
+def funding_guard(ex, feed, snap, T0, T1, now, fund_ok, prev_ticks, finfo, rec):
+    """資金費率完整性:缺漏不能被模擬器當成 0。檢查每個交易符號的結算紀錄(見 d4_funding.py);有問題先向官方重新要一次(只附加沒有的紀錄),
+    仍有問題就回報並讓處理範圍停在缺口之前。回傳 (新的 T1, 問題清單)。不改任何既有紀錄。"""
+    T0h = T0 - T0 % HOUR; out = []
+    if T1 < T0h: return T1, out                                                  # 還在暖機,沒有處理範圍
+    for s in snap['symbols']:
+        sid = snap['markets'].get(s, {}).get('id') or s.replace('/', ''); info_h = (finfo or {}).get(sid)
+        proven = (now if s in fund_ok else _last_funding_ok(prev_ticks, s))
+        proven = proven - FUNDING_LAG_MS if proven else None
+        T1c = min(T1, proven) if proven is not None else T1                      # 只能確認到『最後一次成功取得』的範圍;超過的部分另列 fetch_not_verified
+        rows = load_funding(ex, s); iss = FUND.check(rows, T0, T1c, info_h)
+        req = [i for i in iss if i['kind'] in FUND.REQUERY_KINDS]
+        if req:
+            try:
+                n = store_funding(ex, s, feed.funding(sid, min(i['from_ts'] for i in req) + 1), now)
+                if n: rec['funding_repaired'].append({'sym': s, 'new_records': n})
+            except Exception as e: rec['errors'].append('funding requery %s: %s' % (s, str(e)[:100]))
+            iss = FUND.check(load_funding(ex, s), T0, T1c, info_h)
+        if proven is None or proven < T1:
+            a = proven if proven is not None else T0
+            iss.append({'kind': 'fetch_not_verified', 'from_ts': int(a), 'to_ts': int(T1), 'from_utc': iso(a), 'to_utc': iso(T1), 'detail': '這次沒有成功取得資金費率;只能確認到上次成功取得的時間 − %d 小時' % (FUNDING_LAG_MS // HOUR)})
+        out += [dict(i, sym=s) for i in iss]
+    for i in out: T1 = min(T1, FUND.limit_ts(i, T0))
+    return T1, out
 
 
 def first_hole(rows, step):
@@ -391,9 +425,12 @@ def tick(exp_dir, feed, now_ms=None, stale_lock_s=1800):
     A = snap['scenarios']['A']['combos']; Bc = snap['scenarios']['B']['combos']
     with FileLock(ex.lock, stale_lock_s) as lk:
         prev_ticks = read_jsonl_ro(ex.ticks); prev_wall = prev_ticks[-1].get('wall_ms') if prev_ticks else None
-        rec = {'tick_id': tick_id, 'wall_utc': iso(now), 'wall_ms': now, 'lock_takeover': lk.took_over, 'errors': [], 'gaps': [], 'bar_mismatches': [], 'new_bars': 0}
+        rec = {'tick_id': tick_id, 'wall_utc': iso(now), 'wall_ms': now, 'lock_takeover': lk.took_over, 'errors': [], 'gaps': [], 'bar_mismatches': [], 'new_bars': 0, 'funding_ok': {}, 'funding_repaired': [], 'funding_issues': []}
         syms = snap['symbols'] + [snap['reference_symbol']]; need4 = {c['symbol'] for c in A if c['timeframe'] == '4h'} | {snap['reference_symbol']}
-        mk = snap['markets']
+        mk = snap['markets']; finfo = None
+        try:
+            if hasattr(feed, 'funding_info'): finfo = feed.funding_info(); rec['funding_info_hours'] = {mk.get(s, {}).get('id') or s.replace('/', ''): finfo.get(mk.get(s, {}).get('id') or s.replace('/', '')) for s in snap['symbols']}
+        except Exception as e: rec['errors'].append('funding_info: %s' % str(e)[:100])
         for s in syms:
             sid = mk.get(s, {}).get('id') or s.replace('/', '')
             for tf in ('1h', '4h'):
@@ -404,7 +441,7 @@ def tick(exp_dir, feed, now_ms=None, stale_lock_s=1800):
                     rows = feed.klines(sid, tf, start); n, mm = store_bars(ex, s, tf, rows, now); rec['new_bars'] += n; rec['bar_mismatches'] += mm
                 except Exception as e: rec['errors'].append('%s %s: %s' % (s, tf, str(e)[:100]))
             try:
-                fh = load_funding(ex, s); fr = feed.funding(sid, (fh[-1][0] + 1) if fh else T0 - 24 * HOUR); store_funding(ex, s, fr, now)
+                fh = load_funding(ex, s); fr = feed.funding(sid, (fh[-1][0] + 1) if fh else T0 - 24 * HOUR); store_funding(ex, s, fr, now); rec['funding_ok'][s] = now
             except Exception as e: rec['errors'].append('funding %s: %s' % (s, str(e)[:100]))
         # 處理範圍 T1:所有幣的 1H 從 T0 所在小時起連續不缺的最後一根,且落後現在 ≥ 2 小時(資金費率已公布)
         T0h = T0 - T0 % HOUR; lastclosed = now - now % HOUR - HOUR; T1 = lastclosed - FUNDING_LAG_MS + HOUR; wanted = T1
@@ -414,6 +451,8 @@ def tick(exp_dir, feed, now_ms=None, stale_lock_s=1800):
             if wanted >= T0h and lc < wanted: rec['gaps'].append({'sym': s, 'last_contiguous_1h': iso(lc), 'first_missing_ts': int(max(lc + HOUR, T0h)), 'wanted_through': iso(wanted)})       # 缺棒:處理範圍停在缺口之前,不補造
             T1 = min(T1, lc)
             if s in need4: bars[(s, '4h')] = load_bars(ex, s, '4h')
+        T1, fiss = funding_guard(ex, feed, snap, T0, T1, now, rec['funding_ok'], prev_ticks, finfo, rec); rec['funding_issues'] = fiss
+        for i in fiss: rec['gaps'].append({'sym': i['sym'], 'kind': 'funding_incomplete', 'first_missing_ts': i['from_ts'], 'funding_issue': i['kind'], 'from_utc': i['from_utc'], 'to_utc': i['to_utc'], 'reason': i['detail']})       # 停在缺口前,不補造、不當成 0
         rec['T1'] = int(T1); rec['T1_utc'] = iso(T1) if T1 > 0 else None
         new_flags = detect_flags(ex, rec, snap, now, tick_id, prev_wall); rec['new_flags'] = [f['type'] for f in new_flags]
         if T1 < T0h:

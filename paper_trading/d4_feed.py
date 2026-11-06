@@ -34,6 +34,10 @@ class BinanceFeed:
             cur = int(r[-1]['fundingTime']) + 1
         return out
 
+    def funding_info(self):
+        """官方 /fapi/v1/fundingInfo(公開):有調整過結算間隔的合約目前的間隔(小時)。沒列出的合約沒有資訊,呼叫端不得假設預設值。"""
+        return {x['symbol']: int(x['fundingIntervalHours']) for x in self.ex.fapiPublicGetFundingInfo()}
+
     def markets(self, symbols):
         mk = self.ex.load_markets(); out = {}
         for s in symbols:
