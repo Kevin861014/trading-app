@@ -91,7 +91,7 @@ class TestIntervals(unittest.TestCase):
         finally:
             ccxt.binanceusdm = orig
 
-    def test_yfinance_path_builds_true_4h_from_1h(self):
+    def test_yfinance_path_builds_true_4h_from_1h_for_stocks(self):
         import yfinance
         start = utc_ms(2026, 1, 1)
         idx = pd.DatetimeIndex([pd.Timestamp(r[0], unit="ms", tz="UTC") for r in hourly(start, 24 * 12 + 2)])
@@ -102,7 +102,7 @@ class TestIntervals(unittest.TestCase):
         orig = yfinance.Ticker; yfinance.Ticker = FakeTicker
         A.CCXT_AVAILABLE = False
         try:
-            out = A.fetch_data("BTC-USD", "2026-01-01", "4h")
+            out = A.fetch_data("AAPL", "2026-01-01", "4h")          # 股票仍走 yfinance(加密貨幣不再走這條路,見 test_crypto_data_source.py)
         finally:
             yfinance.Ticker = orig
         self.assertTrue(len(out) > 50)

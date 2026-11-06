@@ -1,0 +1,235 @@
+{
+ "official": [
+  {
+   "sym": "BTCUSDT",
+   "window": "2022-05-08",
+   "api_4h_bars": 43,
+   "api_1h_bars": 169,
+   "compared": 42,
+   "mismatch": 0,
+   "boundary_not_utc_grid": 0,
+   "close_time_bad": 0,
+   "incomplete_4h": 1,
+   "diffs": []
+  },
+  {
+   "sym": "BTCUSDT",
+   "window": "2025-06-01",
+   "api_4h_bars": 43,
+   "api_1h_bars": 169,
+   "compared": 42,
+   "mismatch": 0,
+   "boundary_not_utc_grid": 0,
+   "close_time_bad": 0,
+   "incomplete_4h": 1,
+   "diffs": []
+  },
+  {
+   "sym": "BTCUSDT",
+   "window": "2026-10-20",
+   "api_4h_bars": 43,
+   "api_1h_bars": 169,
+   "compared": 42,
+   "mismatch": 0,
+   "boundary_not_utc_grid": 0,
+   "close_time_bad": 0,
+   "incomplete_4h": 1,
+   "diffs": []
+  },
+  {
+   "sym": "TRXUSDT",
+   "window": "2022-05-08",
+   "api_4h_bars": 43,
+   "api_1h_bars": 169,
+   "compared": 42,
+   "mismatch": 0,
+   "boundary_not_utc_grid": 0,
+   "close_time_bad": 0,
+   "incomplete_4h": 1,
+   "diffs": []
+  },
+  {
+   "sym": "TRXUSDT",
+   "window": "2025-06-01",
+   "api_4h_bars": 43,
+   "api_1h_bars": 169,
+   "compared": 42,
+   "mismatch": 0,
+   "boundary_not_utc_grid": 0,
+   "close_time_bad": 0,
+   "incomplete_4h": 1,
+   "diffs": []
+  },
+  {
+   "sym": "TRXUSDT",
+   "window": "2026-10-20",
+   "api_4h_bars": 43,
+   "api_1h_bars": 169,
+   "compared": 42,
+   "mismatch": 0,
+   "boundary_not_utc_grid": 0,
+   "close_time_bad": 0,
+   "incomplete_4h": 1,
+   "diffs": []
+  },
+  {
+   "sym": "XRPUSDT",
+   "window": "2022-05-08",
+   "api_4h_bars": 43,
+   "api_1h_bars": 169,
+   "compared": 42,
+   "mismatch": 0,
+   "boundary_not_utc_grid": 0,
+   "close_time_bad": 0,
+   "incomplete_4h": 1,
+   "diffs": []
+  },
+  {
+   "sym": "XRPUSDT",
+   "window": "2025-06-01",
+   "api_4h_bars": 43,
+   "api_1h_bars": 169,
+   "compared": 42,
+   "mismatch": 0,
+   "boundary_not_utc_grid": 0,
+   "close_time_bad": 0,
+   "incomplete_4h": 1,
+   "diffs": []
+  },
+  {
+   "sym": "XRPUSDT",
+   "window": "2026-10-20",
+   "api_4h_bars": 43,
+   "api_1h_bars": 169,
+   "compared": 42,
+   "mismatch": 0,
+   "boundary_not_utc_grid": 0,
+   "close_time_bad": 0,
+   "incomplete_4h": 1,
+   "diffs": []
+  },
+  {
+   "sym": "SOLUSDT",
+   "window": "2022-05-08",
+   "api_4h_bars": 43,
+   "api_1h_bars": 169,
+   "compared": 42,
+   "mismatch": 0,
+   "boundary_not_utc_grid": 0,
+   "close_time_bad": 0,
+   "incomplete_4h": 1,
+   "diffs": []
+  },
+  {
+   "sym": "SOLUSDT",
+   "window": "2025-06-01",
+   "api_4h_bars": 43,
+   "api_1h_bars": 169,
+   "compared": 42,
+   "mismatch": 0,
+   "boundary_not_utc_grid": 0,
+   "close_time_bad": 0,
+   "incomplete_4h": 1,
+   "diffs": []
+  },
+  {
+   "sym": "SOLUSDT",
+   "window": "2026-10-20",
+   "api_4h_bars": 43,
+   "api_1h_bars": 169,
+   "compared": 42,
+   "mismatch": 0,
+   "boundary_not_utc_grid": 0,
+   "close_time_bad": 0,
+   "incomplete_4h": 1,
+   "diffs": []
+  }
+ ],
+ "local_d3": [
+  {
+   "sym": "BTCUSDT",
+   "4h_bars": 15689,
+   "compared_full_4h": 15688,
+   "not_comparable_partial_first_bar": 1,
+   "mismatch": 5,
+   "max_volume_rel_diff": 901.39698538931
+  },
+  {
+   "sym": "TRXUSDT",
+   "4h_bars": 14917,
+   "compared_full_4h": 14917,
+   "not_comparable_partial_first_bar": 0,
+   "mismatch": 2,
+   "max_volume_rel_diff": 0.08977646019759622
+  },
+  {
+   "sym": "XRPUSDT",
+   "4h_bars": 14971,
+   "compared_full_4h": 14971,
+   "not_comparable_partial_first_bar": 0,
+   "mismatch": 5,
+   "max_volume_rel_diff": 20.635454943981518
+  },
+  {
+   "sym": "SOLUSDT",
+   "4h_bars": 13460,
+   "compared_full_4h": 13459,
+   "not_comparable_partial_first_bar": 1,
+   "mismatch": 4,
+   "max_volume_rel_diff": 0.1713137585605926
+  }
+ ],
+ "example": {
+  "4h_open_utc": "2025-06-02 08:00",
+  "1h_bars": [
+   {
+    "open_utc": "2025-06-02 08:00",
+    "o": "105346.40",
+    "h": "105900.00",
+    "l": "105190.50",
+    "c": "105290.00",
+    "v": "10502.437"
+   },
+   {
+    "open_utc": "2025-06-02 09:00",
+    "o": "105290.10",
+    "h": "105296.50",
+    "l": "104420.00",
+    "c": "104530.50",
+    "v": "13843.216"
+   },
+   {
+    "open_utc": "2025-06-02 10:00",
+    "o": "104530.40",
+    "h": "104618.20",
+    "l": "104188.80",
+    "c": "104316.70",
+    "v": "7442.889"
+   },
+   {
+    "open_utc": "2025-06-02 11:00",
+    "o": "104316.70",
+    "h": "104448.60",
+    "l": "103867.80",
+    "c": "104000.00",
+    "v": "7703.417"
+   }
+  ],
+  "manual_aggregate": {
+   "o": "105346.40",
+   "h": "105900.00",
+   "l": "103867.80",
+   "c": "104000.00",
+   "v": "39491.959"
+  },
+  "official_4h": {
+   "o": "105346.40",
+   "h": "105900.00",
+   "l": "103867.80",
+   "c": "104000.00",
+   "v": "39491.959",
+   "closeTime": 1748865599999
+  }
+ },
+ "requests": 24
+}

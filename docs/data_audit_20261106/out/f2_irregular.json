@@ -1,0 +1,52 @@
+[
+ {
+  "sym": "SOLUSDT",
+  "window": "2022-11-13 14:00 -> 2022-11-15 02:00",
+  "api_rows": 19,
+  "local_rows": 19,
+  "identical": true,
+  "spacing_hours_in_window": {
+   "2": 18
+  }
+ },
+ {
+  "sym": "KAVAUSDT",
+  "window": "2026-03-06 12:00 -> 2026-03-09 12:00",
+  "api_rows": 19,
+  "local_rows": 19,
+  "identical": true,
+  "spacing_hours_in_window": {
+   "4": 18
+  }
+ },
+ {
+  "sym": "JUPUSDT",
+  "window": "2026-10-30 00:00 -> 2026-11-02 08:00",
+  "api_rows": 21,
+  "local_rows": 21,
+  "identical": true,
+  "spacing_hours_in_window": {
+   "4": 20
+  }
+ },
+ {
+  "sym": "PAXGUSDT",
+  "window": "2026-10-30 00:00 -> 2026-11-02 08:00",
+  "api_rows": 21,
+  "local_rows": 21,
+  "identical": true,
+  "spacing_hours_in_window": {
+   "4": 20
+  }
+ },
+ {
+  "sym": "PYTHUSDT",
+  "window": "2026-10-30 00:00 -> 2026-11-02 08:00",
+  "api_rows": 21,
+  "local_rows": 21,
+  "identical": true,
+  "spacing_hours_in_window": {
+   "4": 20
+  }
+ }
+]

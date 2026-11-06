@@ -164,8 +164,28 @@ def fetch_meta(symbol, start_date, interval):
     """最近一次 fetch_data(symbol, start_date, interval) 的來源資訊。沒有紀錄(例如測試中被取代)就回空 dict。"""
     return dict(_fetch_meta.get(f"{symbol}_{start_date}_{interval}", {}))
 
-def _record_meta(cache_key, now, source, forming, synth=None):
-    _fetch_meta[cache_key] = {'cached': False, 'ageSec': 0.0, 'source': source, 'formingExcluded': bool(forming), 'synth': synth, 'fetchedAt': now}
+def _record_meta(cache_key, now, source, forming, synth=None, **extra):
+    _fetch_meta[cache_key] = {'cached': False, 'ageSec': 0.0, 'source': source, 'formingExcluded': bool(forming), 'synth': synth, 'fetchedAt': now, **extra}
+
+
+class DataSourceError(Exception):
+    """加密貨幣(幣安 USDT-M 永續)行情取得失敗或沒有資料。
+    加密貨幣只走幣安永續公開行情:失敗時明確回報,不會悄悄退回 yfinance 現貨資料,也不會由 1H 合成 4H。(台股、美股不走這條路,仍用 yfinance。)"""
+    code = 'crypto_data_unavailable'
+
+
+def _data_source_error_response(e):
+    """加密貨幣行情取得失敗:明確回報(HTTP 502 + 錯誤碼),並記進工作事件。不退回其他資料來源。"""
+    try: _RC_JOB.get().error('data', str(e))
+    except Exception: pass
+    return jsonify({'error': str(e), 'errorCode': getattr(e, 'code', 'data_source_error'), 'source': 'binance_usdm_perp'}), 502
+
+
+def count_missing_bars(rows, interval):
+    """資料裡缺了幾根 K 棒(相鄰兩根間距大於一個週期的部分)。只描述,不補造。"""
+    step = {'1h': 3600000, '4h': 14400000, '1d': 86400000, '1w': 604800000}.get(interval)
+    if not step or len(rows) < 2: return 0
+    return sum(max(0, int((b[0] - a[0]) // step) - 1) for a, b in zip(rows, rows[1:]))
 
 def is_crypto_symbol(symbol):
     """判斷是不是加密貨幣代碼。只看代碼本身,跟 sim.classify_market 是同一套規則(成本與資料路由才不會各判各的)。
@@ -220,7 +240,8 @@ def resample_report(rows, bucket_ms, src='1h'):
     return {'from': src, 'buckets': len(keys), 'full': full, 'droppedInternal': len(keys) - full - (1 if tail else 0), 'tailIncomplete': tail}
 
 def fetch_ccxt_ohlcv(symbol, interval, days):
-    """用 ccxt 從幣安抓加密貨幣 K 棒（本機專用）"""
+    """用 ccxt 從幣安抓加密貨幣 K 棒（本機專用）。失敗回 None,原因記在 _tl.ccxt_error(由 fetch_data 轉成明確的 DataSourceError)。"""
+    _tl.ccxt_error = None
     try:
         import ccxt
         # 轉換代碼格式：BTC-USD → BTC/USDT，PAXG.TW → 不支援
@@ -256,7 +277,8 @@ def fetch_ccxt_ohlcv(symbol, interval, days):
         # 格式：[ts, o, h, l, c, v]
         return [[r[0],r[1],r[2],r[3],r[4],r[5]] for r in all_ohlcv if r[4] > 0]
     except Exception as e:
-        print(f"ccxt 失敗（{symbol}）: {e}，退回 yfinance")
+        _tl.ccxt_error = '%s: %s' % (type(e).__name__, str(e)[:200])
+        print(f"ccxt 失敗（{symbol} {interval}）: {e}")
         return None
 
 def _is_forming(ts, symbol, interval, now=None):
@@ -296,21 +318,25 @@ def fetch_data(symbol, start_date, interval='1d'):
         return _cache[cache_key]
     _tl.forming_dropped = False
 
-    # 本機 + 加密貨幣 + ccxt 可用 → 用 ccxt（可抓真正 4H 和更長歷史）
-    if CCXT_AVAILABLE and is_crypto_symbol(symbol) and interval in ('1h','4h','1d','1w'):
+    # 加密貨幣:只走幣安 USDT-M 永續公開行情(ccxt)。取不到就明確回報,不退回 yfinance 現貨、不由 1H 合成 4H。
+    if is_crypto_symbol(symbol) and interval in ('1h','4h','1d','1w'):
+        if not CCXT_AVAILABLE:
+            raise DataSourceError('幣安 USDT-M 永續行情目前無法使用(網站啟動時的連線檢查沒有通過),%s %s 無法取得資料。'
+                                  '加密貨幣不會改用 yfinance 現貨資料,也不會由 1H 合成 4H。請確認網路後重新啟動網站。' % (symbol, interval))
         days = max(int((datetime.datetime.now() -
                         datetime.datetime.strptime(start_date, '%Y-%m-%d')).days) + 30, 100)
-        # 4H 用真正的 4h 時框，不用 1H 替代
-        ccxt_interval = interval
-        result = fetch_ccxt_ohlcv(symbol, ccxt_interval, days)
-        if result and len(result) > 100:
-            _cache[cache_key] = result
-            _cache_time[cache_key] = now
-            _record_meta(cache_key, now, 'ccxt', _tl.forming_dropped)
-            return result
-        _tl.forming_dropped = False
+        result = fetch_ccxt_ohlcv(symbol, interval, days)          # 4H 就是真正的 4h 時框
+        if result is None:
+            raise DataSourceError('幣安 USDT-M 永續行情取得失敗(%s %s):%s。不會改用 yfinance 現貨資料,也不會由 1H 合成 4H。'
+                                  % (symbol, interval, getattr(_tl, 'ccxt_error', None) or '原因不明'))
+        if not result:
+            raise DataSourceError('幣安 USDT-M 永續沒有回傳任何 %s K 棒(%s):代碼可能不存在或尚未上市。不會改用其他資料來源。' % (interval, symbol))
+        _cache[cache_key] = result
+        _cache_time[cache_key] = now
+        _record_meta(cache_key, now, 'ccxt', _tl.forming_dropped, venue='binance_usdm_perp', missingBars=count_missing_bars(result, interval))
+        return result            # 根數太少時照實回傳,由呼叫端(與資料品質檢查)回報『資料不足』
 
-    # 沒有 ccxt（連不上幣安、或股票市場）：yfinance 沒有 4H，改抓 1H 再合成真正的 4H
+    # 股票市場:yfinance 沒有 4H,改抓 1H 再合成真正的 4H(來源標示為『yfinance(1h→4h 合成)』)
     if interval == '4h':
         base = fetch_data(symbol, start_date, '1h')
         out = resample_ohlcv(base, 4 * 3600 * 1000) if base else []
@@ -562,8 +588,9 @@ _MARKET_TZ = {'crypto': ('UTC', 'UTC'), 'tw': ('Asia/Taipei', '台北時間 (UTC
               'metal_etf': ('America/New_York', '美東時間')}
 
 
-def build_data_info(symbol, yf_tf, ohlcv):
-    """最新資料時間與時區(只描述事實;完整的資料品質狀態機在後續階段)。最後一根一律是已收盤 K 棒(fetch 時已排除未收盤)。"""
+def build_data_info(symbol, yf_tf, ohlcv, meta=None):
+    """最新資料時間與時區(只描述事實;完整的資料品質狀態機在後續階段)。最後一根一律是已收盤 K 棒(fetch 時已排除未收盤)。
+    source 取自『這份資料實際怎麼取得的』(fetch_meta);沒有紀錄就標 unknown,不再用旗標推測。"""
     market = classify_market(symbol)
     tz, tz_label = _MARKET_TZ.get(market, ('UTC', 'UTC'))
     intraday = yf_tf in INTRADAY
@@ -571,7 +598,7 @@ def build_data_info(symbol, yf_tf, ohlcv):
     last_ts = ohlcv[-1][0] / 1000.0
     last_utc = datetime.datetime.utcfromtimestamp(last_ts)
     info = {'market': market, 'tz': tz, 'tzLabel': tz_label, 'interval': yf_tf, 'bars': len(ohlcv),
-            'source': 'ccxt' if uses_ccxt(symbol) else 'yfinance',
+            'source': (meta or {}).get('source') or 'unknown', 'venue': (meta or {}).get('venue'),
             'firstBar': datetime.datetime.utcfromtimestamp(ohlcv[0][0] / 1000.0).strftime(fmt),
             'lastBarUtc': last_utc.strftime(fmt), 'lastBarClosed': True}
     if intraday:
@@ -690,7 +717,7 @@ def analyze():
         _ck = cost_kwargs(symbol, strategy)    # 依代碼所屬市場計成本(加密/台股/美股...),所有 API 同一個入口
         _job = _RC_JOB.get()
 
-        _job.start('data', symbol=symbol, interval=yf_tf, source='ccxt' if uses_ccxt(symbol) else 'yfinance')
+        _job.start('data', symbol=symbol, interval=yf_tf)
         ohlcv = fetch_data(symbol, start_date, interval=yf_tf)
 
         if not ohlcv or len(ohlcv) < 100:
@@ -842,7 +869,7 @@ def analyze():
         _disp_total, _disp_mdd, _disp_cagr = equity_window_metrics(dates_dt, equity, _disp_cut_dt)
 
         try:
-            _di = build_data_info(symbol, yf_tf, ohlcv)
+            _di = build_data_info(symbol, yf_tf, ohlcv, fetch_meta(symbol, start_date, yf_tf))
             _job.start('validation')
             _val = build_validation(symbol, strategy, yf_tf, days, ohlcv, dates_dt, equity, stats, _utcnow())
             _job.done('validation', available=bool(_val.get('available')),
@@ -887,6 +914,8 @@ def analyze():
             }
         })
 
+    except DataSourceError as e:
+        return _data_source_error_response(e)
     except Exception as e:
         import traceback
         return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500
@@ -903,7 +932,7 @@ MTF_DISCLAIMER = '多週期狀態只是「已收盤 K 棒上技術指標目前�
 def _data_fields(symbol, start, interval):
     """資料事件要附的『是否來自快取』資訊(給 Research Core 顯示:使用快取,而不是假裝重新下載)。"""
     m = fetch_meta(symbol, start, interval)
-    return {k: m[k] for k in ('cached', 'ageSec', 'formingExcluded') if k in m}
+    return {k: m[k] for k in ('cached', 'ageSec', 'formingExcluded', 'source', 'venue', 'missingBars') if k in m}
 
 
 def _benchmark_dates(market):
@@ -925,7 +954,7 @@ def quality_for_series(symbol, interval, rows, meta=None, now=None, min_bars=60)
         bench = (lambda: _benchmark_dates(market)) if market in DQ.SESSION else None
         q = DQ.assess(rows, interval, market, now or _utcnow(), synth=meta.get('synth'), forming_excluded=meta.get('formingExcluded'),
                       min_bars=min_bars, benchmark_dates=bench)
-        q['cached'] = meta.get('cached'); q['ageSec'] = meta.get('ageSec'); q['source'] = meta.get('source')
+        q['cached'] = meta.get('cached'); q['ageSec'] = meta.get('ageSec'); q['source'] = meta.get('source'); q['venue'] = meta.get('venue'); q['missingBars'] = meta.get('missingBars')
         return q
     except Exception:
         return None
@@ -979,7 +1008,7 @@ def api_mtf():
     plan = [(tf, _mtf_unsupported(symbol, tf)) for tf in MTF_ORDER if tf in want]
     fetch_list = [tf for tf, why in plan if not why]
     n = len(fetch_list); entries = {}; fetched = {}
-    _job.start('data', symbol=symbol, n=n, source='ccxt' if uses_ccxt(symbol) else 'yfinance')
+    _job.start('data', symbol=symbol, n=n)
     for k, tf in enumerate(fetch_list, 1):
         _job.check()                                                         # 合作式取消點
         start = _mtf_start(symbol, tf); t0 = _time.perf_counter(); err = None; rows = []
@@ -990,7 +1019,7 @@ def api_mtf():
         meta = fetch_meta(symbol, start, tf)
         fetched[tf] = (rows, meta, err)
         _job.progress('data', i=k, n=n, tf=tf, bars=len(rows or []), ms=round((_time.perf_counter() - t0) * 1000.0, 1),
-                      cached=meta.get('cached'), ageSec=meta.get('ageSec'), error=err)
+                      cached=meta.get('cached'), ageSec=meta.get('ageSec'), source=meta.get('source'), error=err)
     _job.done('data', fetched=n, cachedCount=sum(1 for v in fetched.values() if v[1].get('cached')))
 
     _job.start('indicators', n=n)
@@ -1012,7 +1041,7 @@ def api_mtf():
             ind = tf_indicators(closed)
         info = None
         if closed:
-            di = build_data_info(symbol, tf, closed); info = {'bars': len(closed), 'firstBar': di['firstBar'], 'lastBarUtc': di['lastBarUtc'], 'lastBarLocal': di['lastBarLocal'], 'tzLabel': di['tzLabel']}
+            di = build_data_info(symbol, tf, closed, meta); info = {'bars': len(closed), 'firstBar': di['firstBar'], 'lastBarUtc': di['lastBarUtc'], 'lastBarLocal': di['lastBarLocal'], 'tzLabel': di['tzLabel']}
         entries[tf] = {'tf': tf, 'label': MTF_LABEL[tf], 'supported': True, 'data': {**(info or {}), 'source': meta.get('source'), 'cached': meta.get('cached'), 'ageSec': meta.get('ageSec'),
                        'formingExcluded': bool(meta.get('formingExcluded')) or 'forming_trimmed' in q['flags'], 'synth': meta.get('synth')},
                        'quality': q, 'usable': (not q['blocking']) and ind is not None, 'indicators': ind}
@@ -1046,6 +1075,8 @@ def api_regime_study():
         return jsonify(body), code
     except _rev.JobCancelled:
         raise
+    except DataSourceError as e:
+        return _data_source_error_response(e)
     except Exception as e:
         import traceback
         return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500
@@ -1092,7 +1123,7 @@ def job_cancel():
 def get_config():
     return jsonify({
         'ccxtAvailable': CCXT_AVAILABLE,
-        'dataSource': 'ccxt+yfinance' if CCXT_AVAILABLE else 'yfinance'
+        'dataSource': ('加密貨幣:幣安 USDT-M 永續(ccxt);股票:yfinance' if CCXT_AVAILABLE else '加密貨幣:無法使用(幣安連線檢查未通過,不會改用 yfinance);股票:yfinance')
     })
 
 
@@ -1361,7 +1392,7 @@ def best_strategy():
 
     _job = _RC_JOB.get()
     try:
-        _job.start('data', symbol=symbol, interval=yf_tf, source='ccxt' if uses_ccxt(symbol) else 'yfinance')
+        _job.start('data', symbol=symbol, interval=yf_tf)
         ohlcv = fetch_data(symbol, start_date, interval=yf_tf)
         if not ohlcv or len(ohlcv) < 220:
             _job.error('data', '資料不足', bars=len(ohlcv) if ohlcv else 0)
@@ -1376,6 +1407,8 @@ def best_strategy():
         return jsonify({'results': top, 'total_tested': tested, 'character': mc,
                         'split': split, 'oosAvailable': bool(split), 'oosRequested': use_oos,
                         'dataQuality': quality_for_series(symbol, yf_tf, ohlcv, fetch_meta(symbol, start_date, yf_tf))})
+    except DataSourceError as e:
+        return _data_source_error_response(e)
     except Exception as e:
         import traceback
         return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500
@@ -1396,7 +1429,7 @@ def deep_analysis():
     try:
         market = classify_market(symbol)
         intraday = yf_tf in INTRADAY
-        _job.start('data', symbol=symbol, interval=yf_tf, source='ccxt' if uses_ccxt(symbol) else 'yfinance')
+        _job.start('data', symbol=symbol, interval=yf_tf)
         if intraday:
             days = 730
             start = (datetime.datetime.now() - datetime.timedelta(days=days + 400)).strftime('%Y-%m-%d')
@@ -1424,6 +1457,8 @@ def deep_analysis():
         return jsonify({'results': top, 'hasOos': use_oos, 'isDeep': True, 'isCrypto': intraday,
                         'total_tested': tested, 'split': split, 'oosAvailable': bool(split),
                         'dataQuality': quality_for_series(symbol, yf_tf, ohlcv, fetch_meta(symbol, start, yf_tf))})
+    except DataSourceError as e:
+        return _data_source_error_response(e)
     except Exception as e:
         import traceback
         return jsonify({'error': str(e), 'detail': traceback.format_exc()}), 500

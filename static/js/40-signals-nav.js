@@ -159,8 +159,8 @@ function switchMarketTab(m){
 
 // ── 資料來源標示(網站在本機 Windows 執行)──────────────────────────
 fetch('/api/config').then(r=>r.json()).then(data=>{
-  const txt = data.ccxtAvailable ? '台股1D · 加密4H（ccxt）' : '台股1D · 加密4H（yfinance）';
-  const tip = data.ccxtAvailable ? '加密貨幣使用 ccxt 幣安公開行情，支援真正 4H 和更長歷史' : '目前連不上幣安，加密貨幣改用 yfinance（4H 由 1H 合成，歷史較短）';
+  const txt = data.ccxtAvailable ? '台股1D · 加密4H（ccxt）' : '台股1D · 加密：幣安連線失敗';
+  const tip = data.ccxtAvailable ? '加密貨幣使用 ccxt 幣安 USDT-M 永續公開行情，支援真正 4H 和更長歷史' : '目前連不上幣安，加密貨幣暫時無法取得行情（不會改用 yfinance 現貨資料，也不會由 1H 合成 4H）；台股、美股不受影響。請確認網路後重新啟動網站。';
   document.querySelectorAll('.data-src-label').forEach(el=>{
     el.textContent = txt; el.title = tip;
     if(data.ccxtAvailable && el.id==='dataSourceLabel') el.style.color = '#26a69a';

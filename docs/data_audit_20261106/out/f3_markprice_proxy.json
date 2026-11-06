@@ -1,0 +1,27 @@
+{
+ "BTCUSDT": {
+  "n": 85,
+  "mean_abs_rel_diff": 3.511952941451986e-05,
+  "max_abs_rel_diff": 0.000491872509385094
+ },
+ "SOLUSDT": {
+  "n": 85,
+  "mean_abs_rel_diff": 7.611528221212308e-05,
+  "max_abs_rel_diff": 0.0010559848172202457
+ },
+ "TRXUSDT": {
+  "n": 85,
+  "mean_abs_rel_diff": 7.914613912335062e-05,
+  "max_abs_rel_diff": 0.0008722373599756583
+ },
+ "XRPUSDT": {
+  "n": 85,
+  "mean_abs_rel_diff": 9.811881201406968e-05,
+  "max_abs_rel_diff": 0.0007206687806283751
+ },
+ "ALL": {
+  "n": 340,
+  "mean_abs_rel_diff": 7.212494069101581e-05,
+  "max_abs_rel_diff": 0.0010559848172202457
+ }
+}

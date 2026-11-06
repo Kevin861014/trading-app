@@ -1,0 +1,22 @@
+✅ 擴充策略載入完成，新增 147 個策略（策略庫共 184 個）
+verified abnormal bars to replace: 74
+signal recompute: 26s; reproduction of formal signals on affected windows: 19613/19613 equal
+baseline run 87s
+BASELINE REPRODUCES FORMAL walkforward.json: YES (all compared fields equal)
+variant run 89s
+
+counts orig {'blocks_hist': 12, 'B_dd_smaller': 10, 'B_return_higher': 5, 'B_worst_day_smaller': 11, 'by_class': {'I': {'n': 5, 'B_dd_smaller': 5}, 'G': {'n': 2, 'B_dd_smaller': 1}, 'X': {'n': 5, 'B_dd_smaller': 4}}}
+counts alt  {'blocks_hist': 12, 'B_dd_smaller': 10, 'B_return_higher': 5, 'B_worst_day_smaller': 11, 'by_class': {'I': {'n': 5, 'B_dd_smaller': 5}, 'G': {'n': 2, 'B_dd_smaller': 1}, 'X': {'n': 5, 'B_dd_smaller': 4}}}
+2021H1         A ret   16.35->  16.35 dd   -8.11->  -8.11 tr  593-> 593 pf 1.28->1.28 | B ret   12.15->  12.15 dd   -6.00->  -6.00 tr  360-> 360 | diffTrades A -0/+0 B -0/+0
+2021H2         A ret   -0.37->  -0.37 dd  -10.82-> -10.82 tr  584-> 584 pf 0.99->0.99 | B ret   -2.35->  -2.35 dd   -8.00->  -8.00 tr  378-> 378 | diffTrades A -0/+0 B -0/+0
+2022H1         A ret   -9.06->  -9.06 dd  -11.25-> -11.25 tr  529-> 529 pf 0.8->0.8 | B ret   -7.42->  -7.42 dd   -8.37->  -8.37 tr  342-> 342 | diffTrades A -0/+0 B -0/+0
+2022H2         A ret  -19.19-> -19.19 dd  -24.07-> -24.07 tr  629-> 629 pf 0.63->0.63 | B ret  -12.68-> -12.68 dd  -17.35-> -17.35 tr  372-> 372 | diffTrades A -0/+0 B -0/+0
+2023H1         A ret    3.29->   3.29 dd  -14.80-> -14.80 tr  619-> 619 pf 1.01->1.01 | B ret    7.98->   7.98 dd  -10.30-> -10.30 tr  388-> 388 | diffTrades A -0/+0 B -0/+0
+2023H2         A ret    9.16->   8.93 dd  -13.89-> -13.89 tr  716-> 715 pf 1.13->1.13 | B ret    8.24->   8.03 dd  -11.16-> -11.16 tr  493-> 492 | diffTrades A -1/+0 B -1/+0
+2024-01~02     A ret    6.09->   6.09 dd   -5.25->  -5.25 tr  238-> 238 pf 1.21->1.21 | B ret    2.95->   2.95 dd   -5.36->  -5.36 tr  173-> 173 | diffTrades A -0/+0 B -0/+0
+2024-03~12     A ret   28.23->  28.14 dd  -19.67-> -19.67 tr 1282->1281 pf 1.26->1.26 | B ret   16.21->  16.11 dd  -16.27-> -16.27 tr  923-> 922 | diffTrades A -3/+2 B -3/+2
+2025H1         A ret   -7.44->  -7.44 dd  -14.13-> -14.13 tr  728-> 728 pf 0.87->0.87 | B ret   -2.03->  -2.03 dd  -11.63-> -11.63 tr  517-> 517 | diffTrades A -0/+0 B -0/+0
+2025H2         A ret  -10.39-> -10.39 dd  -25.64-> -25.64 tr  805-> 805 pf 0.87->0.87 | B ret   -9.10->  -9.10 dd  -20.47-> -20.47 tr  611-> 611 | diffTrades A -0/+0 B -0/+0
+2026H1         A ret    4.55->   4.55 dd  -11.34-> -11.34 tr  707-> 707 pf 1.07->1.07 | B ret    1.44->   1.44 dd  -11.58-> -11.58 tr  553-> 553 | diffTrades A -0/+0 B -0/+0
+2026-07~10-29  A ret   20.15->  20.15 dd   -8.50->  -8.50 tr  472-> 472 pf 1.56->1.56 | B ret   18.24->  18.24 dd   -5.52->  -5.52 tr  368-> 368 | diffTrades A -0/+0 B -0/+0
+2026-10-29~now A ret   -1.89->  -1.89 dd   -1.98->  -1.98 tr   19->  19 pf 0.22->0.22 | B ret   -1.56->  -1.56 dd   -1.65->  -1.65 tr   15->  15 | diffTrades A -0/+0 B -0/+0

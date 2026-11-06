@@ -1,0 +1,98 @@
+{
+ "contract": [
+  {
+   "symbol": "BTCUSDT",
+   "contractType": "PERPETUAL",
+   "quoteAsset": "USDT",
+   "status": "TRADING",
+   "onboardDate": "2019-09-08 17:55"
+  },
+  {
+   "symbol": "TRXUSDT",
+   "contractType": "PERPETUAL",
+   "quoteAsset": "USDT",
+   "status": "TRADING",
+   "onboardDate": "2020-01-15 08:05"
+  },
+  {
+   "symbol": "XRPUSDT",
+   "contractType": "PERPETUAL",
+   "quoteAsset": "USDT",
+   "status": "TRADING",
+   "onboardDate": "2020-01-06 08:20"
+  },
+  {
+   "symbol": "SOLUSDT",
+   "contractType": "PERPETUAL",
+   "quoteAsset": "USDT",
+   "status": "TRADING",
+   "onboardDate": "2020-09-14 07:00"
+  }
+ ],
+ "spot_vs_local": [
+  {
+   "sym": "BTCUSDT",
+   "tf": "1h",
+   "spot_rows": 73,
+   "local_rows_same_ohlc_as_spot": 0,
+   "local_rows_same_ohlcv_as_spot": 0,
+   "median_local_vol_over_spot_vol": 10.7243390887141
+  },
+  {
+   "sym": "BTCUSDT",
+   "tf": "4h",
+   "spot_rows": 43,
+   "local_rows_same_ohlc_as_spot": 0,
+   "local_rows_same_ohlcv_as_spot": 0,
+   "median_local_vol_over_spot_vol": 10.245820487042272
+  },
+  {
+   "sym": "TRXUSDT",
+   "tf": "1h",
+   "spot_rows": 73,
+   "local_rows_same_ohlc_as_spot": 0,
+   "local_rows_same_ohlcv_as_spot": 0,
+   "median_local_vol_over_spot_vol": 1.3803495940913488
+  },
+  {
+   "sym": "TRXUSDT",
+   "tf": "4h",
+   "spot_rows": 43,
+   "local_rows_same_ohlc_as_spot": 0,
+   "local_rows_same_ohlcv_as_spot": 0,
+   "median_local_vol_over_spot_vol": 1.3349198408489524
+  },
+  {
+   "sym": "XRPUSDT",
+   "tf": "1h",
+   "spot_rows": 73,
+   "local_rows_same_ohlc_as_spot": 0,
+   "local_rows_same_ohlcv_as_spot": 0,
+   "median_local_vol_over_spot_vol": 5.116476160695546
+  },
+  {
+   "sym": "XRPUSDT",
+   "tf": "4h",
+   "spot_rows": 43,
+   "local_rows_same_ohlc_as_spot": 0,
+   "local_rows_same_ohlcv_as_spot": 0,
+   "median_local_vol_over_spot_vol": 4.795269101319555
+  },
+  {
+   "sym": "SOLUSDT",
+   "tf": "1h",
+   "spot_rows": 73,
+   "local_rows_same_ohlc_as_spot": 0,
+   "local_rows_same_ohlcv_as_spot": 0,
+   "median_local_vol_over_spot_vol": 7.46871080367371
+  },
+  {
+   "sym": "SOLUSDT",
+   "tf": "4h",
+   "spot_rows": 43,
+   "local_rows_same_ohlc_as_spot": 0,
+   "local_rows_same_ohlcv_as_spot": 0,
+   "median_local_vol_over_spot_vol": 7.604801790861447
+  }
+ ]
+}

@@ -1,0 +1,18 @@
+{
+ "deleted": {
+  "symbol": "PAXG/USDT",
+  "settlement_utc": "2026-08-16 04:00",
+  "rate": -8.3e-07,
+  "amount_that_would_have_been_charged_usd": 1.0897584600000001e-05,
+  "position": "PAXG/USDT|4h|inside_break"
+ },
+ "raised_error": null,
+ "funding_events_baseline": 524,
+ "funding_events_after_delete": 523,
+ "deleted_event_present_after": false,
+ "notes_after": {
+  "exchange_stop_exit": 13
+ },
+ "same_trade_count": true,
+ "equity_end_diff_usd": -1.1e-05
+}

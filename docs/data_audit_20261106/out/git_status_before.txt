@@ -1,0 +1,7 @@
+?? .claude/
+?? app.py.bak_before_4h_fix
+?? app.py.bak_before_reliability_fix
+?? docs/data_audit_20261106/
+?? "docs/stage3_A_\347\217\276\346\263\201\347\233\244\351\273\236\350\210\207UI\346\224\271\347\211\210\346\226\271\346\241\210.md"
+?? research/
+?? sim.py.bak_before_reliability_fix

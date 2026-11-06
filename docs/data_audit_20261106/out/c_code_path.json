@@ -1,0 +1,328 @@
+{
+ "ccxt_market_BTC/USDT": {
+  "id": "BTCUSDT",
+  "type": "swap",
+  "linear": true,
+  "swap": true,
+  "contract": true,
+  "settle": "USDT",
+  "symbol": "BTC/USDT:USDT"
+ },
+ "ccxt_fetch_ohlcv_url": [
+  "https://fapi.binance.com/fapi/v1/klines?interval=1h&limit=2&symbol=BTCUSDT&startTime=1710201600000"
+ ],
+ "ccxt_fetch_ohlcv_rows": [
+  [
+   1710201600000,
+   72153.9,
+   72424.6,
+   72059.3,
+   72068.4,
+   6679.714
+  ],
+  [
+   1710205200000,
+   72068.3,
+   72571.0,
+   71962.0,
+   72530.6,
+   6210.648
+  ]
+ ],
+ "fapiPublicGetKlines_url": [
+  "https://fapi.binance.com/fapi/v1/klines?symbol=BTCUSDT&interval=4h&startTime=1710201600000&limit=2"
+ ],
+ "site_analyze": [
+  {
+   "symbol": "BTC/USDT",
+   "ui_timeframe": "4h",
+   "http": 200,
+   "bars_sent_to_engine": 6359,
+   "timeframe_arg_to_engine": "4h",
+   "spacing_ms": {
+    "14400000": 6358
+   },
+   "expected_step_ms": 14400000,
+   "first": "2023-12-12 04:00",
+   "last": "2026-11-05 20:00",
+   "dataInfo": {
+    "interval": "4h",
+    "source": "ccxt",
+    "bars": 6359,
+    "firstBar": "2023-12-12 04:00",
+    "lastBarUtc": "2026-11-05 20:00",
+    "lastBarClosed": true
+   },
+   "fetch_meta_source": "ccxt",
+   "dataQuality_source": "ccxt",
+   "official_compare": {
+    "api_rows": 6359,
+    "matched": 6359,
+    "mismatch_rows": 0,
+    "missing_in_local": 0,
+    "extra_in_local": 0,
+    "close_time_mismatch": 0,
+    "field_mismatch": {
+     "o": 0,
+     "h": 0,
+     "l": 0,
+     "c": 0,
+     "v": 0
+    }
+   },
+   "secs": 3.8
+  },
+  {
+   "symbol": "SOL/USDT",
+   "ui_timeframe": "4h",
+   "http": 200,
+   "bars_sent_to_engine": 6359,
+   "timeframe_arg_to_engine": "4h",
+   "spacing_ms": {
+    "14400000": 6358
+   },
+   "expected_step_ms": 14400000,
+   "first": "2023-12-12 04:00",
+   "last": "2026-11-05 20:00",
+   "dataInfo": {
+    "interval": "4h",
+    "source": "ccxt",
+    "bars": 6359,
+    "firstBar": "2023-12-12 04:00",
+    "lastBarUtc": "2026-11-05 20:00",
+    "lastBarClosed": true
+   },
+   "fetch_meta_source": "ccxt",
+   "dataQuality_source": "ccxt",
+   "official_compare": {
+    "api_rows": 6359,
+    "matched": 6359,
+    "mismatch_rows": 0,
+    "missing_in_local": 0,
+    "extra_in_local": 0,
+    "close_time_mismatch": 0,
+    "field_mismatch": {
+     "o": 0,
+     "h": 0,
+     "l": 0,
+     "c": 0,
+     "v": 0
+    }
+   },
+   "secs": 3.7
+  },
+  {
+   "symbol": "XRP/USDT",
+   "ui_timeframe": "1h",
+   "http": 200,
+   "bars_sent_to_engine": 17039,
+   "timeframe_arg_to_engine": "1h",
+   "spacing_ms": {
+    "3600000": 17038
+   },
+   "expected_step_ms": 3600000,
+   "first": "2024-11-26 02:00",
+   "last": "2026-11-06 00:00",
+   "dataInfo": {
+    "interval": "1h",
+    "source": "ccxt",
+    "bars": 17039,
+    "firstBar": "2024-11-26 02:00",
+    "lastBarUtc": "2026-11-06 00:00",
+    "lastBarClosed": true
+   },
+   "fetch_meta_source": "ccxt",
+   "dataQuality_source": "ccxt",
+   "official_compare": {
+    "api_rows": 17039,
+    "matched": 17039,
+    "mismatch_rows": 0,
+    "missing_in_local": 0,
+    "extra_in_local": 0,
+    "close_time_mismatch": 0,
+    "field_mismatch": {
+     "o": 0,
+     "h": 0,
+     "l": 0,
+     "c": 0,
+     "v": 0
+    }
+   },
+   "secs": 9.1
+  },
+  {
+   "symbol": "TRX/USDT",
+   "ui_timeframe": "1h",
+   "http": 200,
+   "bars_sent_to_engine": 17039,
+   "timeframe_arg_to_engine": "1h",
+   "spacing_ms": {
+    "3600000": 17038
+   },
+   "expected_step_ms": 3600000,
+   "first": "2024-11-26 02:00",
+   "last": "2026-11-06 00:00",
+   "dataInfo": {
+    "interval": "1h",
+    "source": "ccxt",
+    "bars": 17039,
+    "firstBar": "2024-11-26 02:00",
+    "lastBarUtc": "2026-11-06 00:00",
+    "lastBarClosed": true
+   },
+   "fetch_meta_source": "ccxt",
+   "dataQuality_source": "ccxt",
+   "official_compare": {
+    "api_rows": 17039,
+    "matched": 17039,
+    "mismatch_rows": 0,
+    "missing_in_local": 0,
+    "extra_in_local": 0,
+    "close_time_mismatch": 0,
+    "field_mismatch": {
+     "o": 0,
+     "h": 0,
+     "l": 0,
+     "c": 0,
+     "v": 0
+    }
+   },
+   "secs": 9.0
+  }
+ ],
+ "d4_feed": [
+  {
+   "sym": "BTCUSDT",
+   "tf": "1h",
+   "feed_rows": 289,
+   "api_rows": 289,
+   "matched": 289,
+   "mismatch_rows": 0,
+   "missing": 0,
+   "extra": 0,
+   "spacing_ms": {
+    "3600000": 288
+   },
+   "last_closed": "2026-11-06 00:00"
+  },
+  {
+   "sym": "BTCUSDT",
+   "tf": "4h",
+   "feed_rows": 72,
+   "api_rows": 72,
+   "matched": 72,
+   "mismatch_rows": 0,
+   "missing": 0,
+   "extra": 0,
+   "spacing_ms": {
+    "14400000": 71
+   },
+   "last_closed": "2026-11-05 20:00"
+  },
+  {
+   "sym": "TRXUSDT",
+   "tf": "1h",
+   "feed_rows": 289,
+   "api_rows": 289,
+   "matched": 289,
+   "mismatch_rows": 0,
+   "missing": 0,
+   "extra": 0,
+   "spacing_ms": {
+    "3600000": 288
+   },
+   "last_closed": "2026-11-06 00:00"
+  },
+  {
+   "sym": "TRXUSDT",
+   "tf": "4h",
+   "feed_rows": 72,
+   "api_rows": 72,
+   "matched": 72,
+   "mismatch_rows": 0,
+   "missing": 0,
+   "extra": 0,
+   "spacing_ms": {
+    "14400000": 71
+   },
+   "last_closed": "2026-11-05 20:00"
+  },
+  {
+   "sym": "XRPUSDT",
+   "tf": "1h",
+   "feed_rows": 289,
+   "api_rows": 289,
+   "matched": 289,
+   "mismatch_rows": 0,
+   "missing": 0,
+   "extra": 0,
+   "spacing_ms": {
+    "3600000": 288
+   },
+   "last_closed": "2026-11-06 00:00"
+  },
+  {
+   "sym": "XRPUSDT",
+   "tf": "4h",
+   "feed_rows": 72,
+   "api_rows": 72,
+   "matched": 72,
+   "mismatch_rows": 0,
+   "missing": 0,
+   "extra": 0,
+   "spacing_ms": {
+    "14400000": 71
+   },
+   "last_closed": "2026-11-05 20:00"
+  },
+  {
+   "sym": "SOLUSDT",
+   "tf": "1h",
+   "feed_rows": 289,
+   "api_rows": 289,
+   "matched": 289,
+   "mismatch_rows": 0,
+   "missing": 0,
+   "extra": 0,
+   "spacing_ms": {
+    "3600000": 288
+   },
+   "last_closed": "2026-11-06 00:00"
+  },
+  {
+   "sym": "SOLUSDT",
+   "tf": "4h",
+   "feed_rows": 72,
+   "api_rows": 72,
+   "matched": 72,
+   "mismatch_rows": 0,
+   "missing": 0,
+   "extra": 0,
+   "spacing_ms": {
+    "14400000": 71
+   },
+   "last_closed": "2026-11-05 20:00"
+  }
+ ],
+ "d4_feed_urls_sample": [
+  "https://fapi.binance.com/fapi/v1/klines"
+ ],
+ "signals_interval_check": [
+  {
+   "file": "D2 signals.pkl",
+   "combos_checked": 23,
+   "of": 23,
+   "issues": [],
+   "n_1h": 2,
+   "n_4h": 21
+  },
+  {
+   "file": "D3 signals_long.pkl",
+   "combos_checked": 23,
+   "of": 23,
+   "issues": [],
+   "n_1h": 2,
+   "n_4h": 21
+  }
+ ]
+}

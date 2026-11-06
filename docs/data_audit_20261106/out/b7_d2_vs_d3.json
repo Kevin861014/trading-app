@@ -1,0 +1,570 @@
+{
+ "rows": [
+  {
+   "sym": "1000PEPE/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "1000PEPE/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "AAVE/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "AAVE/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "ADA/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "ADA/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "ALGO/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "ALGO/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "ARB/USDT",
+   "tf": "1h",
+   "note": "not in D3 (D2-only symbol)",
+   "bars_d2": 14711
+  },
+  {
+   "sym": "ARB/USDT",
+   "tf": "4h",
+   "note": "not in D3 (D2-only symbol)",
+   "bars_d2": 4319
+  },
+  {
+   "sym": "ATOM/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "ATOM/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "BNB/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "BNB/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "CHZ/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "CHZ/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "DOT/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "DOT/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "FET/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "FET/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "IMX/USDT",
+   "tf": "1h",
+   "note": "not in D3 (D2-only symbol)",
+   "bars_d2": 14711
+  },
+  {
+   "sym": "IMX/USDT",
+   "tf": "4h",
+   "note": "not in D3 (D2-only symbol)",
+   "bars_d2": 4319
+  },
+  {
+   "sym": "INJ/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "INJ/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "JUP/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "JUP/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "KAVA/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "KAVA/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "NEAR/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "NEAR/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "PAXG/USDT",
+   "tf": "1h",
+   "overlap_bars": 14117,
+   "equal": 14117,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-27 10:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "PAXG/USDT",
+   "tf": "4h",
+   "overlap_bars": 3529,
+   "equal": 3529,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-27 08:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "PYTH/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "PYTH/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "RUNE/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "RUNE/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "SOL/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "SOL/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "THETA/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "THETA/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "TRX/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "TRX/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "UNI/USDT",
+   "tf": "1h",
+   "note": "not in D3 (D2-only symbol)",
+   "bars_d2": 14711
+  },
+  {
+   "sym": "UNI/USDT",
+   "tf": "4h",
+   "note": "not in D3 (D2-only symbol)",
+   "bars_d2": 4319
+  },
+  {
+   "sym": "VET/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "VET/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "WLD/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "WLD/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "XLM/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "XLM/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "XRP/USDT",
+   "tf": "1h",
+   "overlap_bars": 14711,
+   "equal": 14711,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2025-03-02 16:00 -> 2026-11-05 14:00",
+   "diff_examples": []
+  },
+  {
+   "sym": "XRP/USDT",
+   "tf": "4h",
+   "overlap_bars": 4319,
+   "equal": 4319,
+   "diff": 0,
+   "only_in_d2": 0,
+   "only_in_d3_within_overlap": 0,
+   "range": "2024-11-15 16:00 -> 2026-11-05 08:00",
+   "diff_examples": []
+  }
+ ],
+ "total": {
+  "overlap": 436306,
+  "equal": 436306,
+  "diff": 0,
+  "only_d2": 0,
+  "only_d3_in_range": 0
+ },
+ "zero_volume_bars_d3": [
+  [
+   "BTC/USDT",
+   "1h",
+   "2019-09-08 18:00"
+  ],
+  [
+   "BTC/USDT",
+   "1h",
+   "2019-09-09 00:00"
+  ],
+  [
+   "BTC/USDT",
+   "1h",
+   "2019-09-09 01:00"
+  ]
+ ]
+}

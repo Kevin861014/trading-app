@@ -141,9 +141,9 @@ def study(args, A, sim, job):
     ref_sym, ref_name, ref_why = reference_for(symbol, market, yf_tf, args.get('ref'))
     n_fetch = 2 if ref_sym and ref_sym != symbol else 1
 
-    job.start('data', symbol=symbol, interval=yf_tf, n=n_fetch, source='ccxt' if A.uses_ccxt(symbol) else 'yfinance')
+    job.start('data', symbol=symbol, interval=yf_tf, n=n_fetch)
     t0 = A._time.perf_counter(); ohlcv = A.fetch_data(symbol, start, interval=yf_tf); meta = A.fetch_meta(symbol, start, yf_tf)
-    job.progress('data', i=1, n=n_fetch, role='main', symbol=symbol, bars=len(ohlcv or []), ms=round((A._time.perf_counter() - t0) * 1000.0, 1), cached=meta.get('cached'), ageSec=meta.get('ageSec'))
+    job.progress('data', i=1, n=n_fetch, role='main', symbol=symbol, bars=len(ohlcv or []), ms=round((A._time.perf_counter() - t0) * 1000.0, 1), cached=meta.get('cached'), ageSec=meta.get('ageSec'), source=meta.get('source'))
     if not ohlcv or len(ohlcv) < 220:
         job.error('data', '資料不足', bars=len(ohlcv) if ohlcv else 0)
         return {'error': '資料不足（%d 根），無法做環境研究。' % (len(ohlcv) if ohlcv else 0)}, 400
